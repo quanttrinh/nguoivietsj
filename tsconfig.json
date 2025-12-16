@@ -1,0 +1,44 @@
+{
+  "$schema": "https://www.schemastore.org/tsconfig",
+  "_version": "7.0.0",
+
+  "compilerOptions": {
+    // General
+    "jsx": "preserve",
+    "jsxImportSource": "solid-js",
+    "target": "ESNext",
+    "skipLibCheck": true,
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+
+    // Modules
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "noEmit": true,
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "erasableSyntaxOnly": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedSideEffectImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "types": ["vite/client", "google-apps-script"],
+
+    /* Ban JS */
+    "allowJs": false,
+    "checkJs": false,
+
+    /* Path Aliases */
+    "baseUrl": ".",
+    "paths": {
+      "~/*": ["src/*"],
+      "~web/*": ["src/web/*"],
+      "~server/*": ["src/server/*"]
+    }
+  }
+}

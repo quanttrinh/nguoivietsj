@@ -1,0 +1,90 @@
+{
+  "form": {
+    "title": "Registration",
+    "description": "Register for the event."
+  },
+  "text_field_required": "The field {{field}} is required.",
+  "text_field_invalid": "The field {{field}} is invalid.",
+  "number_field_required": "The field {{field}} must be a number.",
+  "total_tickets_too_low": "You must select at least one ticket.",
+  "email_field_invalid": "The email address provided is not valid.",
+  "phone_field_invalid": "The phone number provided is not valid.",
+  "personal_info": {
+    "title": "Personal Information",
+    "description": "Please provide your personal details."
+  },
+  "first_name": {
+    "label": "First Name",
+    "placeholder": "First Name"
+  },
+  "last_name": {
+    "label": "Last Name",
+    "placeholder": "Last Name"
+  },
+  "phone_number": {
+    "label": "Phone Number",
+    "placeholder": "Phone Number"
+  },
+  "ticket_selection": {
+    "title": "Ticket Selection",
+    "description": "Please choose your tickets."
+  },
+  "adult_tickets": {
+    "label": "Number of Adult Tickets",
+    "placeholder": "Number of Adult Tickets"
+  },
+  "children_tickets": {
+    "label": "Number of Children Tickets (Under 18)",
+    "placeholder": "Number of Children Tickets"
+  },
+  "confirmation": {
+    "title": "Confirmation",
+    "description": "Please confirm your selections.",
+    "method_question": "How would you like to receive your confirmation?"
+  },
+  "email": {
+    "label": "Email",
+    "placeholder": "Email"
+  },
+  "mail": {
+    "label": "Mail",
+    "placeholder": "Address"
+  },
+  "total": "Total:",
+  "submit_button": {
+    "idle": "Submit Registration",
+    "submitting": "Submitting...",
+    "submitted": "Submitted"
+  },
+  "made_with_love": "Made with ❤️ by {{name}}",
+  "blocking_dialog": {
+    "submission_success_title": "Registration Submitted",
+    "submission_success_message": "Thank you for registering! We have received your submission.",
+    "submission_in_progress": "Submitting your registration...",
+    "submission_error_title": "Registration Error",
+    "submission_error_message": "There was an error submitting your registration."
+  },
+  "ticket_status": {
+    "status_message": "tickets remaining",
+    "no_tickets_message": "No tickets remaining"
+  },
+  "payment": {
+    "title": "Payment Method",
+    "description": "Please choose your payment method.",
+    "method_question": "How would you like to pay?",
+    "inperson": {
+      "label": "Pay In Person",
+      "instructions": "Please bring cash of {{amount}} {{currency}} to the following address during business hours:"
+    },
+    "etransfer": {
+      "label": "Pay via E-Transfer",
+      "instructions": "Please send your payment of {{amount}} {{currency}} to:"
+    }
+  },
+  "contact_us": {
+    "title": "Contact Us",
+    "description": "If you have any questions, feel free to reach out.",
+    "email": "Email:",
+    "phone": "Phone:"
+  }
+}

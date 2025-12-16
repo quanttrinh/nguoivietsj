@@ -1,0 +1,14 @@
+{
+  "form": {
+    "title": "Protégé par mot de passe",
+    "description": "Veuillez entrer le mot de passe pour accéder à cette page."
+  },
+  "password": {
+    "label": "Mot de passe",
+    "placeholder": "Entrez le mot de passe"
+  },
+  "submit": "Soumettre",
+  "password_field_required": "Le mot de passe est requis",
+  "password_incorrect": "Le mot de passe que vous avez entré est incorrect.",
+  "made_with_love": "Fait avec ❤️ par {{name}}"
+}

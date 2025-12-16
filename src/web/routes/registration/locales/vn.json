@@ -1,0 +1,90 @@
+{
+  "form": {
+    "title": "Đăng Ký",
+    "description": "Đăng ký tham gia sự kiện."
+  },
+  "text_field_required": "Trường {{field}} là bắt buộc.",
+  "text_field_invalid": "Trường {{field}} không hợp lệ.",
+  "number_field_required": "Trường {{field}} phải là một con số.",
+  "total_tickets_too_low": "Bạn phải chọn ít nhất một vé.",
+  "email_field_invalid": "Địa chỉ email cung cấp không hợp lệ.",
+  "phone_field_invalid": "Số điện thoại cung cấp không hợp lệ.",
+  "personal_info": {
+    "title": "Thông Tin Cá Nhân",
+    "description": "Vui lòng cung cấp thông tin cá nhân của bạn."
+  },
+  "first_name": {
+    "label": "Tên",
+    "placeholder": "Tên"
+  },
+  "last_name": {
+    "label": "Họ",
+    "placeholder": "Họ"
+  },
+  "phone_number": {
+    "label": "Số Điện Thoại",
+    "placeholder": "Số Điện Thoại"
+  },
+  "ticket_selection": {
+    "title": "Chọn Vé",
+    "description": "Vui lòng chọn vé của bạn."
+  },
+  "adult_tickets": {
+    "label": "Số Vé Người Lớn",
+    "placeholder": "Số Vé Người Lớn"
+  },
+  "children_tickets": {
+    "label": "Số Vé Trẻ Em (Dưới 18 Tuổi)",
+    "placeholder": "Số Vé Trẻ Em"
+  },
+  "confirmation": {
+    "title": "Xác Nhận",
+    "description": "Vui lòng xác nhận lựa chọn của bạn.",
+    "method_question": "Bạn muốn nhận xác nhận qua hình thức nào?"
+  },
+  "email": {
+    "label": "Email",
+    "placeholder": "Email"
+  },
+  "mail": {
+    "label": "Thư",
+    "placeholder": "Địa Chỉ"
+  },
+  "total": "Tổng Cộng:",
+  "submit_button": {
+    "idle": "Gửi Đăng Ký",
+    "submitting": "Đang Gửi...",
+    "submitted": "Đã Gửi"
+  },
+  "made_with_love": "Được làm với ❤️ bởi {{name}}",
+  "blocking_dialog": {
+    "submission_success_title": "Đăng Ký Đã Gửi",
+    "submission_success_message": "Cảm ơn bạn đã đăng ký! Chúng tôi đã nhận được thông tin của bạn.",
+    "submission_in_progress": "Đang gửi đăng ký của bạn...",
+    "submission_error_title": "Lỗi Đăng Ký",
+    "submission_error_message": "Đã xảy ra lỗi khi gửi đăng ký của bạn."
+  },
+  "ticket_status": {
+    "status_message": "vé còn lại",
+    "no_tickets_message": "Hết vé"
+  },
+  "payment": {
+    "title": "Phương Thức Thanh Toán",
+    "description": "Vui lòng chọn phương thức thanh toán của bạn.",
+    "method_question": "Bạn muốn thanh toán bằng hình thức nào?",
+    "inperson": {
+      "label": "Thanh Toán Trực Tiếp",
+      "instructions": "Vui lòng mang theo {{amount}} {{currency}} tiền mặt đến địa chỉ sau trong giờ làm việc:"
+    },
+    "etransfer": {
+      "label": "Chuyển Khoản Interac",
+      "instructions": "Vui lòng gửi khoản thanh toán {{amount}} {{currency}} của bạn đến:"
+    }
+  },
+  "contact_us": {
+    "title": "Liên Hệ",
+    "description": "Nếu bạn có bất kỳ câu hỏi nào, đừng ngần ngại liên hệ với chúng tôi.",
+    "email": "Email:",
+    "phone": "Điện Thoại:"
+  }
+}

@@ -1,0 +1,90 @@
+{
+  "form": {
+    "title": "Inscription",
+    "description": "Inscrivez-vous à l'événement."
+  },
+  "text_field_required": "Le champ {{field}} est obligatoire.",
+  "text_field_invalid": "Le champ {{field}} est invalide.",
+  "number_field_required": "Le champ {{field}} doit être un nombre.",
+  "total_tickets_too_low": "Vous devez sélectionner au moins un billet.",
+  "email_field_invalid": "L'adresse e-mail fournie n'est pas valide.",
+  "phone_field_invalid": "Le numéro de téléphone fourni n'est pas valide.",
+  "personal_info": {
+    "title": "Informations Personnelles",
+    "description": "Veuillez fournir vos coordonnées personnelles."
+  },
+  "first_name": {
+    "label": "Prénom",
+    "placeholder": "Prénom"
+  },
+  "last_name": {
+    "label": "Nom de Famille",
+    "placeholder": "Nom de Famille"
+  },
+  "phone_number": {
+    "label": "Numéro de Téléphone",
+    "placeholder": "Numéro de Téléphone"
+  },
+  "ticket_selection": {
+    "title": "Sélection des Billets",
+    "description": "Veuillez choisir vos billets."
+  },
+  "adult_tickets": {
+    "label": "Nombre de Billets Adultes",
+    "placeholder": "Nombre de Billets Adultes"
+  },
+  "children_tickets": {
+    "label": "Nombre de Billets Enfants (Moins de 18 ans)",
+    "placeholder": "Nombre de Billets Enfants"
+  },
+  "confirmation": {
+    "title": "Confirmation",
+    "description": "Veuillez confirmer vos sélections.",
+    "method_question": "Comment souhaitez-vous recevoir votre confirmation?"
+  },
+  "email": {
+    "label": "Courriel",
+    "placeholder": "Courriel"
+  },
+  "mail": {
+    "label": "Courrier",
+    "placeholder": "Adresse"
+  },
+  "total": "Total:",
+  "submit_button": {
+    "idle": "Soumettre l'Inscription",
+    "submitting": "Soumission en cours...",
+    "submitted": "Soumis"
+  },
+  "made_with_love": "Fait avec ❤️ par {{name}}",
+  "blocking_dialog": {
+    "submission_success_title": "Inscription Soumise",
+    "submission_success_message": "Merci pour votre inscription! Nous avons bien reçu votre soumission.",
+    "submission_in_progress": "Soumission de votre inscription...",
+    "submission_error_title": "Erreur d'Inscription",
+    "submission_error_message": "Une erreur est survenue lors de la soumission de votre inscription."
+  },
+  "ticket_status": {
+    "status_message": "tickets restants",
+    "no_tickets_message": "Plus de tickets restants"
+  },
+  "payment": {
+    "title": "Méthode de Paiement",
+    "description": "Veuillez choisir votre méthode de paiement.",
+    "method_question": "Comment souhaitez-vous payer?",
+    "inperson": {
+      "label": "Paiement en Personne",
+      "instructions": "Veuillez apporter {{amount}} {{currency}} en espèces à l'adresse suivante pendant les heures d'ouverture:"
+    },
+    "etransfer": {
+      "label": "Virement Interac",
+      "instructions": "Veuillez envoyer votre paiement de {{amount}} {{currency}} à:"
+    }
+  },
+  "contact_us": {
+    "title": "Contactez-Nous",
+    "description": "Si vous avez des questions, n'hésitez pas à nous contacter.",
+    "email": "Courriel :",
+    "phone": "Téléphone :"
+  }
+}
