@@ -5,6 +5,13 @@ import {
   getRegistrationData,
 } from './registration';
 import { validatePassword } from './password';
+import {
+  getAdminConfig,
+  setAdminConfig,
+  getAvailableRoutes,
+  openAdminUI,
+} from './admin-panel';
+import { onOpen } from './menu';
 
 export {
   doGet,
@@ -13,4 +20,9 @@ export {
   getTotalTicketStatus,
   getRegistrationData,
   validatePassword,
+  getAdminConfig,
+  setAdminConfig,
+  getAvailableRoutes,
+  onOpen,
+  openAdminUI,
 };

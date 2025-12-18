@@ -4,7 +4,7 @@ export type RouteConfig = {
   file: string;
   title: string;
   faviconUrl?: string;
-  meta: Record<string, string>;
+  meta: Record<string, { type: string; defaultValue: string }>;
 };
 
 export type RoutePayload = {
@@ -13,5 +13,4 @@ export type RoutePayload = {
     cssPayload?: string;
     JSPayload: string;
   };
-  meta: Record<string, string>;
 };

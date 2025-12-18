@@ -75,7 +75,7 @@ function PasswordProtectorPage() {
     try {
       setValidationState('validating');
 
-      const sessionId = getMeta('session_id') || '';
+      const sessionId = getMeta('SESSION_ID') || '';
 
       const passwordHash = new Sha256(sessionId);
       passwordHash.update(password());
@@ -95,17 +95,18 @@ function PasswordProtectorPage() {
         setValidationState('valid');
 
         // Get the target page from meta tag
-        const targetPage = getMeta('target_page') || '/';
+        const targetPage = getMeta('TARGET_PATH') || '/';
 
-        // Redirect to the target page with session_id as query parameter
-        const url = new URL(getMeta('base_url') + targetPage);
+        // Redirect to the target page with SESSION_ID as query parameter
+        const url = new URL(getMeta('BASE_URL') + targetPage);
         url.searchParams.set('session_id', sessionId);
 
-        const linkElement = document.getElementById(
-          `${componentId}-target-link`
-        ) as HTMLAnchorElement;
-        linkElement.setAttribute('href', url.toString());
-        linkElement.click();
+        const linkElm = document.createElement('a');
+        linkElm.href = url.toString();
+        linkElm.hidden = true;
+        document.body.append(linkElm);
+        linkElm.click();
+        linkElm.remove()
       } else {
         setValidationState('idle');
         setError(translator('password_incorrect'));
@@ -185,11 +186,6 @@ function PasswordProtectorPage() {
                     </Match>
                   </Switch>
                 </Button>
-                <a
-                  id={`${componentId}-target-link`}
-                  href='#'
-                  class='hidden'
-                ></a>
               </div>
             </CardContent>
           </Card>

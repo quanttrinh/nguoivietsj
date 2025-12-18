@@ -12,6 +12,8 @@ import {
 import { makePersisted } from '@solid-primitives/storage';
 
 import Loader from 'lucide-solid/icons/loader';
+import CircleAlert from 'lucide-solid/icons/circle-alert';
+import CircleCheckBig from 'lucide-solid/icons/circle-check-big';
 
 import { callScript } from '~web/lib/googleapi';
 import { getMeta, getNonce } from '~/web/common/meta';
@@ -43,6 +45,9 @@ import {
 } from '~/web/ui/text-field';
 import { Separator } from '~/web/ui/separator';
 
+import { BlockingDialog } from './blocking-dialog';
+import { TicketStatus } from './ticket-status';
+
 import * as i18n from '@solid-primitives/i18n';
 import * as enDict from '../locales/en.json';
 import * as frDict from '../locales/fr.json';
@@ -50,8 +55,6 @@ import * as vnDict from '../locales/vn.json';
 import { LocaleSwitcher } from '~/web/common/components/locale-switcher';
 
 import type { RegistrationData } from '~/types/registration';
-import { BlockingDialog } from './blocking-dialog';
-import { TicketStatus } from './ticket-status';
 
 function RegistrationPage() {
   const componentId = crypto.randomUUID();
@@ -74,6 +77,10 @@ function RegistrationPage() {
   const [formState, setFormState] = createSignal<
     'idle' | 'submitting' | 'submitted' | 'error' | 'loading' | 'viewOnly'
   >('loading');
+
+  const [submissionErrorMsg, setSubmissionErrorMsg] = createSignal<
+    string | undefined
+  >(undefined);
 
   const shouldDisableForm = createMemo(() => {
     return (
@@ -387,6 +394,14 @@ function RegistrationPage() {
 
   const ADULT_TICKET_PRICE = parseFloat(getMeta('TICKET_PRICE_ADULT') || '0');
   const CHILD_TICKET_PRICE = parseFloat(getMeta('TICKET_PRICE_CHILD') || '0');
+  const MAX_ADULT_TICKETS_PER_REGISTRATION = parseInt(
+    getMeta('MAX_ADULT_TICKETS_PER_REGISTRATION') || '4',
+    10
+  );
+  const MAX_CHILD_TICKETS_PER_REGISTRATION = parseInt(
+    getMeta('MAX_CHILD_TICKETS_PER_REGISTRATION') || '6',
+    10
+  );
 
   const getTotalPrice = createMemo(() => {
     const { numberOfAdultTickets, numberOfChildrenTickets } = formData();
@@ -426,7 +441,8 @@ function RegistrationPage() {
         <Switch>
           <Match when={formState() === 'submitted'}>
             <div class='flex flex-col gap-4'>
-              <h2 class='text-xl font-bold'>
+              <h2 class='flex gap-2 text-xl font-bold text-success'>
+                <CircleCheckBig />
                 {translator('blocking_dialog.submission_success_title')}
               </h2>
               <p>{translator('blocking_dialog.submission_success_message')}</p>
@@ -440,10 +456,20 @@ function RegistrationPage() {
           </Match>
           <Match when={formState() === 'error'}>
             <div class='flex flex-col gap-4'>
-              <h2 class='text-xl font-bold text-error'>
+              <h2 class='flex gap-2 text-xl font-bold text-error'>
+                <CircleAlert />
                 {translator('blocking_dialog.submission_error_title')}
               </h2>
               <p>{translator('blocking_dialog.submission_error_message')}</p>
+              <p class='text-error'>{submissionErrorMsg()}</p>
+              <Button
+                onClick={() => {
+                  setFormState('idle');
+                  setSubmissionErrorMsg(undefined);
+                }}
+              >
+                {translator('blocking_dialog.submission_error_retry')}
+              </Button>
             </div>
           </Match>
         </Switch>
@@ -627,14 +653,14 @@ function RegistrationPage() {
                 </Label>
                 <NumberField
                   min={0}
-                  max={4}
+                  max={MAX_ADULT_TICKETS_PER_REGISTRATION}
                   step={1}
                   value={formData().numberOfAdultTickets?.toString() ?? ''}
                   onValueChange={(details) => {
                     const newValue = processNumberInput(
                       parseInt(details.value, 10),
                       0,
-                      4
+                      MAX_ADULT_TICKETS_PER_REGISTRATION
                     );
                     setFormData((prev) => ({
                       ...prev,
@@ -681,14 +707,14 @@ function RegistrationPage() {
                 </Label>
                 <NumberField
                   min={0}
-                  max={6}
+                  max={MAX_CHILD_TICKETS_PER_REGISTRATION}
                   step={1}
                   value={formData().numberOfChildrenTickets?.toString() ?? ''}
                   onValueChange={(details) => {
                     const newValue = processNumberInput(
                       parseInt(details.value, 10),
                       0,
-                      6
+                      MAX_CHILD_TICKETS_PER_REGISTRATION
                     );
                     setFormData((prev) => ({
                       ...prev,
@@ -834,10 +860,7 @@ function RegistrationPage() {
                 </p>
                 <Tabs defaultValue='etransfer'>
                   <TabsList class='grid w-full grid-cols-2'>
-                    <TabsTrigger
-                      value='etransfer'
-                      disabled={shouldDisableForm()}
-                    >
+                    <TabsTrigger value='etransfer'>
                       {translator('payment.etransfer.label')}
                     </TabsTrigger>
                     <TabsTrigger value='inperson'>
@@ -891,7 +914,7 @@ function RegistrationPage() {
                   </TabsContent>
                 </Tabs>
               </div>
-              <Separator /*class='bg-foreground w-px'*/ />
+              <Separator />
               <div>
                 <h3 class='text-lg font-medium'>
                   {translator('contact_us.title')}
@@ -949,6 +972,7 @@ function RegistrationPage() {
                 onClick={async () => {
                   try {
                     setFormState('submitting');
+                    setSubmissionErrorMsg(undefined);
 
                     const fd = formData();
 
@@ -977,7 +1001,7 @@ function RegistrationPage() {
                     }
 
                     const sessionId =
-                      registeredSessionId() || getMeta('session_id') || '';
+                      registeredSessionId() || getMeta('SESSION_ID') || '';
 
                     await callScript('registerEntry', null, payload, sessionId);
 
@@ -988,7 +1012,28 @@ function RegistrationPage() {
                     setFormState('submitted');
                   } catch (error) {
                     setFormState('error');
-                    console.error('Error registering entry:', error);
+                    switch ((error as Error)?.message.substring(5)) {
+                      case '2':
+                        setSubmissionErrorMsg(
+                          translator(
+                            'blocking_dialog.submission_error_duplicate_message'
+                          )
+                        );
+                        break;
+                      case '3':
+                        setSubmissionErrorMsg(
+                          translator(
+                            'blocking_dialog.submission_error_capacity_message'
+                          )
+                        );
+                        break;
+                      default:
+                        setSubmissionErrorMsg(
+                          translator(
+                            'blocking_dialog.submission_error_generic_message'
+                          )
+                        );
+                    }
                   }
                 }}
               >

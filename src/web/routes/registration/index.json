@@ -2,14 +2,53 @@
   "title": "Registration",
   "faviconUrl": "",
   "meta": {
-    "TICKET_PRICE_ADULT": "20",
-    "TICKET_PRICE_CHILD": "15",
-    "ETRANSFER_EMAIL": "vnm.sjnb@gmail.com",
-    "CONTACT_EMAIL": "vnm.sjnb@gmail.com",
-    "CONTACT_PHONE": "+1 (506) 650-2137",
-    "CASH_ADDRESS": "100 Prince Edward St, Saint John, NB E2L 2R5",
-    "CASH_ADDRESS_MAP_URL": "https://maps.app.goo.gl/hrATAVM55ersYrCK8",
-    "CASH_ADDRESS_MAP_EMBED_URL": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2807.589402331889!2d-66.0545554!3d45.27631019999999!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x4ca7b37bd2e4d8af%3A0xd466bce5a47e67fa!2sLat%20Vi&#39;s%20Tailor%20Shop!5e0!3m2!1sen!2sca!4v1765897741013!5m2!1sen!2sca",
-    "CURRENCY": "CAD"
+    "TICKET_PRICE_ADULT": {
+      "type": "number",
+      "defaultValue": "20"
+    },
+    "TICKET_PRICE_CHILD": {
+      "type": "number",
+      "defaultValue": "15"
+    },
+    "MAX_TICKETS": {
+      "type": "number",
+      "defaultValue": "200"
+    },
+    "MAX_ADULT_TICKETS_PER_REGISTRATION": {
+      "type": "number",
+      "defaultValue": "4"
+    },
+    "MAX_CHILD_TICKETS_PER_REGISTRATION": {
+      "type": "number",
+      "defaultValue": "6"
+    },
+    "ETRANSFER_EMAIL": {
+      "type": "string",
+      "defaultValue": "vnm.sjnb@gmail.com"
+    },
+    "CONTACT_EMAIL": {
+      "type": "string",
+      "defaultValue": "vnm.sjnb@gmail.com"
+    },
+    "CONTACT_PHONE": {
+      "type": "string",
+      "defaultValue": "+1 (506) 650-2137"
+    },
+    "CASH_ADDRESS": {
+      "type": "string",
+      "defaultValue": "100 Prince Edward St, Saint John, NB E2L 2R5"
+    },
+    "CASH_ADDRESS_MAP_URL": {
+      "type": "string",
+      "defaultValue": "https://maps.app.goo.gl/hrATAVM55ersYrCK8"
+    },
+    "CASH_ADDRESS_MAP_EMBED_URL": {
+      "type": "string",
+      "defaultValue": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2807.589402331889!2d-66.0545554!3d45.27631019999999!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x4ca7b37bd2e4d8af%3A0xd466bce5a47e67fa!2sLat%20Vi&#39;s%20Tailor%20Shop!5e0!3m2!1sen!2sca!4v1765897741013!5m2!1sen!2sca"
+    },
+    "CURRENCY": {
+      "type": "string",
+      "defaultValue": "CAD"
+    }
   }
 }

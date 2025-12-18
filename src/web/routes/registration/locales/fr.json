@@ -59,10 +59,14 @@
   "made_with_love": "Fait avec ❤️ par {{name}}",
   "blocking_dialog": {
     "submission_success_title": "Inscription Soumise",
-    "submission_success_message": "Merci pour votre inscription! Nous avons bien reçu votre soumission.",
+    "submission_success_message": "Merci pour votre inscription! Nous avons bien reçu votre soumission. Vous recevrez une confirmation par e-mail (si fourni).",
     "submission_in_progress": "Soumission de votre inscription...",
     "submission_error_title": "Erreur d'Inscription",
-    "submission_error_message": "Une erreur est survenue lors de la soumission de votre inscription."
+    "submission_error_message": "Une erreur est survenue lors de la soumission de votre inscription.",
+    "submission_error_retry": "Réessayer",
+    "submission_error_duplicate_message": "L'adresse e-mail ou le numéro de téléphone fourni est déjà utilisé dans une autre inscription.",
+    "submission_error_capacity_message": "L'événement a atteint sa capacité maximale. Les inscriptions sont désormais closes.",
+    "submission_error_generic_message": "Une erreur inattendue est survenue. Veuillez contacter l'organisateur."
   },
   "ticket_status": {
     "status_message": "tickets restants",

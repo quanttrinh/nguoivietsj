@@ -7,7 +7,10 @@ async function callScript<T>(
     (window as any).google.script.run
       .withUserObject(userObject)
       .withSuccessHandler(resolve)
-      .withFailureHandler(reject)
+      .withFailureHandler((error: Error) => {
+        error.message = error.message.substring(7); // Remove "Error: " prefix
+        reject(error);
+      })
       [functionName](...parameters);
   });
 }

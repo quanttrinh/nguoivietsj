@@ -248,7 +248,6 @@ const RoutesBuildPlugin = () => {
                     cssPayload: cssPayloadStr,
                     JSPayload: jsPayloadStr,
                   },
-                  meta: routeConfig.meta || {},
                 };
 
                 // Add the HTML file to the bundle (preserve folder structure)

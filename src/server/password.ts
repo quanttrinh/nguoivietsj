@@ -1,3 +1,5 @@
+import { INTERNAL_METADATA } from './constants';
+
 function BytesToHex(bytes: GoogleAppsScript.Byte[]): string {
   let hex: string = '';
   for (const byte of bytes) {
@@ -13,9 +15,7 @@ function Sha256Hash(value: string): string {
 }
 
 function HMacSha256(value: string, key: string): string {
-  return BytesToHex(
-    Utilities.computeHmacSha256Signature(value, key)
-  );
+  return BytesToHex(Utilities.computeHmacSha256Signature(value, key));
 }
 
 async function validatePassword(
@@ -31,10 +31,10 @@ async function validatePassword(
   }
 
   // Get the password from Script Properties
-  // const scriptProperties = PropertiesService.getScriptProperties();
-  // const correctPassword = scriptProperties.getProperty('PAGE_PASSWORD');
-
-  const correctPassword = '123456'; // For testing purposes only
+  const scriptProperties = PropertiesService.getScriptProperties();
+  const correctPassword = scriptProperties.getProperty(
+    INTERNAL_METADATA.SITE_PASSWORD
+  );
 
   if (!correctPassword) {
     return true;

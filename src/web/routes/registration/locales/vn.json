@@ -59,10 +59,14 @@
   "made_with_love": "Được làm với ❤️ bởi {{name}}",
   "blocking_dialog": {
     "submission_success_title": "Đăng Ký Đã Gửi",
-    "submission_success_message": "Cảm ơn bạn đã đăng ký! Chúng tôi đã nhận được thông tin của bạn.",
+    "submission_success_message": "Cảm ơn bạn đã đăng ký! Chúng tôi đã nhận được thông tin của bạn. Bạn sẽ nhận được xác nhận qua email (nếu có cung cấp).",
     "submission_in_progress": "Đang gửi đăng ký của bạn...",
     "submission_error_title": "Lỗi Đăng Ký",
-    "submission_error_message": "Đã xảy ra lỗi khi gửi đăng ký của bạn."
+    "submission_error_message": "Đã xảy ra lỗi khi gửi đăng ký của bạn.",
+    "submission_error_retry": "Thử Lại",
+    "submission_error_duplicate_message": "Email hoặc số điện thoại bạn cung cấp đã được sử dụng trong một đăng ký khác.",
+    "submission_error_capacity_message": "Sự kiện đã đạt đến sức chứa tối đa. Các đăng ký hiện đã đóng.",
+    "submission_error_generic_message": "Đã xảy ra lỗi không mong muốn. Vui lòng liên hệ với ban tổ chức."
   },
   "ticket_status": {
     "status_message": "vé còn lại",

@@ -59,10 +59,14 @@
   "made_with_love": "Made with ❤️ by {{name}}",
   "blocking_dialog": {
     "submission_success_title": "Registration Submitted",
-    "submission_success_message": "Thank you for registering! We have received your submission.",
+    "submission_success_message": "Thank you for registering! We have received your submission. You will receive a confirmation via email (if provided).",
     "submission_in_progress": "Submitting your registration...",
     "submission_error_title": "Registration Error",
-    "submission_error_message": "There was an error submitting your registration."
+    "submission_error_message": "There was an error submitting your registration.",
+    "submission_error_retry": "Retry",
+    "submission_error_duplicate_message": "The email or phone number provided is already used in another registration.",
+    "submission_error_capacity_message": "The event has reached its maximum capacity. Registrations are now closed.",
+    "submission_error_generic_message": "An unexpected error occurred. Please contact the organizer."
   },
   "ticket_status": {
     "status_message": "tickets remaining",

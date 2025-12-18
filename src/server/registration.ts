@@ -1,4 +1,6 @@
 import { RegistrationData } from '~/types/registration';
+import { INTERNAL_METADATA } from './constants';
+import { getManifest } from './webapp';
 
 function isValidRegistrationData(obj: unknown): obj is RegistrationData {
   if (typeof obj !== 'object' || obj === null) {
@@ -23,32 +25,35 @@ function isValidRegistrationData(obj: unknown): obj is RegistrationData {
 
 function registerEntry(formData: unknown, sessionID: string): void {
   if (!sessionID) {
-    throw new Error('Session ID is required for registration.');
+    throw new Error('code_5'); // Missing session ID for registration.
   }
 
   if (!isValidRegistrationData(formData)) {
-    throw new Error('Invalid form data provided for registration.');
+    throw new Error('code_4'); // Invalid form data provided for registration.
   }
 
-  const max = getMaxTotalTickets();
-  const totalTickets =
-    formData.numberOfAdultTickets +
-    formData.numberOfChildTickets +
-    (getCurrentTotalTickets() || 0);
-
-  if (totalTickets > max) {
-    throw new Error('Maximum number of tickets reached.');
-  }
+  const trimmedFirstName = formData.firstName.trim();
+  const trimmedLastName = formData.lastName.trim();
+  const trimmedPhoneNumber = formData.phoneNumber.trim();
+  const trimmedConfirmationMethod = formData.confirmationMethod.trim();
+  const trimmedEmail =
+    trimmedConfirmationMethod === 'email'
+      ? ((formData as any).email?.trim() ?? '')
+      : '';
+  const trimmedAddress =
+    trimmedConfirmationMethod === 'mail'
+      ? ((formData as any).address?.trim() ?? '')
+      : '';
 
   const payload = [
     new Date(),
     `'${sessionID}`,
-    `'${formData.firstName}`,
-    `'${formData.lastName}`,
-    `'${formData.phoneNumber}`,
-    `'${formData.confirmationMethod}`,
-    `'${(formData as any).email ?? ''}`,
-    `'${(formData as any).address ?? ''}`,
+    `'${trimmedFirstName}`,
+    `'${trimmedLastName}`,
+    `'${trimmedPhoneNumber}`,
+    `'${trimmedConfirmationMethod}`,
+    `'${trimmedEmail}`,
+    `'${trimmedAddress}`,
     `${formData.numberOfAdultTickets}`,
     `${formData.numberOfChildTickets}`,
   ];
@@ -59,6 +64,36 @@ function registerEntry(formData: unknown, sessionID: string): void {
   const lock = LockService.getDocumentLock();
   if (lock.tryLock(5000)) {
     try {
+      const max = getMaxTotalTickets();
+      const totalTickets =
+        formData.numberOfAdultTickets +
+        formData.numberOfChildTickets +
+        (getCurrentTotalTickets(sheet) || 0);
+
+      if (totalTickets > max) {
+        throw new Error('code_3'); // Exceeds maximum ticket limit
+      }
+
+      // Check for email or phone number duplicates
+      if (sheet) {
+        const dataValues = sheet.getDataRange().getValues();
+        for (let i = 4; i < dataValues.length; i++) {
+          const row = dataValues[i];
+          const existingPhone = String(row[4]);
+          const existingEmail = String(row[6]);
+
+          if (
+            existingPhone === trimmedPhoneNumber ||
+            (trimmedConfirmationMethod === 'email' &&
+              existingEmail === trimmedEmail)
+          ) {
+            throw new Error(
+              'code_2' // Duplicate registration detected
+            );
+          }
+        }
+      }
+
       if (!sheet) {
         sheet = activeSpreadsheet.insertSheet('Registrations');
         const range = sheet.getRange(1, 1, 4, 10);
@@ -107,12 +142,16 @@ function registerEntry(formData: unknown, sessionID: string): void {
     }
   } else {
     Logger.log('Could not obtain lock for registration.');
-    throw new Error('Could not obtain lock for registration.');
+    throw new Error('code_1'); // Could not obtain lock
   }
 }
 
-function getCurrentTotalTickets(): number | undefined {
-  const sheet = SpreadsheetApp.getActive().getSheetByName('Registrations');
+function getCurrentTotalTickets(
+  registrationSheet?: GoogleAppsScript.Spreadsheet.Sheet | null
+): number | undefined {
+  const sheet =
+    registrationSheet ||
+    SpreadsheetApp.getActive().getSheetByName('Registrations');
 
   if (!sheet) {
     return undefined;
@@ -129,7 +168,17 @@ function getCurrentTotalTickets(): number | undefined {
 }
 
 function getMaxTotalTickets(): number {
-  return 10;
+  const routeMetadata = JSON.parse(
+    PropertiesService.getScriptProperties().getProperty(
+      INTERNAL_METADATA.ROUTE_METADATA
+    ) || '{}'
+  );
+
+  return (
+    routeMetadata['/registration']?.MAX_TICKETS ||
+    getManifest()?.['/registration']?.meta?.MAX_TICKETS?.defaultValue ||
+    0
+  );
 }
 
 function getTotalTicketStatus(): {
@@ -171,10 +220,4 @@ function getRegistrationData(sessionID: string): RegistrationData | undefined {
   return undefined;
 }
 
-export {
-  registerEntry,
-  getCurrentTotalTickets,
-  getMaxTotalTickets,
-  getTotalTicketStatus,
-  getRegistrationData
-};
+export { registerEntry, getTotalTicketStatus, getRegistrationData };

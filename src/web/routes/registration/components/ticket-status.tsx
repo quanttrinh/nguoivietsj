@@ -58,11 +58,12 @@ function TicketStatus(props: TicketStatusProps) {
   });
 
   const progressValue = () => {
-    return (
-      ((ticketStatus()?.currentTotalTickets || 0) /
-        (ticketStatus()?.maxTotalTickets || 1)) *
-      100
+    const currentTickets = Math.max(
+      ticketStatus()?.currentTotalTickets || 0,
+      0
     );
+    const maxTickets = Math.max(ticketStatus()?.maxTotalTickets || 1, 0);
+    return (currentTickets / maxTickets) * 100;
   };
 
   return (
@@ -100,9 +101,9 @@ function TicketStatus(props: TicketStatusProps) {
                 }
                 fallback={
                   <>
-                    {(ticketStatus()?.maxTotalTickets ?? 0) -
-                      (ticketStatus()?.currentTotalTickets ?? 0)}{' '}
-                    {props.ticketStatusText ?? ''}
+                    {ticketStatus()?.currentTotalTickets ?? 0}
+                    {' / '}
+                    {ticketStatus()?.maxTotalTickets ?? 0}
                   </>
                 }
               >

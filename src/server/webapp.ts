@@ -1,5 +1,6 @@
-import type { RoutePayload, RoutesManifest } from '~/types/routes';
 import { isSessionAuthenticated } from './password';
+import { INTERNAL_METADATA, INTERNAL_SITES } from './constants';
+import type { RoutePayload, RoutesManifest } from '~/types/routes';
 
 function loadInternalFileContent(filename: string): string | undefined {
   try {
@@ -17,7 +18,12 @@ function loadInternalFileContent(filename: string): string | undefined {
 }
 
 function generateHTMLOutput(
-  config: Partial<RoutesManifest>[string],
+  config: Partial<{
+    file: string;
+    title: string;
+    faviconUrl?: string;
+    meta: Record<string, string>;
+  }>,
   sessionId: string
 ): GoogleAppsScript.HTML.HtmlOutput {
   if (!config?.file) {
@@ -44,10 +50,10 @@ function generateHTMLOutput(
     '<html>',
     '<head>',
     '<base target="_top">',
-    `<meta name="base_url" content="${getServiceUrl()}">`,
     `<meta http-equiv="Content-Security-Policy" content="${cspRule}">`,
     '<meta name="viewport" content="width=device-width, initial-scale=1.0">',
-    `<meta name="session_id" content="${sessionId}">`,
+    `<meta name="BASE_URL" content="${getServiceUrl()}">`,
+    `<meta name="SESSION_ID" content="${sessionId}">`,
     Object.entries(config.meta || {})
       .map(([name, content]) => {
         return `<meta name="${name}" content="${content}">`;
@@ -98,41 +104,17 @@ function loadManifest(): Partial<RoutesManifest> | null {
 
 function getManifest(): Partial<RoutesManifest> | null {
   return loadManifest();
-
-  // try {
-  //   const cache = CacheService.getScriptCache();
-  //   const cachedManifest = cache.get('routes-manifest');
-  //   if (cachedManifest) {
-  //     return JSON.parse(cachedManifest);
-  //   } else {
-  //     const manifest = loadManifest();
-  //     if (manifest) {
-  //       cache.put('routes-manifest', JSON.stringify(manifest), 21600); // Cache for 6 hours
-  //       return manifest;
-  //     } else {
-  //       return null;
-  //     }
-  //   }
-  // } catch (error) {
-  //   Logger.log('Error getting routes manifest: ' + (error as Error).message);
-  //   return null;
-  // }
 }
 
 function getServiceUrl(): string {
-  const cache = CacheService.getScriptCache();
-  const cachedUrl = cache.get('service-url');
-  if (cachedUrl) {
-    return cachedUrl;
-  }
-
-  const url = ScriptApp.getService().getUrl();
-
-  cache.put('service-url', url, 21600); // Cache for 6 hours
-  return url;
+  return ScriptApp.getService().getUrl();
 }
 
-function getRouteHTML(path: string, oldSessionId: string) {
+function getRouteHTML(
+  path: string,
+  oldSessionId: string | null | undefined = '',
+  allowInternal = false
+): GoogleAppsScript.HTML.HtmlOutput {
   try {
     const manifest = getManifest();
 
@@ -142,48 +124,111 @@ function getRouteHTML(path: string, oldSessionId: string) {
 
     const config = manifest[path];
 
-    if (config) {
-      // Get session ID from query parameter if provided (after auth), otherwise generate new one
-      const sessionId = oldSessionId || Utilities.getUuid();
-
-      // Check if the route is protected via Script Properties
-      // const scriptProperties = PropertiesService.getScriptProperties();
-      // const protectedRoutes = scriptProperties.getProperty('PROTECTED_ROUTES');
-
-      const protectedRoutes = '/registration';
-
-      if (protectedRoutes && path !== '/password-protector') {
-        // Parse the protected routes (could be comma-separated or JSON array)
-        const protectedPaths: string[] = protectedRoutes.split(';');
-
-        // Check if current path is protected and the session is already authenticated
-        if (
-          protectedPaths.includes(path) &&
-          (!oldSessionId || !isSessionAuthenticated(oldSessionId))
-        ) {
-          const passwordConfig = manifest['/password-protector'];
-
-          if (!passwordConfig) {
-            throw new Error('Password protector route not configured');
-          }
-
-          // Create a modified config with the target page in meta
-          const modifiedConfig = {
-            ...passwordConfig,
-            meta: {
-              ...(passwordConfig.meta || {}),
-              target_page: path,
-            },
-          };
-
-          return generateHTMLOutput(modifiedConfig, sessionId);
-        }
-      }
-
-      return generateHTMLOutput(config, sessionId);
+    if (!config) {
+      throw new Error('Route not found: ' + path);
     }
 
-    throw new Error('Route not found: ' + path);
+    // Get session ID from query parameter if provided (after auth), otherwise generate new one
+    const sessionId =
+      oldSessionId || Utilities.base64EncodeWebSafe(Utilities.getUuid());
+
+    // Check if the route is protected via Script Properties
+    const scriptProperties = PropertiesService.getScriptProperties();
+    const protectedRoutes =
+      scriptProperties.getProperty(INTERNAL_METADATA.PROTECTED_ROUTES) || '';
+    const closedRoutes =
+      scriptProperties.getProperty(INTERNAL_METADATA.CLOSED_ROUTES) || '';
+    const routeMetadata = JSON.parse(
+      scriptProperties.getProperty(INTERNAL_METADATA.ROUTE_METADATA) || '{}'
+    );
+
+    // Check if route is closed
+    if (closedRoutes) {
+      const closedPaths: string[] = closedRoutes
+        .split(';')
+        .filter((p) => p.trim());
+      if (closedPaths.includes(path)) {
+        return HtmlService.createHtmlOutput(
+          [
+            '<!DOCTYPE html>',
+            '<html>',
+            '<head>',
+            '<style>:root,body{height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;}</style>',
+            '</head>',
+            '<body>',
+            '<h1>Route Temporarily Closed</h1>',
+            '<p>This page is currently unavailable.</p>',
+            '</body>',
+            '</html>',
+          ].join('')
+        )
+          .addMetaTag('viewport', 'width=device-width, initial-scale=1.0')
+          .setTitle('Route Closed');
+      }
+    }
+
+    if (protectedRoutes) {
+      // Parse the protected routes (could be comma-separated or JSON array)
+      const protectedPaths: string[] = protectedRoutes.split(';');
+
+      // Check if current path is protected and the session is already authenticated
+      if (
+        protectedPaths.includes(path) &&
+        (!oldSessionId || !isSessionAuthenticated(oldSessionId))
+      ) {
+        const passwordConfig = manifest[INTERNAL_SITES.PASSWORD_PROTECTOR];
+
+        if (!passwordConfig) {
+          throw new Error('Password protector route not configured');
+        }
+
+        // Create a modified config with the target page in meta
+        const modifiedConfig = {
+          file: passwordConfig.file,
+          title: passwordConfig.title,
+          faviconUrl: passwordConfig.faviconUrl,
+          meta: {
+            ...Object.fromEntries(
+              Object.entries(passwordConfig.meta || {}).map(([key, value]) => [
+                key,
+                String(value.defaultValue),
+              ])
+            ),
+            ...routeMetadata[INTERNAL_SITES.PASSWORD_PROTECTOR],
+            TARGET_PATH: path,
+          },
+        };
+
+        return generateHTMLOutput(modifiedConfig, sessionId);
+      }
+    }
+
+    if (
+      !allowInternal &&
+      Object.values(INTERNAL_SITES).includes(
+        path as (typeof INTERNAL_SITES)[keyof typeof INTERNAL_SITES]
+      )
+    ) {
+      throw new Error('Access to internal site is restricted: ' + path);
+    }
+
+    // Merge route metadata if configured
+    const finalConfig = {
+      file: config.file,
+      title: config.title,
+      faviconUrl: config.faviconUrl,
+      meta: {
+        ...Object.fromEntries(
+          Object.entries(config.meta || {}).map(([key, value]) => [
+            key,
+            String(value.defaultValue),
+          ])
+        ),
+        ...routeMetadata[path],
+      },
+    };
+
+    return generateHTMLOutput(finalConfig, sessionId);
   } catch (error) {
     Logger.log(
       'Error serving static file for path ' +
@@ -239,4 +284,4 @@ function doPost(e: GoogleAppsScript.Events.DoPost) {
   // TODO
 }
 
-export { doGet, doPost };
+export { doGet, doPost, getRouteHTML, getManifest };
