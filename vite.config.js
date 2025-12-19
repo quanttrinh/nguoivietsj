@@ -10,6 +10,7 @@ import solidPlugin from 'vite-plugin-solid';
 import solidDevtools from 'solid-devtools/vite';
 import tailwindcss from '@tailwindcss/vite';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
+import htmlMinifier from 'vite-plugin-html-minifier';
 
 import { glob } from 'glob';
 import zlib from 'zlib';
@@ -284,10 +285,126 @@ const RoutesBuildPlugin = () => {
   };
 };
 
+/**
+ * Plugin to minify HTML templates and copy them to dist
+ * Uses Vite's built-in build process for HTML minification
+ * @returns {import('vite').Plugin}
+ */
+const MinifyTemplatesPlugin = () => ({
+  name: 'minify-templates',
+  apply: 'build',
+
+  async generateBundle() {
+    // Find all HTML template files
+    const templates = await glob('templates/**/*.html', {
+      cwd: path.resolve(__dirname, 'src'),
+      absolute: true,
+    });
+
+    this.info(`Found ${templates.length} HTML template(s) to minify`);
+
+    // Process each template
+    for (const templatePath of templates) {
+      // Get relative path for output
+      const relativePath = path.relative(
+        path.resolve(__dirname, 'src', 'templates'),
+        templatePath
+      );
+
+      this.info(`Minifying template: ${relativePath}`);
+
+      // Build HTML with minification using vite-plugin-minify
+      const result = await viteBuild({
+        build: {
+          outDir: path.resolve(__dirname, 'dist', 'server', 'templates'),
+          emptyOutDir: false,
+          rollupOptions: {
+            input: templatePath,
+          },
+          write: false,
+          cssMinify: 'lightningcss',
+        },
+        css: {
+          transformer: 'lightningcss',
+          lightningcss: {
+            // Target older browsers for email client compatibility
+            targets: {
+              // Support email clients (use very conservative targets)
+              safari: (11 << 16) | (1 << 8), // Safari 11.1 (iOS Mail)
+              chrome: 70 << 16, // Chrome 70
+              edge: 79 << 16, // Edge 79
+              firefox: 60 << 16, // Firefox 60
+            },
+          },
+        },
+        configFile: false,
+        publicDir: false,
+        plugins: [
+          htmlMinifier({
+            minify: true,
+          }),
+        ],
+      });
+
+      // Extract the built HTML content
+      let minifiedContent = '';
+      if (Array.isArray(result)) {
+        const output = result[0];
+        if ('output' in output) {
+          const asset = output.output.find(
+            (item) => item.type === 'asset' || item.type === 'chunk'
+          );
+          if (asset) {
+            if (asset.type === 'asset') {
+              minifiedContent =
+                typeof asset.source === 'string'
+                  ? asset.source
+                  : new TextDecoder().decode(asset.source);
+            } else if (asset.type === 'chunk') {
+              minifiedContent = asset.code;
+            }
+          }
+        }
+      } else if ('output' in result) {
+        const asset = result.output.find(
+          (item) => item.type === 'asset' || item.type === 'chunk'
+        );
+        if (asset) {
+          if (asset.type === 'asset') {
+            minifiedContent =
+              typeof asset.source === 'string'
+                ? asset.source
+                : new TextDecoder().decode(asset.source);
+          } else if (asset.type === 'chunk') {
+            minifiedContent = asset.code;
+          }
+        }
+      }
+
+      // If build didn't produce output, fall back to original content
+      if (!minifiedContent) {
+        this.warn(
+          `${relativePath}: Build didn't produce output, using original content`
+        );
+        minifiedContent = await fs.readFile(templatePath, 'utf-8');
+      }
+
+      // Emit the minified template
+      this.emitFile({
+        type: 'asset',
+        fileName: `server/templates/${relativePath}`,
+        source: minifiedContent,
+      });
+    }
+
+    this.info('All templates minified successfully');
+  },
+});
+
 export default defineConfig(({ command, mode }) => ({
   plugins: /** @type {import('vite').PluginOption[]} */ ([
     ExposeGasFunctionsPlugin(),
-    command === 'build' ? RoutesBuildPlugin() : [],
+    command === 'build' ? [RoutesBuildPlugin(), MinifyTemplatesPlugin()] : [],
     viteStaticCopy({
       targets: [
         {

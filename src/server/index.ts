@@ -3,6 +3,8 @@ import {
   registerEntry,
   getTotalTicketStatus,
   getRegistrationData,
+  sendInitialConfirmationEmails,
+  sendInitialConfirmationEmailsUI,
 } from './registration';
 import { validatePassword } from './password';
 import {
@@ -19,6 +21,8 @@ export {
   registerEntry,
   getTotalTicketStatus,
   getRegistrationData,
+  sendInitialConfirmationEmails,
+  sendInitialConfirmationEmailsUI,
   validatePassword,
   getAdminConfig,
   setAdminConfig,
