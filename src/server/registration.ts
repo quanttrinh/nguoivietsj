@@ -270,6 +270,8 @@ function sendInitialConfirmationEmails(
     ) || '{}'
   );
 
+  const eventYear = Number(getMetaData('EVENT_YEAR', routeMetadata));
+
   const adultPrice = Number(getMetaData('TICKET_PRICE_ADULT', routeMetadata));
   const childPrice = Number(getMetaData('TICKET_PRICE_CHILD', routeMetadata));
 
@@ -279,6 +281,22 @@ function sendInitialConfirmationEmails(
     failureCount: 0,
     errors: [],
   };
+
+  const fromEmail = (() => {
+    const matcher = /(?<=\+tetviet)\d+(?=@gmail\.com)/gm;
+
+    const aliases = GmailApp.getAliases();
+
+    for (const alias of aliases) {
+      const match = alias.toLocaleLowerCase().match(matcher);
+      const matchYear = match ? Number(match[0]) : 0;
+      if (match && matchYear === eventYear) {
+        return alias;
+      }
+    }
+
+    return undefined;
+  })();
 
   // Acquire lock to prevent concurrent executions
   const lock = LockService.getDocumentLock();
@@ -346,12 +364,19 @@ function sendInitialConfirmationEmails(
           'MMM dd, yyyy HH:mm:ss'
         );
 
+        const emailBody = template.evaluate().getContent();
+
         // Send email
-        MailApp.sendEmail({
-          to: email,
-          subject: 'Xác Nhận Đăng Ký / Registration Confirmation',
-          htmlBody: template.evaluate().getContent(),
-        });
+        GmailApp.sendEmail(
+          email,
+          'Xác Nhận Đăng Ký / Registration Confirmation',
+          emailBody,
+          {
+            from: fromEmail,
+            name: `Tết Việt ${eventYear}`,
+            htmlBody: emailBody,
+          }
+        );
 
         registrationEntry[10] = `Sent: ${Utilities.formatDate(
           new Date(),

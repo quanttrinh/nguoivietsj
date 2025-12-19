@@ -2,6 +2,10 @@
   "title": "Registration",
   "faviconUrl": "",
   "meta": {
+    "EVENT_YEAR": {
+      "type": "number",
+      "defaultValue": "2025"
+    },
     "TICKET_PRICE_ADULT": {
       "type": "number",
       "defaultValue": "20"
