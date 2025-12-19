@@ -275,7 +275,7 @@ function getRouteHTML(
 }
 
 function doGet(e: GoogleAppsScript.Events.DoGet) {
-  const path = `/${e.pathInfo || ''}`;
+  const path = e.parameter?.route_path || '/';
   const sessionId = e.parameter?.session_id || '';
   return getRouteHTML(path, sessionId);
 }

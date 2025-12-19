@@ -94,11 +94,9 @@ function PasswordProtectorPage() {
       if (isValid) {
         setValidationState('valid');
 
-        // Get the target page from meta tag
-        const targetPage = getMeta('TARGET_PATH') || '/';
-
         // Redirect to the target page with SESSION_ID as query parameter
-        const url = new URL(getMeta('BASE_URL') + targetPage);
+        const url = new URL(getMeta('BASE_URL') || '');
+        url.searchParams.set('route_path', getMeta('TARGET_PATH') || '');
         url.searchParams.set('session_id', sessionId);
 
         const linkElm = document.createElement('a');
@@ -106,7 +104,7 @@ function PasswordProtectorPage() {
         linkElm.hidden = true;
         document.body.append(linkElm);
         linkElm.click();
-        linkElm.remove()
+        linkElm.remove();
       } else {
         setValidationState('idle');
         setError(translator('password_incorrect'));
