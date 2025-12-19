@@ -375,6 +375,7 @@ function sendInitialConfirmationEmails(
             from: fromEmail,
             name: `Tết Việt ${eventYear}`,
             htmlBody: emailBody,
+            replyTo: getMetaData('CONTACT_EMAIL', routeMetadata) || undefined,
           }
         );
 
