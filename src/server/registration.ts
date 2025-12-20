@@ -3,13 +3,43 @@ import { INTERNAL_METADATA } from './constants';
 import { getManifest } from './webapp';
 import type { meta } from '~/web/routes/registration/index.json';
 
-const LOCK_TIMEOUT_MS = 5000;
-const SHEET_NAME = 'Registrations';
+const LOCK_TIMEOUT_MS = 5000 as const;
+const SHEET_NAME = 'Registrations' as const;
 const CONFIRMATION_INITIAL_TEMPLATE_FILE =
-  'server/templates/registration-initial-confirm';
+  'server/templates/registration-initial-confirm' as const;
 const CONFIRMATION_FINAL_TEMPLATE_FILE =
-  'server/templates/registration-final-confirm';
-const ROUTE_NAME = '/registration';
+  'server/templates/registration-final-confirm' as const;
+const ROUTE_NAME = '/registration' as const;
+
+const SUMMARY_COLUMNS = {
+  TOTAL_TICKETS: 0,
+  MAX_TOTAL_TICKETS: 1,
+  REMAINING_TICKETS: 2,
+  ADULT_TICKET_PRICE: 3,
+  CHILD_TICKET_PRICE: 4,
+} as const;
+
+const REGISTRATION_COLUMNS = {
+  TOTAL: 0,
+  REMAINING: 1,
+  ETRANSFER: 2,
+  CASH: 3,
+  NOTES: 4,
+  SUBMISSION_DATE: 6,
+  SESSION_ID: 7,
+  FIRST_NAME: 8,
+  LAST_NAME: 9,
+  PHONE_NUMBER: 10,
+  CONFIRMATION_METHOD: 11,
+  EMAIL: 12,
+  ADDRESS: 13,
+  NUMBER_OF_ADULT_TICKETS: 14,
+  NUMBER_OF_CHILD_TICKETS: 15,
+  CONFIRMATION_1: 16,
+  CONFIRMATION_2: 17,
+} as const;
+
+const DATE_FORMAT = 'yyyy-MM-dd hh:mm:ss a' as const;
 
 function getMetaData(
   metaName: keyof typeof meta,
@@ -105,7 +135,7 @@ function registerEntry(formData: unknown, sessionID: string): void {
       : '';
 
   const payload = [
-    new Date(),
+    Utilities.formatDate(new Date(), Session.getScriptTimeZone(), DATE_FORMAT),
     `'${sessionID}`,
     `'${trimmedFirstName}`,
     `'${trimmedLastName}`,
@@ -140,10 +170,11 @@ function registerEntry(formData: unknown, sessionID: string): void {
     // Check for email or phone number duplicates
     if (sheet) {
       const dataValues = sheet.getDataRange().getValues();
-      for (let i = 4; i < dataValues.length; i++) {
-        const row = dataValues[i];
-        const existingPhone = String(row[4]);
-        const existingEmail = String(row[6]);
+      dataValues.splice(0, 4); // Skip header rows
+
+      for (const row of dataValues) {
+        const existingPhone = String(row[REGISTRATION_COLUMNS.PHONE_NUMBER]);
+        const existingEmail = String(row[REGISTRATION_COLUMNS.EMAIL]);
 
         if (
           existingPhone === trimmedPhoneNumber ||
@@ -159,18 +190,31 @@ function registerEntry(formData: unknown, sessionID: string): void {
 
     if (!sheet) {
       sheet = activeSpreadsheet.insertSheet('Registrations');
-      const range = sheet.getRange(1, 1, 4, 12);
-      const firstRowPadding = ['', '', '', '', '', '', '', '', '', '', ''];
+
+      // Get ticket prices from metadata
+      const adultPrice = Number(getMetaData('TICKET_PRICE_ADULT'));
+      const childPrice = Number(getMetaData('TICKET_PRICE_CHILD'));
+      const maxTickets = Number(getMetaData('MAX_TICKETS'));
+
+      const range = sheet.getRange(1, 1, 5, 18);
+      const firstRowPadding = new Array(13).fill('');
       range.setValues([
-        ['Total Tickets', ...firstRowPadding],
+        [
+          'Total Tickets',
+          'Max Total Tickets',
+          'Remaining Tickets',
+          'Adult Ticket Price',
+          'Child Ticket Price',
+          ...firstRowPadding,
+        ],
         [
           [
             '=SUM(',
             'BYROW(',
-            'FILTER({ARRAYFORMULA(VALUE(A4:A)), B4:B, I4:I + J4:J}, B4:B <> ""),',
+            'FILTER({ARRAYFORMULA(VALUE(A5:A)), H5:H, O5:O + P5:P}, H5:H <> ""),',
             'LAMBDA(r,',
             'IF(',
-            'INDEX(r,1,1) = MAX(FILTER(ARRAYFORMULA(VALUE(A4:A)), B4:B = INDEX(r,1,2))),',
+            'INDEX(r,1,1) = MAX(FILTER(ARRAYFORMULA(VALUE(A5:A)), H5:H = INDEX(r,1,2))),',
             'INDEX(r,1,3),',
             '0',
             ')',
@@ -178,9 +222,20 @@ function registerEntry(formData: unknown, sessionID: string): void {
             ')',
             ')',
           ].join(''),
+          maxTickets,
+          '=$B$2 - $A$2',
+          adultPrice,
+          childPrice,
           ...firstRowPadding,
         ],
+        ['', '', '', '', '', ...firstRowPadding],
         [
+          'Total',
+          'Remaining',
+          'ETransfer',
+          'Cash',
+          'Notes',
+          '',
           'Submission Date',
           'Session ID',
           'First Name',
@@ -194,10 +249,50 @@ function registerEntry(formData: unknown, sessionID: string): void {
           'Confirmation 1',
           'Confirmation 2',
         ],
-        payload,
+        [
+          '=$D$2*$O$5+$E$2*$P$5',
+          '=$A$5 - $C$5 - $D$5',
+          '',
+          '',
+          '',
+          '',
+          ...payload,
+          '',
+          '',
+        ],
       ]);
+
+      // Protect the entire sheet, but allow editing of ETransfer (C) and Cash (D) columns
+      const protection = sheet
+        .protect()
+        .setDescription('Registration Data Protection');
+
+      // Ensure the current user is an editor
+      protection.addEditor(Session.getEffectiveUser());
+
+      // Remove all existing editors (only owner can edit by default)
+      protection.removeEditors(protection.getEditors());
+
+      // Disable domain-wide editing if applicable
+      if (protection.canDomainEdit()) {
+        protection.setDomainEdit(false);
+      }
+
+      // Set unprotected ranges (ETransfer, Cash and Notes columns)
+      protection.setUnprotectedRanges([sheet.getRange('C5:E')]);
     } else {
-      sheet.appendRow(payload);
+      // Add row with formulas that use ROW() function to automatically reference current row
+      sheet.appendRow([
+        '=$D$2*INDIRECT("O"&ROW())+$E$2*INDIRECT("P"&ROW())',
+        '=INDIRECT("A"&ROW()) - INDIRECT("C"&ROW()) - INDIRECT("D"&ROW())',
+        '',
+        '',
+        '',
+        '',
+        ...payload,
+        '', // Confirmation 1
+        '', // Confirmation 2
+      ]);
     }
   } catch (error) {
     Logger.log('Error during registration: ' + (error as Error).message);
@@ -218,16 +313,22 @@ function getRegistrationData(sessionID: string): RegistrationData | undefined {
 
   for (let i = dataValues.length - 1; i > 2; i--) {
     const row = dataValues[i];
-    if (row[1] === sessionID) {
+    if (row[REGISTRATION_COLUMNS.SESSION_ID] === sessionID) {
       const registrationData: RegistrationData = {
-        firstName: String(row[2]),
-        lastName: String(row[3]),
-        phoneNumber: String(row[4]),
-        confirmationMethod: String(row[5]) as 'email' | 'mail',
-        email: String(row[6]),
-        address: String(row[7]),
-        numberOfAdultTickets: Number(row[8]),
-        numberOfChildTickets: Number(row[9]),
+        firstName: String(row[REGISTRATION_COLUMNS.FIRST_NAME]),
+        lastName: String(row[REGISTRATION_COLUMNS.LAST_NAME]),
+        phoneNumber: String(row[REGISTRATION_COLUMNS.PHONE_NUMBER]),
+        confirmationMethod: String(
+          row[REGISTRATION_COLUMNS.CONFIRMATION_METHOD]
+        ) as 'email' | 'mail',
+        email: String(row[REGISTRATION_COLUMNS.EMAIL]),
+        address: String(row[REGISTRATION_COLUMNS.ADDRESS]),
+        numberOfAdultTickets: Number(
+          row[REGISTRATION_COLUMNS.NUMBER_OF_ADULT_TICKETS]
+        ),
+        numberOfChildTickets: Number(
+          row[REGISTRATION_COLUMNS.NUMBER_OF_CHILD_TICKETS]
+        ),
       };
       return registrationData;
     }
@@ -258,7 +359,7 @@ function sendInitialConfirmationEmails(
   }
 
   const dataValues = sheet.getDataRange().getValues();
-  dataValues.splice(0, 3); // Skip header rows
+  dataValues.splice(0, 4); // Skip header rows
 
   const template = HtmlService.createTemplateFromFile(
     CONFIRMATION_INITIAL_TEMPLATE_FILE
@@ -308,13 +409,14 @@ function sendInitialConfirmationEmails(
   }
 
   try {
-    // Start from row 4 (index 3) - skip header rows
     for (let registrationEntry of dataValues) {
       if (result.totalProcessed >= maxEmails) {
         break;
       }
 
-      const confirmationStatus = String(registrationEntry[10] || '').trim(); // Column K (Confirmation 1)
+      const confirmationStatus = String(
+        registrationEntry[REGISTRATION_COLUMNS.CONFIRMATION_1] || ''
+      ).trim();
 
       // Skip if already successfully sent
       if (
@@ -324,8 +426,10 @@ function sendInitialConfirmationEmails(
         continue;
       }
 
-      const confirmationMethod = String(registrationEntry[5]);
-      const email = String(registrationEntry[6]);
+      const confirmationMethod = String(
+        registrationEntry[REGISTRATION_COLUMNS.CONFIRMATION_METHOD]
+      );
+      const email = String(registrationEntry[REGISTRATION_COLUMNS.EMAIL]);
 
       // Skip if no email address for email confirmation method
       if (confirmationMethod !== 'email' || !email) {
@@ -334,12 +438,24 @@ function sendInitialConfirmationEmails(
 
       result.totalProcessed++;
 
-      const submissionDate = new Date(registrationEntry[0]);
-      const firstName = String(registrationEntry[2]);
-      const lastName = String(registrationEntry[3]);
-      const phoneNumber = String(registrationEntry[4]);
-      const numberOfAdultTickets = Number(registrationEntry[8]);
-      const numberOfChildTickets = Number(registrationEntry[9]);
+      const submissionDate = new Date(
+        registrationEntry[REGISTRATION_COLUMNS.SUBMISSION_DATE]
+      );
+      const firstName = String(
+        registrationEntry[REGISTRATION_COLUMNS.FIRST_NAME]
+      );
+      const lastName = String(
+        registrationEntry[REGISTRATION_COLUMNS.LAST_NAME]
+      );
+      const phoneNumber = String(
+        registrationEntry[REGISTRATION_COLUMNS.PHONE_NUMBER]
+      );
+      const numberOfAdultTickets = Number(
+        registrationEntry[REGISTRATION_COLUMNS.NUMBER_OF_ADULT_TICKETS]
+      );
+      const numberOfChildTickets = Number(
+        registrationEntry[REGISTRATION_COLUMNS.NUMBER_OF_CHILD_TICKETS]
+      );
       const totalAdultPrice =
         numberOfAdultTickets * (Number.isNaN(adultPrice) ? 0 : adultPrice);
       const totalChildPrice =
@@ -361,7 +477,7 @@ function sendInitialConfirmationEmails(
         template.submissionDate = Utilities.formatDate(
           submissionDate,
           Session.getScriptTimeZone(),
-          'MMM dd, yyyy HH:mm:ss'
+          DATE_FORMAT
         );
 
         const emailBody = template.evaluate().getContent();
@@ -379,15 +495,17 @@ function sendInitialConfirmationEmails(
           }
         );
 
-        registrationEntry[10] = `Sent: ${Utilities.formatDate(
-          new Date(),
-          Session.getScriptTimeZone(),
-          'MMM dd, yyyy HH:mm:ss'
-        )}`;
+        registrationEntry[REGISTRATION_COLUMNS.CONFIRMATION_1] =
+          `Sent: ${Utilities.formatDate(
+            new Date(),
+            Session.getScriptTimeZone(),
+            DATE_FORMAT
+          )}`;
 
         result.successCount++;
       } catch (error) {
-        registrationEntry[10] = `Failed: ${(error as Error).message}`;
+        registrationEntry[REGISTRATION_COLUMNS.CONFIRMATION_1] =
+          `Failed: ${(error as Error).message}`;
         result.errors.push({
           row: result.totalProcessed + 4, // Adjust for header rows
           error: (error as Error).message,
@@ -398,8 +516,15 @@ function sendInitialConfirmationEmails(
     }
 
     sheet
-      .getRange(4, 11, dataValues.length, 1)
-      .setValues(dataValues.map((row) => [row[10]]));
+      .getRange(
+        5,
+        REGISTRATION_COLUMNS.CONFIRMATION_1 + 1,
+        dataValues.length,
+        1
+      )
+      .setValues(
+        dataValues.map((row) => [row[REGISTRATION_COLUMNS.CONFIRMATION_1]])
+      );
 
     return result;
   } finally {
