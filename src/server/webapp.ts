@@ -130,7 +130,8 @@ function getRouteHTML(
 
     // Get session ID from query parameter if provided (after auth), otherwise generate new one
     const sessionId =
-      oldSessionId || Utilities.base64EncodeWebSafe(Utilities.getUuid());
+      oldSessionId ||
+      Utilities.base64EncodeWebSafe(`${Date.now()}-${Utilities.getUuid()}`);
 
     // Check if the route is protected via Script Properties
     const scriptProperties = PropertiesService.getScriptProperties();
