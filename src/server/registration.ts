@@ -231,7 +231,7 @@ function registerEntry(formData: unknown, sessionID: string): void {
         ['', '', '', '', '', ...firstRowPadding],
         [
           'Total',
-          'Remaining',
+          'Balance',
           'ETransfer',
           'Cash',
           'Notes',
@@ -280,6 +280,91 @@ function registerEntry(formData: unknown, sessionID: string): void {
 
       // Set unprotected ranges (ETransfer, Cash and Notes columns)
       protection.setUnprotectedRanges([sheet.getRange('C5:E')]);
+
+      // Add conditional formatting rules
+      const rules = sheet.getConditionalFormatRules();
+
+      // Balance (Column B) - Highlight if balance > 0 (amount still owed)
+      const balanceRule = SpreadsheetApp.newConditionalFormatRule()
+        .whenNumberNotBetween(0, 0)
+        .setBackground('#FCE5CD') // Light orange background
+        .setFontColor('#E69138') // Dark orange text
+        .setRanges([sheet.getRange('B5:B')])
+        .build();
+
+      // Balance (Column B) - Highlight if balance = 0 (fully paid)
+      const balancePaidRule = SpreadsheetApp.newConditionalFormatRule()
+        .whenNumberEqualTo(0)
+        .setBackground('#D9EAD3') // Light green background
+        .setFontColor('#6AA84F') // Dark green text
+        .setRanges([sheet.getRange('B5:B')])
+        .build();
+
+      // Confirmation 1 (Column Q) - Success/Sent
+      const confirmation1SuccessRule = SpreadsheetApp.newConditionalFormatRule()
+        .whenTextStartsWith('Sent:')
+        .setBackground('#D9EAD3') // Light green background
+        .setFontColor('#6AA84F') // Dark green text
+        .setRanges([sheet.getRange('Q5:Q')])
+        .build();
+
+      // Confirmation 1 (Column Q) - Failed/Error
+      const confirmation1ErrorRule = SpreadsheetApp.newConditionalFormatRule()
+        .whenTextStartsWith('Failed:')
+        .setBackground('#F4CCCC') // Light red background
+        .setFontColor('#CC0000') // Dark red text
+        .setRanges([sheet.getRange('Q5:Q')])
+        .build();
+
+      // Confirmation 2 (Column R) - Success/Sent
+      const confirmation2SuccessRule = SpreadsheetApp.newConditionalFormatRule()
+        .whenTextStartsWith('Sent:')
+        .setBackground('#D9EAD3') // Light green background
+        .setFontColor('#6AA84F') // Dark green text
+        .setRanges([sheet.getRange('R5:R')])
+        .build();
+
+      // Confirmation 2 (Column R) - Failed/Error
+      const confirmation2ErrorRule = SpreadsheetApp.newConditionalFormatRule()
+        .whenTextStartsWith('Failed:')
+        .setBackground('#F4CCCC') // Light red background
+        .setFontColor('#CC0000') // Dark red text
+        .setRanges([sheet.getRange('R5:R')])
+        .build();
+
+      // ETransfer, Cash, and Notes columns (C, D, E) - Light gray background when row has data
+      // Check if Session ID column (H) is not empty to determine if row exists
+      const eTransferBgRule = SpreadsheetApp.newConditionalFormatRule()
+        .whenFormulaSatisfied('=$H5<>""')
+        .setBackground('#F3F3F3') // Light gray background
+        .setRanges([sheet.getRange('C5:C')])
+        .build();
+
+      const cashBgRule = SpreadsheetApp.newConditionalFormatRule()
+        .whenFormulaSatisfied('=$H5<>""')
+        .setBackground('#F3F3F3') // Light gray background
+        .setRanges([sheet.getRange('D5:D')])
+        .build();
+
+      const notesBgRule = SpreadsheetApp.newConditionalFormatRule()
+        .whenFormulaSatisfied('=$H5<>""')
+        .setBackground('#F3F3F3') // Light gray background
+        .setRanges([sheet.getRange('E5:E')])
+        .build();
+
+      // Apply all rules
+      rules.push(
+        balanceRule,
+        balancePaidRule,
+        confirmation1SuccessRule,
+        confirmation1ErrorRule,
+        confirmation2SuccessRule,
+        confirmation2ErrorRule,
+        eTransferBgRule,
+        cashBgRule,
+        notesBgRule
+      );
+      sheet.setConditionalFormatRules(rules);
     } else {
       // Add row with formulas that use ROW() function to automatically reference current row
       sheet.appendRow([
@@ -419,10 +504,7 @@ function sendInitialConfirmationEmails(
       ).trim();
 
       // Skip if already successfully sent
-      if (
-        confirmationStatus.toLowerCase().startsWith('sent:') ||
-        confirmationStatus.toLowerCase().includes('success')
-      ) {
+      if (confirmationStatus.toLowerCase().startsWith('sent:')) {
         continue;
       }
 
