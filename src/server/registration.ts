@@ -458,9 +458,6 @@ function sendInitialConfirmationEmails(
 
   const eventYear = Number(getMetaData('EVENT_YEAR', routeMetadata));
 
-  const adultPrice = Number(getMetaData('TICKET_PRICE_ADULT', routeMetadata));
-  const childPrice = Number(getMetaData('TICKET_PRICE_CHILD', routeMetadata));
-
   const result: MailMergeResult = {
     totalProcessed: 0,
     successCount: 0,
@@ -538,11 +535,7 @@ function sendInitialConfirmationEmails(
       const numberOfChildTickets = Number(
         registrationEntry[REGISTRATION_COLUMNS.NUMBER_OF_CHILD_TICKETS]
       );
-      const totalAdultPrice =
-        numberOfAdultTickets * (Number.isNaN(adultPrice) ? 0 : adultPrice);
-      const totalChildPrice =
-        numberOfChildTickets * (Number.isNaN(childPrice) ? 0 : childPrice);
-      const totalPrice = totalAdultPrice + totalChildPrice;
+      const totalPrice = Number(registrationEntry[REGISTRATION_COLUMNS.TOTAL]);
 
       try {
         // Replace placeholders in template
