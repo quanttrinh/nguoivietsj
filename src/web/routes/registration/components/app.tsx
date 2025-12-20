@@ -127,6 +127,9 @@ function RegistrationPage() {
             confirmationMethod: registeredData.confirmationMethod,
           });
           setFormState('viewOnly');
+        } else {
+          document.cookie = `registeredSessionId=; max-age=0`;
+          setFormState('idle');
         }
       });
     }
