@@ -39,7 +39,7 @@ const REGISTRATION_COLUMNS = {
   CONFIRMATION_2: 17,
 } as const;
 
-const DATE_FORMAT = 'yyyy-MM-dd hh:mm:ss a' as const;
+const DATE_FORMAT = 'yyyy-MM-dd hh:mm:ss a XXX' as const;
 
 function getMetaData(
   metaName: keyof typeof meta,
