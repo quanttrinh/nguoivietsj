@@ -4,6 +4,8 @@ import './polyfills/TextEncoder';
 import { encode as qrencode } from 'uqr';
 import { encode as pngencode } from 'fast-png';
 
+import { addDays } from 'date-fns';
+
 import { RegistrationData } from '~/types/registration';
 import { INTERNAL_METADATA } from './constants';
 import { getManifest } from './webapp';
@@ -562,6 +564,14 @@ function sendInitialConfirmationEmails(
           Session.getScriptTimeZone(),
           DATE_FORMAT
         );
+        template.paymentDeadline = Utilities.formatDate(
+          addDays(new Date(), 7),
+          Session.getScriptTimeZone(),
+          'yyyy-MM-dd XXX'
+        );
+        template.email = email;
+        template.etransferEmail = getMetaData('ETRANSFER_EMAIL', routeMetadata);
+        template.cashAddress = getMetaData('CASH_ADDRESS', routeMetadata);
 
         const emailBody = template.evaluate().getContent();
 

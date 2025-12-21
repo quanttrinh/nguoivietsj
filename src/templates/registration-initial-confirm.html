@@ -79,6 +79,28 @@
         margin: 20px 0;
         border-left: 4px solid #f56565;
       }
+      .payment-info {
+        background-color: #e6fffa;
+        padding: 20px;
+        border-radius: 4px;
+        margin: 20px 0;
+        border-left: 4px solid #319795;
+      }
+      .payment-info h3 {
+        margin-top: 0;
+        color: #234e52;
+      }
+      .payment-info ul {
+        margin: 10px 0;
+        padding-left: 20px;
+      }
+      .payment-info li {
+        margin: 8px 0;
+        line-height: 1.6;
+      }
+      .payment-info strong {
+        color: #234e52;
+      }
     </style>
   </head>
   <body>
@@ -138,6 +160,35 @@
         <div class="highlight">
           <strong>Quan Trọng:</strong> Bạn sẽ nhận được mã QR check-in sau khi
           hoàn tất thanh toán.
+        </div>
+
+        <div class="payment-info">
+          <h3>Hướng Dẫn Thanh Toán</h3>
+          <p><strong>Hạn thanh toán:</strong> <?= paymentDeadline ?></p>
+          <p><strong>Phương thức thanh toán:</strong></p>
+          <ul>
+            <li>
+              <strong>eTransfer:</strong> Gửi đến
+              <strong><?= etransferEmail ?></strong>
+              <br />
+              <em
+                >Lưu ý: Vui lòng ghi
+                <strong>số điện thoại (<?= phoneNumber ?>)</strong> hoặc
+                <strong>email (<?= email ?>)</strong> của bạn vào phần nội dung
+                (message/note) của eTransfer để chúng tôi có thể xác nhận thanh
+                toán của bạn.</em
+              >
+            </li>
+            <li>
+              <strong>Tiền mặt:</strong> Thanh toán tại địa chỉ
+              <strong><?= cashAddress ?></strong>
+            </li>
+          </ul>
+          <p>
+            Thanh toán phải được hoàn tất trước ngày
+            <strong><?= paymentDeadline ?></strong>&nbsp;để đảm bảo đăng ký của
+            bạn.
+          </p>
         </div>
 
         <p>
@@ -206,6 +257,33 @@
         <div class="highlight">
           <strong>Important:</strong> You will receive your check in QR code
           once you have completed your payment.
+        </div>
+
+        <div class="payment-info">
+          <h3>Payment Instructions</h3>
+          <p><strong>Payment Deadline:</strong> <?= paymentDeadline ?></p>
+          <p><strong>Payment Methods:</strong></p>
+          <ul>
+            <li>
+              <strong>eTransfer:</strong> Send to
+              <strong><?= etransferEmail ?></strong>
+              <br />
+              <em
+                >Note: Please include your
+                <strong>phone number (<?= phoneNumber ?>)</strong> or
+                <strong>email (<?= email ?>)</strong> in the eTransfer
+                message/note so we can confirm your payment.</em
+              >
+            </li>
+            <li>
+              <strong>Cash:</strong> Pay at
+              <strong><?= cashAddress ?></strong>
+            </li>
+          </ul>
+          <p>
+            Payment must be completed by <strong><?= paymentDeadline ?></strong>
+            &nbsp;to secure your registration.
+          </p>
         </div>
 
         <p>

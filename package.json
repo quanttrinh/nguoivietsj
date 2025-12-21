@@ -13,6 +13,7 @@
     "@solid-primitives/storage": "^4.3.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
     "fast-png": "^8.0.0",
     "lucide-solid": "^0.555.0",
     "simple-yenc": "^1.0.4",
