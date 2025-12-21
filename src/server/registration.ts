@@ -428,6 +428,22 @@ function getRegistrationData(sessionID: string): RegistrationData | undefined {
   return undefined;
 }
 
+function getAliasEmail(eventYear: number): string | undefined {
+  const matcher = /(?<=\+tetviet)\d+(?=@gmail\.com)/gm;
+
+  const aliases = GmailApp.getAliases();
+
+  for (const alias of aliases) {
+    const match = alias.toLocaleLowerCase().match(matcher);
+    const matchYear = match ? Number(match[0]) : 0;
+    if (match && matchYear === eventYear) {
+      return alias;
+    }
+  }
+
+  return undefined;
+}
+
 interface MailMergeResult {
   totalProcessed: number;
   successCount: number;
@@ -471,21 +487,7 @@ function sendInitialConfirmationEmails(
     errors: [],
   };
 
-  const fromEmail = (() => {
-    const matcher = /(?<=\+tetviet)\d+(?=@gmail\.com)/gm;
-
-    const aliases = GmailApp.getAliases();
-
-    for (const alias of aliases) {
-      const match = alias.toLocaleLowerCase().match(matcher);
-      const matchYear = match ? Number(match[0]) : 0;
-      if (match && matchYear === eventYear) {
-        return alias;
-      }
-    }
-
-    return undefined;
-  })();
+  const fromEmail = getAliasEmail(eventYear);
 
   // Acquire lock to prevent concurrent executions
   const lock = LockService.getDocumentLock();
@@ -701,21 +703,7 @@ function sendFinalConfirmationEmails(
     errors: [],
   };
 
-  const fromEmail = (() => {
-    const matcher = /(?<=\+tetviet)\d+(?=@gmail\.com)/gm;
-
-    const aliases = GmailApp.getAliases();
-
-    for (const alias of aliases) {
-      const match = alias.toLocaleLowerCase().match(matcher);
-      const matchYear = match ? Number(match[0]) : 0;
-      if (match && matchYear === eventYear) {
-        return alias;
-      }
-    }
-
-    return undefined;
-  })();
+  const fromEmail = getAliasEmail(eventYear);
 
   // Acquire lock to prevent concurrent executions
   const lock = LockService.getDocumentLock();
@@ -781,6 +769,10 @@ function sendFinalConfirmationEmails(
         registrationEntry[REGISTRATION_COLUMNS.NUMBER_OF_CHILD_TICKETS]
       );
       const totalPrice = Number(registrationEntry[REGISTRATION_COLUMNS.TOTAL]);
+      const etransferAmount = Number(
+        registrationEntry[REGISTRATION_COLUMNS.ETRANSFER]
+      );
+      const cashAmount = Number(registrationEntry[REGISTRATION_COLUMNS.CASH]);
 
       try {
         const formattedSubmissionDate = Utilities.formatDate(
@@ -811,6 +803,14 @@ function sendFinalConfirmationEmails(
           numberOfAdultTickets + numberOfChildTickets
         );
         template.totalPrice = totalPrice.toFixed(2);
+        template.rawETransferAmount = etransferAmount;
+        template.rawCashAmount = cashAmount;
+        template.etransferAmount = Number.isNaN(etransferAmount)
+          ? '0.00'
+          : etransferAmount.toFixed(2);
+        template.cashAmount = Number.isNaN(cashAmount)
+          ? '0.00'
+          : cashAmount.toFixed(2);
         template.currency = getMetaData('CURRENCY', routeMetadata);
         template.submissionDate = formattedSubmissionDate;
         template.qrCodeImageUrl = `cid:${qrCodeImageName}`;
