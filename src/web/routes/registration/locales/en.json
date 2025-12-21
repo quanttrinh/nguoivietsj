@@ -14,8 +14,8 @@
     "description": "Please provide your personal details."
   },
   "first_name": {
-    "label": "First Name",
-    "placeholder": "First Name"
+    "label": "First Name & Middle Name",
+    "placeholder": "First Name & Middle Name"
   },
   "last_name": {
     "label": "Last Name",

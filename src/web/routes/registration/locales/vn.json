@@ -14,8 +14,8 @@
     "description": "Vui lòng cung cấp thông tin cá nhân của bạn."
   },
   "first_name": {
-    "label": "Tên",
-    "placeholder": "Tên"
+    "label": "Tên & Tên Đệm",
+    "placeholder": "Tên & Tên Đệm"
   },
   "last_name": {
     "label": "Họ",

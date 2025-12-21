@@ -14,8 +14,8 @@
     "description": "Veuillez fournir vos coordonnées personnelles."
   },
   "first_name": {
-    "label": "Prénom",
-    "placeholder": "Prénom"
+    "label": "Prénom & Deuxième Prénom",
+    "placeholder": "Prénom & Deuxième Prénom"
   },
   "last_name": {
     "label": "Nom de Famille",
