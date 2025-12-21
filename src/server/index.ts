@@ -5,6 +5,8 @@ import {
   getRegistrationData,
   sendInitialConfirmationEmails,
   sendInitialConfirmationEmailsUI,
+  sendFinalConfirmationEmails,
+  sendFinalConfirmationEmailsUI,
 } from './registration';
 import { validatePassword } from './password';
 import {
@@ -23,6 +25,8 @@ export {
   getRegistrationData,
   sendInitialConfirmationEmails,
   sendInitialConfirmationEmailsUI,
+  sendFinalConfirmationEmails,
+  sendFinalConfirmationEmailsUI,
   validatePassword,
   getAdminConfig,
   setAdminConfig,

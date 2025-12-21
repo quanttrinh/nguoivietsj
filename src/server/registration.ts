@@ -1,3 +1,9 @@
+import './polyfills/TextDecoder';
+import './polyfills/TextEncoder';
+
+import { encode as qrencode } from 'uqr';
+import { encode as pngencode } from 'fast-png';
+
 import { RegistrationData } from '~/types/registration';
 import { INTERNAL_METADATA } from './constants';
 import { getManifest } from './webapp';
@@ -561,7 +567,7 @@ function sendInitialConfirmationEmails(
         GmailApp.sendEmail(
           email,
           'Xác Nhận Đăng Ký / Registration Confirmation',
-          emailBody,
+          '',
           {
             from: fromEmail,
             name: `Tết Việt ${eventYear}`,
@@ -599,6 +605,266 @@ function sendInitialConfirmationEmails(
       )
       .setValues(
         dataValues.map((row) => [row[REGISTRATION_COLUMNS.CONFIRMATION_1]])
+      );
+
+    return result;
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/**
+ * Generates a QR code as a Blob
+ * @param data The data to encode in the QR code
+ * @returns Object containing the PNG blob and unicode representation
+ */
+function generateQRCodePng(
+  data: string,
+  name: string
+): GoogleAppsScript.Base.Blob {
+  // Generate QR code matrix using uqr (fastest QR code generation)
+  const qr = qrencode(data, { ecc: 'H' as const, boostEcc: true, border: 2 });
+
+  // Fast conversion: QR code 2D boolean array to PNG
+  const scale = 10; // Each module is 10x10 pixels
+  const size = qr.size * scale;
+
+  // Create grayscale image data (1 byte per pixel)
+  const pixels = new Uint8Array(size * size);
+
+  for (let pixelIndex = 0, qrY = 0; qrY < qr.size; qrY++) {
+    const row = qr.data[qrY];
+
+    // Generate scaled row once
+    const scaledRow = new Uint8Array(size);
+    let rowIndex = 0;
+    for (let qrX = 0; qrX < qr.size; qrX++) {
+      const value = row[qrX] ? 0 : 255;
+      for (let sx = 0; sx < scale; sx++) {
+        scaledRow[rowIndex++] = value;
+      }
+    }
+
+    // Copy scaled row 'scale' times vertically
+    for (let sy = 0; sy < scale; sy++) {
+      pixels.set(scaledRow, pixelIndex);
+      pixelIndex += size;
+    }
+  }
+
+  // Encode to PNG (fastest method with grayscale)
+  const pngData = pngencode({
+    width: size,
+    height: size,
+    data: pixels,
+    channels: 1, // Grayscale
+    depth: 8,
+  });
+
+  // Create and return blob
+  return Utilities.newBlob(Array.from(pngData), 'image/png', `${name}.png`);
+}
+
+/**
+ * Sends final confirmation emails with QR codes to registrants who have paid in full (balance = 0)
+ * @param maxEmails Maximum number of emails to send (default: remaining daily quota)
+ * @returns Result summary of the mail merge operation
+ */
+function sendFinalConfirmationEmails(
+  maxEmails: number = MailApp.getRemainingDailyQuota()
+): MailMergeResult {
+  const sheet = SpreadsheetApp.getActive().getSheetByName(SHEET_NAME);
+
+  if (!sheet) {
+    throw new Error(`${SHEET_NAME} sheet not found`);
+  }
+
+  const dataValues = sheet.getDataRange().getValues();
+  dataValues.splice(0, 4); // Skip header rows
+
+  const template = HtmlService.createTemplateFromFile(
+    CONFIRMATION_FINAL_TEMPLATE_FILE
+  );
+
+  const routeMetadata = JSON.parse(
+    PropertiesService.getScriptProperties().getProperty(
+      INTERNAL_METADATA.ROUTE_METADATA
+    ) || '{}'
+  );
+
+  const eventYear = Number(getMetaData('EVENT_YEAR', routeMetadata));
+
+  const result: MailMergeResult = {
+    totalProcessed: 0,
+    successCount: 0,
+    failureCount: 0,
+    errors: [],
+  };
+
+  const fromEmail = (() => {
+    const matcher = /(?<=\+tetviet)\d+(?=@gmail\.com)/gm;
+
+    const aliases = GmailApp.getAliases();
+
+    for (const alias of aliases) {
+      const match = alias.toLocaleLowerCase().match(matcher);
+      const matchYear = match ? Number(match[0]) : 0;
+      if (match && matchYear === eventYear) {
+        return alias;
+      }
+    }
+
+    return undefined;
+  })();
+
+  // Acquire lock to prevent concurrent executions
+  const lock = LockService.getDocumentLock();
+
+  if (!lock.tryLock(LOCK_TIMEOUT_MS)) {
+    throw new Error(
+      'Could not obtain lock for sending emails. Please try again later.'
+    );
+  }
+
+  try {
+    for (let registrationEntry of dataValues) {
+      if (result.totalProcessed >= maxEmails) {
+        break;
+      }
+
+      const confirmationStatus = String(
+        registrationEntry[REGISTRATION_COLUMNS.CONFIRMATION_2] || ''
+      ).trim();
+
+      // Skip if already successfully sent
+      if (confirmationStatus.toLowerCase().startsWith('sent:')) {
+        continue;
+      }
+
+      // Check if balance is 0 (fully paid)
+      const balance = Number(registrationEntry[REGISTRATION_COLUMNS.REMAINING]);
+      if (balance !== 0) {
+        continue;
+      }
+
+      const confirmationMethod = String(
+        registrationEntry[REGISTRATION_COLUMNS.CONFIRMATION_METHOD]
+      );
+      const email = String(registrationEntry[REGISTRATION_COLUMNS.EMAIL]);
+
+      // Skip if no email address for email confirmation method
+      if (confirmationMethod !== 'email' || !email) {
+        continue;
+      }
+
+      result.totalProcessed++;
+
+      const submissionDate = new Date(
+        registrationEntry[REGISTRATION_COLUMNS.SUBMISSION_DATE]
+      );
+      const sessionId = String(
+        registrationEntry[REGISTRATION_COLUMNS.SESSION_ID]
+      );
+      const firstName = String(
+        registrationEntry[REGISTRATION_COLUMNS.FIRST_NAME]
+      );
+      const lastName = String(
+        registrationEntry[REGISTRATION_COLUMNS.LAST_NAME]
+      );
+      const phoneNumber = String(
+        registrationEntry[REGISTRATION_COLUMNS.PHONE_NUMBER]
+      );
+      const numberOfAdultTickets = Number(
+        registrationEntry[REGISTRATION_COLUMNS.NUMBER_OF_ADULT_TICKETS]
+      );
+      const numberOfChildTickets = Number(
+        registrationEntry[REGISTRATION_COLUMNS.NUMBER_OF_CHILD_TICKETS]
+      );
+      const totalPrice = Number(registrationEntry[REGISTRATION_COLUMNS.TOTAL]);
+
+      try {
+        const formattedSubmissionDate = Utilities.formatDate(
+          submissionDate,
+          Session.getScriptTimeZone(),
+          DATE_FORMAT
+        );
+
+        // Generate QR code data
+        const qrData = Utilities.base64EncodeWebSafe(
+          JSON.stringify({
+            id: sessionId,
+            date: formattedSubmissionDate,
+          })
+        );
+
+        const qrCodeImageName = `${firstName}_${lastName}_CheckInQR`;
+
+        const qrCodeBlob = generateQRCodePng(qrData, qrCodeImageName);
+
+        // Replace placeholders in template
+        template.firstName = firstName;
+        template.lastName = lastName;
+        template.phoneNumber = phoneNumber;
+        template.numberOfAdultTickets = String(numberOfAdultTickets);
+        template.numberOfChildTickets = String(numberOfChildTickets);
+        template.totalTickets = String(
+          numberOfAdultTickets + numberOfChildTickets
+        );
+        template.totalPrice = totalPrice.toFixed(2);
+        template.currency = getMetaData('CURRENCY', routeMetadata);
+        template.submissionDate = formattedSubmissionDate;
+        template.qrCodeImageUrl = `cid:${qrCodeImageName}`;
+
+        const emailBody = template.evaluate().getContent();
+
+        Logger.log(emailBody);
+
+        // Send email
+        GmailApp.sendEmail(
+          email,
+          'Xác Nhận Thanh Toán / Payment Confirmation',
+          '',
+          {
+            from: fromEmail,
+            name: `Tết Việt ${eventYear}`,
+            htmlBody: emailBody,
+            replyTo: getMetaData('CONTACT_EMAIL', routeMetadata) || undefined,
+            inlineImages: {
+              [qrCodeImageName]: qrCodeBlob,
+            },
+            attachments: [qrCodeBlob],
+          }
+        );
+
+        registrationEntry[REGISTRATION_COLUMNS.CONFIRMATION_2] =
+          `Sent: ${Utilities.formatDate(
+            new Date(),
+            Session.getScriptTimeZone(),
+            DATE_FORMAT
+          )}`;
+
+        result.successCount++;
+      } catch (error) {
+        registrationEntry[REGISTRATION_COLUMNS.CONFIRMATION_2] =
+          `Failed: ${(error as Error).message}`;
+        result.errors.push({
+          row: result.totalProcessed + 4, // Adjust for header rows
+          error: (error as Error).message,
+        });
+
+        result.failureCount++;
+      }
+    }
+
+    sheet
+      .getRange(
+        5,
+        REGISTRATION_COLUMNS.CONFIRMATION_2 + 1,
+        dataValues.length,
+        1
+      )
+      .setValues(
+        dataValues.map((row) => [row[REGISTRATION_COLUMNS.CONFIRMATION_2]])
       );
 
     return result;
@@ -658,10 +924,64 @@ function sendInitialConfirmationEmailsUI(): void {
   }
 }
 
+/**
+ * UI function to send final confirmation emails with QR codes with user prompt
+ */
+function sendFinalConfirmationEmailsUI(): void {
+  const ui = SpreadsheetApp.getUi();
+
+  const quota = MailApp.getRemainingDailyQuota();
+  if (quota <= 0) {
+    ui.alert(
+      'Email Quota Exceeded',
+      'You have reached your daily email sending limit. Please try again tomorrow.',
+      ui.ButtonSet.OK
+    );
+    return;
+  }
+
+  // Confirm action
+  const confirmResponse = ui.alert(
+    'Confirm Sending Final Confirmation Emails with QR Codes',
+    `This will send up to ${quota} final confirmation emails with check-in QR codes (bilingual: Vietnamese & English).\n\n` +
+      'Only registrations with balance = 0 (fully paid) will receive emails.\n' +
+      'It will skip registrations that have already been sent successfully.\n\n' +
+      'Do you want to continue?',
+    ui.ButtonSet.YES_NO
+  );
+
+  if (confirmResponse !== ui.Button.YES) {
+    return;
+  }
+
+  try {
+    const result = sendFinalConfirmationEmails(quota);
+
+    const message =
+      `Sending Complete!\n\n` +
+      `Total Processed: ${result.totalProcessed}\n` +
+      `Successful: ${result.successCount}\n` +
+      `Failed: ${result.failureCount}\n` +
+      (result.errors.length > 0
+        ? `Errors:\n${result.errors.map((e) => `Row ${e.row}: ${e.error}`).join('\n')}`
+        : 'No errors encountered.');
+
+    ui.alert('Results', message, ui.ButtonSet.OK);
+  } catch (error) {
+    ui.alert(
+      'Error',
+      `Failed to send emails: ${(error as Error).message}`,
+      ui.ButtonSet.OK
+    );
+  }
+}
+
 export {
   registerEntry,
   getTotalTicketStatus,
   getRegistrationData,
   sendInitialConfirmationEmails,
   sendInitialConfirmationEmailsUI,
+  sendFinalConfirmationEmails,
+  sendFinalConfirmationEmailsUI,
 };

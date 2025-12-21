@@ -8,14 +8,17 @@
   "dependencies": {
     "@ark-ui/solid": "^5.27.0",
     "@aws-crypto/sha256-browser": "^5.2.0",
+    "@borewit/text-codec": "^0.2.0",
     "@solid-primitives/i18n": "^2.2.1",
     "@solid-primitives/storage": "^4.3.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "fast-png": "^8.0.0",
     "lucide-solid": "^0.555.0",
     "simple-yenc": "^1.0.4",
     "solid-js": "^1.9.10",
-    "tailwind-merge": "^3.4.0"
+    "tailwind-merge": "^3.4.0",
+    "uqr": "^0.1.2"
   },
   "devDependencies": {
     "@google/clasp": "^3.1.3",

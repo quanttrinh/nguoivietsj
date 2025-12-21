@@ -9,6 +9,10 @@ function onOpen() {
       'Send Initial Confirmation Emails',
       'sendInitialConfirmationEmailsUI'
     )
+    .addItem(
+      'Send Final Confirmation Emails (with QR Codes)',
+      'sendFinalConfirmationEmailsUI'
+    )
     .addToUi();
 }
 
