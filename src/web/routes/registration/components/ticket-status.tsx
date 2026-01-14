@@ -18,10 +18,7 @@ interface TicketStatusProps {
 
 function TicketStatus(props: TicketStatusProps) {
   const [ticketStatus] = createResource(async () => {
-    return await callScript<{
-      currentTotalTickets: number | undefined;
-      maxTotalTickets: number;
-    }>('getTotalTicketStatus');
+    return await callScript('getTotalTicketStatus');
   });
 
   let containerRef: HTMLDivElement | undefined;
@@ -70,7 +67,7 @@ function TicketStatus(props: TicketStatusProps) {
     <Show when={ticketStatus()}>
       <div
         nonce={getNonce()}
-        ref={containerRef}
+        ref={(el) => (containerRef = el)}
         class='sticky top-0 px-6 pt-6 z-10 transition-all duration-300 bg-transparent overflow-visible'
         style={{
           opacity: props.visible ? '1' : '0',

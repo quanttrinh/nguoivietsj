@@ -1,8 +1,10 @@
-import { doGet, doPost } from './webapp';
+import { doGet } from './webapp';
 import {
   registerEntry,
   getTotalTicketStatus,
   getRegistrationData,
+  getRegistrationDataFromQRPayload,
+  checkIn,
   sendInitialConfirmationEmails,
   sendInitialConfirmationEmailsUI,
   sendFinalConfirmationEmails,
@@ -19,10 +21,11 @@ import { onOpen } from './menu';
 
 export {
   doGet,
-  doPost,
   registerEntry,
   getTotalTicketStatus,
   getRegistrationData,
+  getRegistrationDataFromQRPayload,
+  checkIn,
   sendInitialConfirmationEmails,
   sendInitialConfirmationEmailsUI,
   sendFinalConfirmationEmails,
@@ -34,3 +37,6 @@ export {
   onOpen,
   openAdminUI,
 };
+
+export type ServerApi = typeof import('./index');
+

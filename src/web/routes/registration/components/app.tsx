@@ -8,6 +8,7 @@ import {
   startTransition,
   Switch,
 } from 'solid-js';
+import { Portal } from 'solid-js/web';
 
 import { makePersisted } from '@solid-primitives/storage';
 
@@ -44,8 +45,8 @@ import {
   TextFieldTextArea,
 } from '~/web/ui/text-field';
 import { Separator } from '~/web/ui/separator';
+import { Dialog } from '@ark-ui/solid/dialog';
 
-import { BlockingDialog } from './blocking-dialog';
 import { TicketStatus } from './ticket-status';
 
 import * as i18n from '@solid-primitives/i18n';
@@ -110,10 +111,10 @@ function RegistrationPage() {
     if (registeredSessionId()) {
       setFormState('loading');
       await startTransition(async () => {
-        const registeredData = await callScript<RegistrationData>(
+        const registeredData = await callScript(
           'getRegistrationData',
           null,
-          registeredSessionId()
+          registeredSessionId() || ''
         );
         if (registeredData) {
           setFormData({
@@ -202,7 +203,7 @@ function RegistrationPage() {
 
   const nameRegex = /^[\p{L} '-]+$/u;
   const phoneNumberRegex =
-    /^(?:\+?(?<country>\d{1,3}))?[-. ]*(?:\((?<area>\d{3})\)|(?<area>\d{3}))[-. ]*(?<local1>\d{3})[-. ]*(?<local2>\d{4})(?: *x(?<ext>\d{1,5}))?$/u;
+    /^(?:\+?(?<country>\d{1,3}))?[-. ]*\(?(?<area>\d{3})\)?[-. ]*(?<local1>\d{3})[-. ]*(?<local2>\d{4})(?: *x(?<ext>\d{1,5}))?$/u;
 
   createEffect(() => {
     const value = formData().firstName.trim();
@@ -438,45 +439,56 @@ function RegistrationPage() {
         </div>
       }
     >
-      <BlockingDialog
-        open={formState() !== 'idle' && formState() !== 'viewOnly'}
-      >
-        <Switch>
-          <Match when={formState() === 'submitted'}>
-            <div class='flex flex-col gap-4'>
-              <h2 class='flex gap-2 text-xl font-bold text-success'>
-                <CircleCheckBig />
-                {translator('blocking_dialog.submission_success_title')}
-              </h2>
-              <p>{translator('blocking_dialog.submission_success_message')}</p>
-            </div>
-          </Match>
-          <Match when={formState() === 'submitting'}>
-            <div class='flex flex-col gap-4 items-center'>
-              <Loader class='animate-spin w-8 h-8' />
-              <p>{translator('blocking_dialog.submission_in_progress')}</p>
-            </div>
-          </Match>
-          <Match when={formState() === 'error'}>
-            <div class='flex flex-col gap-4'>
-              <h2 class='flex gap-2 text-xl font-bold text-error'>
-                <CircleAlert />
-                {translator('blocking_dialog.submission_error_title')}
-              </h2>
-              <p>{translator('blocking_dialog.submission_error_message')}</p>
-              <p class='text-error'>{submissionErrorMsg()}</p>
-              <Button
-                onClick={() => {
-                  setFormState('idle');
-                  setSubmissionErrorMsg(undefined);
-                }}
-              >
-                {translator('blocking_dialog.submission_error_retry')}
-              </Button>
-            </div>
-          </Match>
-        </Switch>
-      </BlockingDialog>
+      <Dialog.Root open={formState() !== 'idle' && formState() !== 'viewOnly'}>
+        <Portal>
+          <Dialog.Backdrop class='fixed inset-0 z-50 bg-black/10 dark:bg-black/80 backdrop-blur-xs' />
+          <Dialog.Positioner class='fixed inset-0 z-50 flex items-center justify-center p-4'>
+            <Dialog.Content class='relative w-full max-w-sm bg-transparent p-5'>
+              <Switch>
+                <Match when={formState() === 'submitted'}>
+                  <div class='flex flex-col gap-4'>
+                    <h2 class='flex gap-2 text-xl font-bold text-success'>
+                      <CircleCheckBig />
+                      {translator('blocking_dialog.submission_success_title')}
+                    </h2>
+                    <p>
+                      {translator('blocking_dialog.submission_success_message')}
+                    </p>
+                  </div>
+                </Match>
+                <Match when={formState() === 'submitting'}>
+                  <div class='flex flex-col gap-4 items-center'>
+                    <Loader class='animate-spin w-8 h-8' />
+                    <p>
+                      {translator('blocking_dialog.submission_in_progress')}
+                    </p>
+                  </div>
+                </Match>
+                <Match when={formState() === 'error'}>
+                  <div class='flex flex-col gap-4'>
+                    <h2 class='flex gap-2 text-xl font-bold text-error'>
+                      <CircleAlert />
+                      {translator('blocking_dialog.submission_error_title')}
+                    </h2>
+                    <p>
+                      {translator('blocking_dialog.submission_error_message')}
+                    </p>
+                    <p class='text-error'>{submissionErrorMsg()}</p>
+                    <Button
+                      onClick={() => {
+                        setFormState('idle');
+                        setSubmissionErrorMsg(undefined);
+                      }}
+                    >
+                      {translator('blocking_dialog.submission_error_retry')}
+                    </Button>
+                  </div>
+                </Match>
+              </Switch>
+            </Dialog.Content>
+          </Dialog.Positioner>
+        </Portal>
+      </Dialog.Root>
       <TicketStatus
         visible={ticketStatusVisible()}
         noTicketsText={translator('ticket_status.no_tickets_message')}

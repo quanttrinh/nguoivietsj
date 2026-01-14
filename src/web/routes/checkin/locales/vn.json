@@ -1,0 +1,41 @@
+{
+  "form": {
+    "title": "Điểm Danh Sự Kiện",
+    "description": "Quét mã QR để điểm danh người tham dự"
+  },
+  "scanner": {
+    "start": "Bắt Đầu Quét",
+    "stop": "Dừng Quét",
+    "no_camera": "Không có quyền truy cập camera",
+    "camera_permission_denied": "Quyền truy cập camera bị từ chối. Vui lòng cho phép truy cập camera để quét mã QR."
+  },
+  "errors": {
+    "unknown_error": "Đã xảy ra lỗi không xác định.",
+    "invalid_qr": "Mã QR không hợp lệ.",
+    "query_error": "Lỗi khi truy xuất thông tin người tham dự.",
+    "already_checked_in": "Người tham dự này đã được điểm danh.",
+    "check_in_failed": "Điểm danh thất bại."
+  },
+  "attendee_info": {
+    "title": "Thông Tin Người Tham Dự",
+    "first_name": "Tên",
+    "last_name": "Họ",
+    "phone": "Điện Thoại",
+    "notes": "Ghi Chú",
+    "child_tickets": "Vé Trẻ Em",
+    "adult_tickets": "Vé Người Lớn",
+    "registration_date": "Ngày Đăng Ký",
+    "checked_in_date": "Ngày Điểm Danh"
+  },
+  "dialog_buttons": {
+    "close": "Đóng",
+    "ok": "OK",
+    "retry": "Thử Lại",
+    "checkin": "Điểm Danh",
+    "already_checked_in": "Đã Điểm Danh"
+  },
+  "messages": {
+    "check_in_successful": "Điểm danh thành công!"
+  },
+  "made_with_love": "Được làm với ❤️ bởi {{name}}"
+}

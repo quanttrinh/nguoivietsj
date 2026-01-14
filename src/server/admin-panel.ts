@@ -1,5 +1,5 @@
-import { INTERNAL_METADATA, INTERNAL_SITES } from './constants';
-import { getRouteHTML, getManifest } from './webapp';
+import { INTERNAL_METADATA } from './constants';
+import { getRouteHTML, getManifest, getRouteManifest } from './webapp';
 
 interface AdminConfig {
   protectedRoutes: string[];
@@ -14,10 +14,10 @@ interface MetaField {
 }
 
 interface AvailableRoutes {
-  routes: Array<{
+  routes: {
     path: string;
     metaFields: Record<string, MetaField>;
-  }>;
+  }[];
 }
 
 function getAdminConfig(): AdminConfig {
@@ -81,32 +81,16 @@ function getAvailableRoutes(): AvailableRoutes {
     return { routes: [] };
   }
 
-  const routes = Object.keys(manifest).filter(
-    (route) =>
-      !Object.values(INTERNAL_SITES).includes(
-        route as (typeof INTERNAL_SITES)[keyof typeof INTERNAL_SITES]
-      )
-  );
+  const routes = Object.keys(manifest.routes);
 
   return {
     routes: routes.map((route) => {
-      const meta = manifest[route]?.meta || {};
-      const metaFields: Record<string, MetaField> = {};
-      
-      // Convert meta object to MetaField format
-      for (const key in meta) {
-        const value = meta[key] as any;
-        if (typeof value === 'object' && value !== null && 'type' in value && 'defaultValue' in value) {
-          metaFields[key] = {
-            type: value.type as 'string' | 'number' | 'boolean',
-            defaultValue: String(value.defaultValue),
-          };
-        }
-      }
-      
+      const manifest = getRouteManifest(route);
+      const meta = manifest?.meta || {};
+
       return {
         path: route,
-        metaFields,
+        metaFields: meta as Record<string, MetaField>,
       };
     }),
   };

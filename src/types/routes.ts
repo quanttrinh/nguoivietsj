@@ -1,16 +1,12 @@
-export type RoutesManifest = Record<string, RouteConfig>;
-
-export type RouteConfig = {
-  file: string;
+export type RouteManifest = {
   title: string;
   faviconUrl?: string;
   meta: Record<string, { type: string; defaultValue: string }>;
+  jsPayload: string;
+  cssPayload?: string;
 };
 
-export type RoutePayload = {
-  loader: {
-    mainLoader: string;
-    cssPayload?: string;
-    JSPayload: string;
-  };
+export type RoutesManifest = {
+  loader: string;
+  routes: Record<string, string>;
 };

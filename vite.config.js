@@ -52,67 +52,66 @@ const ExposeGasFunctionsPlugin = () => ({
  * @returns {import('vite').Plugin}
  */
 const RoutesBuildPlugin = () => {
-  // Store loader code in closure to share across route builds
-  let loaderCode = '';
-
   return {
     name: 'build-routes',
     apply: 'build',
 
     async generateBundle() {
-      // Build the loader script once before building routes
-      this.info('Building loader script...');
-
-      const loaderPath = path.resolve(
-        __dirname,
-        'src',
-        'web',
-        'common',
-        'loader.ts'
-      );
-
-      // Build the loader using Vite and capture output in memory
-      const loaderBundle = await viteBuild({
-        build: {
-          target: 'baseline-widely-available',
-          modulePreload: false,
-          rollupOptions: {
-            input: loaderPath,
-            output: {
-              format: 'es',
-              entryFileNames: 'loader.js',
-              inlineDynamicImports: true,
-            },
-          },
-          write: false, // Don't write to disk
-        },
-        configFile: false,
-        publicDir: false,
-        plugins: [],
-      });
-
       // Extract the loader code from the bundle output
-      if (Array.isArray(loaderBundle)) {
-        const output = loaderBundle[0];
-        if ('output' in output) {
-          const chunk = output.output.find(
+      const loaderCode = await (async () => {
+        // Build the loader script once before building routes
+        this.info('Building loader script...');
+
+        const loaderPath = path.resolve(
+          __dirname,
+          'src',
+          'web',
+          'common',
+          'loader.ts'
+        );
+
+        // Build the loader using Vite and capture output in memory
+        const loaderBundle = await viteBuild({
+          build: {
+            target: 'baseline-widely-available',
+            rollupOptions: {
+              input: loaderPath,
+              output: {
+                format: 'iife',
+                entryFileNames: 'loader.js',
+                inlineDynamicImports: true,
+              },
+            },
+            write: false, // Don't write to disk
+          },
+          configFile: false,
+          publicDir: false,
+          plugins: [],
+        });
+
+        if (Array.isArray(loaderBundle)) {
+          const output = loaderBundle[0];
+          if ('output' in output) {
+            const chunk = output.output.find(
+              (item) => item.type === 'chunk' && item.fileName === 'loader.js'
+            );
+            if (chunk && chunk.type === 'chunk') {
+              return chunk.code;
+            }
+          }
+        } else if ('output' in loaderBundle) {
+          const chunk = loaderBundle.output.find(
             (item) => item.type === 'chunk' && item.fileName === 'loader.js'
           );
           if (chunk && chunk.type === 'chunk') {
-            loaderCode = chunk.code;
+            return chunk.code;
           }
         }
-      } else if ('output' in loaderBundle) {
-        const chunk = loaderBundle.output.find(
-          (item) => item.type === 'chunk' && item.fileName === 'loader.js'
-        );
-        if (chunk && chunk.type === 'chunk') {
-          loaderCode = chunk.code;
-        }
-      }
+      })();
 
       if (!loaderCode) {
         this.error('Failed to extract loader code from build output');
+        return;
       }
 
       this.info('Loader script built successfully');
@@ -125,162 +124,158 @@ const RoutesBuildPlugin = () => {
 
       this.info(`Found ${routes.length} routes to build`);
 
-      /** @type {import('./src/types/routes').RoutesManifest} */
-      const manifest = {};
+      const processedRoutes = await Promise.all(
+        routes.map(
+          (routePath) =>
+            /** @type {Promise<{ routeName: string; routeFileName: string, rawSize: number, compressedSize: number }>} */
+            (
+              new Promise(async (resolve, reject) => {
+                // Build the route
+                const routeBundle = await viteBuild({
+                  base: '/web/',
+                  build: {
+                    target: 'baseline-widely-available',
+                    rollupOptions: {
+                      input: routePath,
+                      output: {
+                        format: 'esm',
+                        inlineDynamicImports: true,
+                      },
+                      preserveEntrySignatures: 'strict',
+                    },
+                    write: false,
+                  },
+                  configFile: false,
+                  publicDir: false,
+                  plugins: /** @type {import('vite').PluginOption[]} */ ([
+                    tsconfigPaths(),
+                    solidDevtools(),
+                    solidPlugin(),
+                    tailwindcss(),
+                  ]),
+                });
 
-      // Build each route separately in parallel
-      const buildPromises = routes.map(async (routePath) => {
-        // Get route name from path (e.g., routes/error/index.tsx -> error)
-        const rel = path.relative(
-          path.resolve(__dirname, 'src', 'web', 'routes'),
-          routePath
-        );
-        const routeName = path.dirname(rel).replace(/\\/g, '/'); // Normalize for Windows
-
-        this.info(`Building route: ${routeName}`);
-
-        await viteBuild({
-          build: {
-            target: 'baseline-widely-available',
-            outDir: path.resolve(__dirname, 'dist', 'web', 'routes'),
-            emptyOutDir: false,
-            rollupOptions: {
-              input: {
-                [routeName]: routePath,
-              },
-              output: {
-                entryFileNames: `${routeName}/index.js`,
-                assetFileNames: `${routeName}/[name].[ext]`,
-              },
-            },
-            reportCompressedSize: false,
-          },
-          configFile: false,
-          publicDir: false,
-          plugins: /** @type {import('vite').PluginOption[]} */ ([
-            tsconfigPaths(),
-            solidDevtools(),
-            solidPlugin(),
-            tailwindcss(),
-            {
-              name: 'create-html',
-
-              async generateBundle(_, bundle) {
-                // Find the JS and CSS files for this route
-                let jsCode = '';
-                let cssCode = '';
-
-                for (const [fileName, asset] of Object.entries(bundle)) {
-                  if (fileName.endsWith('.js') && asset.type === 'chunk') {
-                    jsCode = asset.code;
-                  } else if (
-                    fileName.endsWith('.css') &&
-                    asset.type === 'asset'
-                  ) {
-                    cssCode =
-                      typeof asset.source === 'string'
-                        ? asset.source
-                        : new TextDecoder().decode(asset.source);
+                // Extract bundle output
+                const routeOutputs = (() => {
+                  if (Array.isArray(routeBundle)) {
+                    return routeBundle[0]?.output || [];
+                  } else if ('output' in routeBundle) {
+                    return routeBundle.output;
                   }
+                })();
+
+                if (
+                  !routeOutputs ||
+                  routeOutputs.length < 1 ||
+                  routeOutputs.length > 2
+                ) {
+                  this.error('Failed to build route');
+                  reject();
+                  return;
                 }
 
-                // Calculate total uncompressed size
-                const uncompressedSize =
-                  (jsCode?.length || 0) + (cssCode?.length || 0);
-
-                const jsPayloadStr = `"${yencStringify(
+                const jsCode =
+                  /** @type {import('vite').Rollup.OutputChunk | undefined} */ (
+                    routeOutputs.find(
+                      (item) =>
+                        item.type === 'chunk' && item.fileName.endsWith('.js')
+                    )
+                  )?.code || '';
+                const jsPayload = yencStringify(
                   yencDynEncode(
                     new Uint8Array(zlib.gzipSync(Buffer.from(jsCode))),
                     '"'
                   )
-                )}"`;
+                );
 
-                const cssPayloadStr = `"${yencStringify(
+                const cssCode =
+                  /** @type {import('vite').Rollup.OutputAsset | undefined} */ (
+                    routeOutputs.find(
+                      (item) =>
+                        item.type === 'asset' && item.fileName.endsWith('.css')
+                    )
+                  )?.source || '';
+                const cssPayload = yencStringify(
                   yencDynEncode(
                     new Uint8Array(zlib.gzipSync(Buffer.from(cssCode))),
                     '"'
                   )
-                )}"`;
-
-                // Use the pre-built loader template from memory
-                if (!loaderCode) {
-                  this.error('Loader code not available');
-                }
-
-                const compressedSize =
-                  loaderCode.length +
-                  jsPayloadStr.length +
-                  cssPayloadStr.length;
-
-                this.info(
-                  `${routeName}: Compression: ~${uncompressedSize.toLocaleString()} → ~${compressedSize.toLocaleString()} (${((1 - compressedSize / uncompressedSize) * 100).toFixed(1)}% reduction)`
                 );
 
-                // Read route config for title (if exists)
-                let routeConfig = { title: routeName };
+                // Read route config
+                /** @type {Partial<Pick<import('./src/types/routes').RouteManifest, 'title' | 'meta' | 'faviconUrl'>>} */
+                let routeConfig = {
+                  title: path.basename(path.dirname(routePath)),
+                };
                 try {
                   const configPath = path.join(
                     path.dirname(routePath),
                     'index.json'
                   );
                   const configContent = await fs.readFile(configPath, 'utf-8');
-                  const parsedConfig = JSON.parse(configContent);
                   routeConfig = {
                     ...routeConfig,
-                    ...parsedConfig,
+                    ...JSON.parse(configContent),
                   };
                 } catch {
-                  this.warn(
-                    `${routeName}: No index.json found, using defaults`
-                  );
+                  // Use defaults
                 }
 
-                manifest[`/${routeName}`] = {
-                  file: `${routeName}/index.json.html`,
-                  title: routeConfig.title,
+                /** @type {import('./src/types/routes').RouteManifest} */
+                const routeManifest = {
+                  title: routeConfig.title || 'Untitled Route',
                   faviconUrl: routeConfig.faviconUrl,
                   meta: routeConfig.meta || {},
+                  jsPayload: jsPayload,
+                  cssPayload: cssPayload || undefined,
                 };
 
-                /** @type {import('./src/types/routes').RoutePayload} */
-                const routePayload = {
-                  loader: {
-                    mainLoader: loaderCode,
-                    cssPayload: cssPayloadStr,
-                    JSPayload: jsPayloadStr,
-                  },
-                };
+                // Emit route manifest file
+                const routeName = path
+                  .relative(
+                    path.resolve(__dirname, 'src', 'web', 'routes'),
+                    path.dirname(routePath)
+                  )
+                  .replace(/\\/g, '/'); // Normalize Windows paths
 
-                // Add the HTML file to the bundle (preserve folder structure)
+                const routeFileName = `web/routes/${routeName}.index.json.html`;
                 this.emitFile({
                   type: 'asset',
-                  fileName: `${routeName}/index.json.html`,
-                  source: JSON.stringify(routePayload),
+                  fileName: routeFileName,
+                  source: JSON.stringify(routeManifest),
                 });
 
-                // Remove the JS and CSS files from the bundle
-                for (const fileName of Object.keys(bundle)) {
-                  if (fileName.endsWith('.js') || fileName.endsWith('.css')) {
-                    delete bundle[fileName];
-                  }
-                }
-              },
-            },
-          ]),
-        });
-      });
+                resolve({
+                  routeName,
+                  routeFileName,
+                  rawSize: jsCode.length + cssCode.length + loaderCode.length,
+                  compressedSize:
+                    jsPayload.length + cssPayload.length + loaderCode.length,
+                });
+              })
+            )
+        )
+      );
 
-      // Wait for all routes to build in parallel
-      await Promise.all(buildPromises);
+      this.info('All routes built successfully!');
 
-      // Write manifest file
+      const manifest = {
+        loader: loaderCode,
+        routes: processedRoutes.reduce((acc, route) => {
+          acc[`/${route.routeName}`] = route.routeFileName;
+          this.info(
+            `Built route: ${route.routeName} (Raw size: ${route.rawSize} -> Compressed size: ${route.compressedSize})`
+          );
+          return acc;
+        }, /** @type {Record<string, string>} */ ({})),
+      };
+
+      // Emit the manifest
       this.emitFile({
         type: 'asset',
         fileName: 'web/routes/manifest.json.html',
-        source: JSON.stringify(manifest, null, 2),
+        source: JSON.stringify(manifest),
       });
-
-      this.info('All routes built successfully');
     },
   };
 };
@@ -381,12 +376,8 @@ const MinifyTemplatesPlugin = () => ({
         }
       }
 
-      // If build didn't produce output, fall back to original content
       if (!minifiedContent) {
-        this.warn(
-          `${relativePath}: Build didn't produce output, using original content`
-        );
-        minifiedContent = await fs.readFile(templatePath, 'utf-8');
+        this.error('Failed to extract minified content from build output');
       }
 
       // Emit the minified template
@@ -396,12 +387,10 @@ const MinifyTemplatesPlugin = () => ({
         source: minifiedContent,
       });
     }
-
-    this.info('All templates minified successfully');
   },
 });
 
-export default defineConfig(({ command, mode }) => ({
+export default defineConfig(({ command }) => ({
   plugins: /** @type {import('vite').PluginOption[]} */ ([
     ExposeGasFunctionsPlugin(),
     command === 'build' ? [RoutesBuildPlugin(), MinifyTemplatesPlugin()] : [],
@@ -430,14 +419,5 @@ export default defineConfig(({ command, mode }) => ({
       },
     },
     reportCompressedSize: false,
-  },
-  server: {
-    open: true, // Auto-open browser
-    hmr: {
-      overlay: true,
-    },
-    watch: {
-      usePolling: false,
-    },
   },
 }));

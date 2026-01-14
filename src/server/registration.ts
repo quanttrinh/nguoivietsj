@@ -1,14 +1,13 @@
 import './polyfills/TextDecoder';
 import './polyfills/TextEncoder';
 
-import { encode as qrencode } from 'uqr';
-import { encode as pngencode } from 'fast-png';
+import { encodeQR } from 'qr';
 
-import { addDays } from 'date-fns';
+import { addDays, isEqual } from 'date-fns';
 
 import { RegistrationData } from '~/types/registration';
 import { INTERNAL_METADATA } from './constants';
-import { getManifest } from './webapp';
+import { getManifest, getRouteManifest } from './webapp';
 import type { meta } from '~/web/routes/registration/index.json';
 
 const LOCK_TIMEOUT_MS = 5000 as const;
@@ -19,13 +18,13 @@ const CONFIRMATION_FINAL_TEMPLATE_FILE =
   'server/templates/registration-final-confirm' as const;
 const ROUTE_NAME = '/registration' as const;
 
-const SUMMARY_COLUMNS = {
-  TOTAL_TICKETS: 0,
-  MAX_TOTAL_TICKETS: 1,
-  REMAINING_TICKETS: 2,
-  ADULT_TICKET_PRICE: 3,
-  CHILD_TICKET_PRICE: 4,
-} as const;
+// const SUMMARY_COLUMNS = {
+//   TOTAL_TICKETS: 0,
+//   MAX_TOTAL_TICKETS: 1,
+//   REMAINING_TICKETS: 2,
+//   ADULT_TICKET_PRICE: 3,
+//   CHILD_TICKET_PRICE: 4,
+// } as const;
 
 const REGISTRATION_COLUMNS = {
   TOTAL: 0,
@@ -45,6 +44,7 @@ const REGISTRATION_COLUMNS = {
   NUMBER_OF_CHILD_TICKETS: 15,
   CONFIRMATION_1: 16,
   CONFIRMATION_2: 17,
+  CHECKED_IN: 18,
 } as const;
 
 const DATE_FORMAT = 'yyyy-MM-dd hh:mm:ss a XXX' as const;
@@ -63,7 +63,9 @@ function getMetaData(
 
   return String(
     metadata[ROUTE_NAME]?.[metaName] ||
-      getManifest()?.[ROUTE_NAME]?.meta?.[metaName]?.defaultValue ||
+      getRouteManifest(getManifest()?.routes[ROUTE_NAME] || '')?.meta?.[
+        metaName
+      ]?.defaultValue ||
       ''
   );
 }
@@ -135,11 +137,11 @@ function registerEntry(formData: unknown, sessionID: string): void {
   const trimmedConfirmationMethod = formData.confirmationMethod.trim();
   const trimmedEmail =
     trimmedConfirmationMethod === 'email'
-      ? ((formData as any).email?.trim() ?? '')
+      ? ((formData as { email?: string }).email?.trim() ?? '')
       : '';
   const trimmedAddress =
     trimmedConfirmationMethod === 'mail'
-      ? ((formData as any).address?.trim() ?? '')
+      ? ((formData as { address?: string }).address?.trim() ?? '')
       : '';
 
   const payload = [
@@ -160,7 +162,6 @@ function registerEntry(formData: unknown, sessionID: string): void {
 
   const lock = LockService.getDocumentLock();
   if (!lock.tryLock(LOCK_TIMEOUT_MS)) {
-    Logger.log('Could not obtain lock for registration.');
     throw new Error('code_1'); // Could not obtain lock
   }
 
@@ -204,8 +205,8 @@ function registerEntry(formData: unknown, sessionID: string): void {
       const childPrice = Number(getMetaData('TICKET_PRICE_CHILD'));
       const maxTickets = Number(getMetaData('MAX_TICKETS'));
 
-      const range = sheet.getRange(1, 1, 5, 18);
-      const firstRowPadding = new Array(13).fill('');
+      const range = sheet.getRange(1, 1, 5, 19);
+      const firstRowPadding = new Array(14).fill('');
       range.setValues([
         [
           'Total Tickets',
@@ -256,6 +257,7 @@ function registerEntry(formData: unknown, sessionID: string): void {
           'Number of Child Tickets',
           'Confirmation 1',
           'Confirmation 2',
+          'Checked In',
         ],
         [
           '=$D$2*$O$5+$E$2*$P$5',
@@ -265,6 +267,7 @@ function registerEntry(formData: unknown, sessionID: string): void {
           '',
           '',
           ...payload,
+          '',
           '',
           '',
         ],
@@ -385,49 +388,93 @@ function registerEntry(formData: unknown, sessionID: string): void {
         ...payload,
         '', // Confirmation 1
         '', // Confirmation 2
+        '', // Checked In
       ]);
     }
   } catch (error) {
-    Logger.log('Error during registration: ' + (error as Error).message);
     throw error;
   } finally {
     lock.releaseLock();
   }
 }
 
-function getRegistrationData(sessionID: string): RegistrationData | undefined {
-  const sheet = SpreadsheetApp.getActive().getSheetByName(SHEET_NAME);
+function getRegistrationData(sessionID: string):
+  | (RegistrationData & {
+      registrationDate: Date;
+      notes: string;
+      checkedIn: Date | undefined;
+      sessionId: string;
+    })
+  | undefined {
+  try {
+    const sheet = SpreadsheetApp.getActive().getSheetByName(SHEET_NAME);
 
-  if (!sheet) {
+    if (!sheet) {
+      return undefined;
+    }
+
+    const dataValues = sheet.getDataRange().getValues();
+
+    for (let i = dataValues.length - 1; i > 3; i--) {
+      const row = dataValues[i];
+      if (row[REGISTRATION_COLUMNS.SESSION_ID] === sessionID) {
+        let checkedInDate = undefined;
+        try {
+          checkedInDate = Utilities.parseDate(
+            String(row[REGISTRATION_COLUMNS.CHECKED_IN]),
+            Session.getScriptTimeZone(),
+            DATE_FORMAT
+          );
+        } catch {}
+        return {
+          sessionId: String(row[REGISTRATION_COLUMNS.SESSION_ID]),
+          firstName: String(row[REGISTRATION_COLUMNS.FIRST_NAME]),
+          lastName: String(row[REGISTRATION_COLUMNS.LAST_NAME]),
+          phoneNumber: String(row[REGISTRATION_COLUMNS.PHONE_NUMBER]),
+          confirmationMethod: String(
+            row[REGISTRATION_COLUMNS.CONFIRMATION_METHOD]
+          ) as 'email' | 'mail',
+          email: String(row[REGISTRATION_COLUMNS.EMAIL]),
+          address: String(row[REGISTRATION_COLUMNS.ADDRESS]),
+          numberOfAdultTickets: Number(
+            row[REGISTRATION_COLUMNS.NUMBER_OF_ADULT_TICKETS]
+          ),
+          numberOfChildTickets: Number(
+            row[REGISTRATION_COLUMNS.NUMBER_OF_CHILD_TICKETS]
+          ),
+          registrationDate: Utilities.parseDate(
+            String(row[REGISTRATION_COLUMNS.SUBMISSION_DATE]),
+            Session.getScriptTimeZone(),
+            DATE_FORMAT
+          ),
+          notes: String(row[REGISTRATION_COLUMNS.NOTES]),
+          checkedIn: checkedInDate,
+        };
+      }
+    }
+  } catch {}
+
+  return undefined;
+}
+
+function getSanitizedRegistrationData(
+  sessionID: string
+): RegistrationData | undefined {
+  const fullData = getRegistrationData(sessionID);
+  if (!fullData) {
     return undefined;
   }
 
-  const dataValues = sheet.getDataRange().getValues();
-
-  for (let i = dataValues.length - 1; i > 2; i--) {
-    const row = dataValues[i];
-    if (row[REGISTRATION_COLUMNS.SESSION_ID] === sessionID) {
-      const registrationData: RegistrationData = {
-        firstName: String(row[REGISTRATION_COLUMNS.FIRST_NAME]),
-        lastName: String(row[REGISTRATION_COLUMNS.LAST_NAME]),
-        phoneNumber: String(row[REGISTRATION_COLUMNS.PHONE_NUMBER]),
-        confirmationMethod: String(
-          row[REGISTRATION_COLUMNS.CONFIRMATION_METHOD]
-        ) as 'email' | 'mail',
-        email: String(row[REGISTRATION_COLUMNS.EMAIL]),
-        address: String(row[REGISTRATION_COLUMNS.ADDRESS]),
-        numberOfAdultTickets: Number(
-          row[REGISTRATION_COLUMNS.NUMBER_OF_ADULT_TICKETS]
-        ),
-        numberOfChildTickets: Number(
-          row[REGISTRATION_COLUMNS.NUMBER_OF_CHILD_TICKETS]
-        ),
-      };
-      return registrationData;
-    }
-  }
-
-  return undefined;
+  return {
+    firstName: fullData.firstName,
+    lastName: fullData.lastName,
+    phoneNumber: fullData.phoneNumber,
+    confirmationMethod: fullData.confirmationMethod as 'email' | 'mail',
+    email: (fullData as { email?: string }).email,
+    address: (fullData as { address?: string }).address,
+    numberOfAdultTickets: fullData.numberOfAdultTickets,
+    numberOfChildTickets: fullData.numberOfChildTickets,
+  };
 }
 
 function getAliasEmail(eventYear: number): string | undefined {
@@ -450,7 +497,7 @@ interface MailMergeResult {
   totalProcessed: number;
   successCount: number;
   failureCount: number;
-  errors: Array<{ row: number; error: string }>;
+  errors: { row: number; error: string }[];
 }
 
 /**
@@ -501,7 +548,7 @@ function sendInitialConfirmationEmails(
   }
 
   try {
-    for (let registrationEntry of dataValues) {
+    for (const registrationEntry of dataValues) {
       if (result.totalProcessed >= maxEmails) {
         break;
       }
@@ -630,51 +677,16 @@ function sendInitialConfirmationEmails(
  * @param data The data to encode in the QR code
  * @returns Object containing the PNG blob and unicode representation
  */
-function generateQRCodePng(
+function generateQRCodeGif(
   data: string,
   name: string
 ): GoogleAppsScript.Base.Blob {
-  // Generate QR code matrix using uqr (fastest QR code generation)
-  const qr = qrencode(data, { ecc: 'H' as const, boostEcc: true, border: 2 });
-
-  // Fast conversion: QR code 2D boolean array to PNG
-  const scale = 10; // Each module is 10x10 pixels
-  const size = qr.size * scale;
-
-  // Create grayscale image data (1 byte per pixel)
-  const pixels = new Uint8Array(size * size);
-
-  for (let pixelIndex = 0, qrY = 0; qrY < qr.size; qrY++) {
-    const row = qr.data[qrY];
-
-    // Generate scaled row once
-    const scaledRow = new Uint8Array(size);
-    let rowIndex = 0;
-    for (let qrX = 0; qrX < qr.size; qrX++) {
-      const value = row[qrX] ? 0 : 255;
-      for (let sx = 0; sx < scale; sx++) {
-        scaledRow[rowIndex++] = value;
-      }
-    }
-
-    // Copy scaled row 'scale' times vertically
-    for (let sy = 0; sy < scale; sy++) {
-      pixels.set(scaledRow, pixelIndex);
-      pixelIndex += size;
-    }
-  }
-
-  // Encode to PNG (fastest method with grayscale)
-  const pngData = pngencode({
-    width: size,
-    height: size,
-    data: pixels,
-    channels: 1, // Grayscale
-    depth: 8,
+  const qrCode = encodeQR(data, 'gif', {
+    ecc: 'high',
+    border: 4,
+    scale: 8,
   });
-
-  // Create and return blob
-  return Utilities.newBlob(Array.from(pngData), 'image/png', `${name}.png`);
+  return Utilities.newBlob(Array.from(qrCode), 'image/gif', name + '.gif');
 }
 
 /**
@@ -725,7 +737,7 @@ function sendFinalConfirmationEmails(
   }
 
   try {
-    for (let registrationEntry of dataValues) {
+    for (const registrationEntry of dataValues) {
       if (result.totalProcessed >= maxEmails) {
         break;
       }
@@ -801,7 +813,7 @@ function sendFinalConfirmationEmails(
 
         const qrCodeImageName = `${firstName}_${lastName}_CheckInQR`;
 
-        const qrCodeBlob = generateQRCodePng(qrData, qrCodeImageName);
+        const qrCodeBlob = generateQRCodeGif(qrData, qrCodeImageName);
 
         // Replace placeholders in template
         template.firstName = firstName;
@@ -826,8 +838,6 @@ function sendFinalConfirmationEmails(
         template.qrCodeImageUrl = `cid:${qrCodeImageName}`;
 
         const emailBody = template.evaluate().getContent();
-
-        Logger.log(emailBody);
 
         // Send email
         GmailApp.sendEmail(
@@ -986,10 +996,122 @@ function sendFinalConfirmationEmailsUI(): void {
   }
 }
 
+function getRegistrationDataFromQRPayload(payload: string): Pick<
+  RegistrationData,
+  | 'firstName'
+  | 'lastName'
+  | 'phoneNumber'
+  | 'numberOfAdultTickets'
+  | 'numberOfChildTickets'
+> & {
+  registrationDate: string;
+  notes: string;
+  sessionId: string;
+  checkedIn: string | undefined;
+} {
+  const qrPayload = JSON.parse(
+    Utilities.newBlob(Utilities.base64DecodeWebSafe(payload)).getDataAsString()
+  );
+
+  if (
+    !('id' in qrPayload) ||
+    !('date' in qrPayload) ||
+    typeof qrPayload.id !== 'string' ||
+    typeof qrPayload.date !== 'string'
+  ) {
+    throw new Error('code_1');
+  }
+
+  const data = getRegistrationData(qrPayload.id);
+
+  if (!data) {
+    throw new Error('code_2');
+  }
+
+  if (
+    !isEqual(
+      data?.registrationDate,
+      Utilities.parseDate(
+        qrPayload.date,
+        Session.getScriptTimeZone(),
+        DATE_FORMAT
+      )
+    )
+  ) {
+    throw new Error('code_3');
+  }
+
+  return {
+    firstName: data.firstName,
+    lastName: data.lastName,
+    phoneNumber: data.phoneNumber,
+    numberOfAdultTickets: data.numberOfAdultTickets,
+    numberOfChildTickets: data.numberOfChildTickets,
+    registrationDate: Utilities.formatDate(
+      data.registrationDate,
+      Session.getScriptTimeZone(),
+      DATE_FORMAT
+    ),
+    notes: data.notes,
+    sessionId: data.sessionId,
+    checkedIn: data.checkedIn
+      ? Utilities.formatDate(
+          data.checkedIn,
+          Session.getScriptTimeZone(),
+          DATE_FORMAT
+        )
+      : undefined,
+  };
+}
+
+function checkIn(sessionID: string): void {
+  const sheet = SpreadsheetApp.getActive().getSheetByName(SHEET_NAME);
+
+  if (!sheet) {
+    throw new Error('code_1'); // Registrations sheet not found
+  }
+
+  // Acquire lock to prevent concurrent executions
+  const lock = LockService.getDocumentLock();
+
+  if (!lock.tryLock(LOCK_TIMEOUT_MS)) {
+    throw new Error(
+      'code_2' // Could not obtain lock for check-in
+    );
+  }
+
+  try {
+    const dataValues = sheet.getDataRange().getValues();
+
+    for (let i = dataValues.length - 1; i > 3; i--) {
+      if (dataValues[i][REGISTRATION_COLUMNS.SESSION_ID] === sessionID) {
+        sheet
+          .getRange(i + 1, REGISTRATION_COLUMNS.CHECKED_IN + 1)
+          .setValue(
+            Utilities.formatDate(
+              new Date(),
+              Session.getScriptTimeZone(),
+              DATE_FORMAT
+            )
+          );
+        return;
+      }
+    }
+
+    throw new Error('code_3'); // Registration entry not found for check-in
+  } catch (error) {
+    throw error;
+  } finally {
+    lock.releaseLock();
+  }
+}
+
 export {
   registerEntry,
   getTotalTicketStatus,
-  getRegistrationData,
+  getSanitizedRegistrationData as getRegistrationData,
+  getRegistrationDataFromQRPayload,
+  checkIn,
   sendInitialConfirmationEmails,
   sendInitialConfirmationEmailsUI,
   sendFinalConfirmationEmails,

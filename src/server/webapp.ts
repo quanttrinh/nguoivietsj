@@ -1,6 +1,6 @@
 import { isSessionAuthenticated } from './password';
 import { INTERNAL_METADATA, INTERNAL_SITES } from './constants';
-import type { RoutePayload, RoutesManifest } from '~/types/routes';
+import type { RouteManifest, RoutesManifest } from '~/types/routes';
 
 function loadInternalFileContent(filename: string): string | undefined {
   try {
@@ -17,27 +17,62 @@ function loadInternalFileContent(filename: string): string | undefined {
   }
 }
 
+function getManifest(): RoutesManifest | null {
+  const manifestContent = loadInternalFileContent(
+    'web/routes/manifest.json.html'
+  );
+
+  if (!manifestContent) {
+    Logger.log('Could not load routes manifest content.');
+    return null;
+  }
+
+  try {
+    const manifest = JSON.parse(manifestContent);
+    if ('loader' in manifest && 'routes' in manifest) {
+      return manifest;
+    }
+    throw new Error('Invalid manifest format');
+  } catch (error) {
+    Logger.log('Error parsing routes manifest: ' + (error as Error).message);
+    return null;
+  }
+}
+
+function getRouteManifest(routeManifestPath: string): RouteManifest | null {
+  const manifestContent = loadInternalFileContent(routeManifestPath);
+
+  if (!manifestContent) {
+    Logger.log('Could not load route manifest content: ' + routeManifestPath);
+    return null;
+  }
+
+  try {
+    const manifest = JSON.parse(manifestContent);
+    if ('title' in manifest && 'meta' in manifest && 'jsPayload' in manifest) {
+      return manifest;
+    }
+    throw new Error('Invalid manifest format');
+  } catch (error) {
+    Logger.log(
+      'Error parsing route manifest: ' +
+        (error as Error).message +
+        ' for ' +
+        routeManifestPath
+    );
+    return null;
+  }
+}
+
+function getServiceUrl(): string {
+  return ScriptApp.getService().getUrl();
+}
+
 function generateHTMLOutput(
-  config: Partial<{
-    file: string;
-    title: string;
-    faviconUrl?: string;
-    meta: Record<string, string>;
-  }>,
+  config: RouteManifest,
+  loader: string,
   sessionId: string
 ): GoogleAppsScript.HTML.HtmlOutput {
-  if (!config?.file) {
-    throw new Error('Invalid route configuration');
-  }
-
-  const payloadContent = loadInternalFileContent('web/routes/' + config.file);
-
-  if (!payloadContent) {
-    throw new Error('Could not load route payload: ' + config.file);
-  }
-
-  const routePayload: RoutePayload = JSON.parse(payloadContent);
-
   const nonce = Utilities.base64EncodeWebSafe(Utilities.getUuid()).substring(
     0,
     16
@@ -60,9 +95,9 @@ function generateHTMLOutput(
       })
       .join(''),
     `<script nonce="${nonce}" id="loader">`,
-    `const __BUNDLER_JS_PAYLOAD__=${routePayload.loader.JSPayload || '""'};`,
-    `const __BUNDLER_CSS_PAYLOAD__ =${routePayload.loader.cssPayload || '""'};`,
-    routePayload.loader.mainLoader,
+    `const __BUNDLER_JS_PAYLOAD__="${config.jsPayload}";`,
+    `const __BUNDLER_CSS_PAYLOAD__="${config.cssPayload || ''}";`,
+    loader,
     `document.getElementById('loader')?.remove();`,
     '</script>',
     '</head>',
@@ -84,32 +119,6 @@ function generateHTMLOutput(
   return output;
 }
 
-function loadManifest(): Partial<RoutesManifest> | null {
-  const manifestContent = loadInternalFileContent(
-    'web/routes/manifest.json.html'
-  );
-
-  if (!manifestContent) {
-    Logger.log('Could not load routes manifest content.');
-    return null;
-  }
-
-  try {
-    return JSON.parse(manifestContent);
-  } catch (error) {
-    Logger.log('Error parsing routes manifest: ' + (error as Error).message);
-    return null;
-  }
-}
-
-function getManifest(): Partial<RoutesManifest> | null {
-  return loadManifest();
-}
-
-function getServiceUrl(): string {
-  return ScriptApp.getService().getUrl();
-}
-
 function getRouteHTML(
   path: string,
   oldSessionId: string | null | undefined = '',
@@ -122,10 +131,15 @@ function getRouteHTML(
       throw new Error('Could not load routes manifest');
     }
 
-    const config = manifest[path];
-
-    if (!config) {
+    const configFile = manifest.routes[path];
+    if (!configFile) {
       throw new Error('Route not found: ' + path);
+    }
+
+    // Load the route config from the file
+    const config = getRouteManifest(configFile);
+    if (!config) {
+      throw new Error('Could not load route config: ' + configFile);
     }
 
     // Get session ID from query parameter if provided (after auth), otherwise generate new one
@@ -177,20 +191,26 @@ function getRouteHTML(
         protectedPaths.includes(path) &&
         (!oldSessionId || !isSessionAuthenticated(oldSessionId))
       ) {
-        const passwordConfig = manifest[INTERNAL_SITES.PASSWORD_PROTECTOR];
-
-        if (!passwordConfig) {
+        const passwordConfigFile =
+          manifest.routes?.[INTERNAL_SITES.PASSWORD_PROTECTOR];
+        if (!passwordConfigFile) {
           throw new Error('Password protector route not configured');
+        }
+
+        // Load password protector config
+        const passwordConfig = getRouteManifest(passwordConfigFile);
+        if (!passwordConfig) {
+          throw new Error(
+            'Could not load password protector config: ' + passwordConfigFile
+          );
         }
 
         // Create a modified config with the target page in meta
         const modifiedConfig = {
-          file: passwordConfig.file,
-          title: passwordConfig.title,
-          faviconUrl: passwordConfig.faviconUrl,
+          ...passwordConfig,
           meta: {
             ...Object.fromEntries(
-              Object.entries(passwordConfig.meta || {}).map(([key, value]) => [
+              Object.entries(passwordConfig.meta).map(([key, value]) => [
                 key,
                 String(value.defaultValue),
               ])
@@ -200,7 +220,7 @@ function getRouteHTML(
           },
         };
 
-        return generateHTMLOutput(modifiedConfig, sessionId);
+        return generateHTMLOutput(modifiedConfig, manifest.loader, sessionId);
       }
     }
 
@@ -215,12 +235,10 @@ function getRouteHTML(
 
     // Merge route metadata if configured
     const finalConfig = {
-      file: config.file,
-      title: config.title,
-      faviconUrl: config.faviconUrl,
+      ...config,
       meta: {
         ...Object.fromEntries(
-          Object.entries(config.meta || {}).map(([key, value]) => [
+          Object.entries(config.meta).map(([key, value]) => [
             key,
             String(value.defaultValue),
           ])
@@ -229,7 +247,7 @@ function getRouteHTML(
       },
     };
 
-    return generateHTMLOutput(finalConfig, sessionId);
+    return generateHTMLOutput(finalConfig, manifest.loader, sessionId);
   } catch (error) {
     Logger.log(
       'Error serving static file for path ' +
@@ -281,8 +299,4 @@ function doGet(e: GoogleAppsScript.Events.DoGet) {
   return getRouteHTML(path, sessionId);
 }
 
-function doPost(e: GoogleAppsScript.Events.DoPost) {
-  // TODO
-}
-
-export { doGet, doPost, getRouteHTML, getManifest };
+export { doGet, getRouteHTML, getManifest, getRouteManifest };

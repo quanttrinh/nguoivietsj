@@ -29,75 +29,34 @@ async function decompressGzip(data: Uint8Array): Promise<string> {
 }
 
 async function loadCompressedAssets(nonce?: string): Promise<void> {
-  const JSPAYLOAD = __BUNDLER_JS_PAYLOAD__;
-  const CSSPAYLOAD = __BUNDLER_CSS_PAYLOAD__;
+  setNonce(nonce);
 
   try {
-    console.log('Loading compressed assets...');
+    const [jsPayload, cssPayload] = await Promise.all([
+      (async () => {
+        const compressedData = yencDecode(__BUNDLER_JS_PAYLOAD__);
+        return decompressGzip(compressedData);
+      })(),
+      (async () => {
+        const compressedData = yencDecode(__BUNDLER_CSS_PAYLOAD__);
+        return decompressGzip(compressedData);
+      })(),
+    ]);
 
-    const decompressPromises = [];
-
-    if (JSPAYLOAD) {
-      decompressPromises.push(
-        new Promise<string>(async (resolve, reject) => {
-          try {
-            const yencDecoded = yencDecode(JSPAYLOAD);
-            resolve(await decompressGzip(yencDecoded));
-          } catch (error) {
-            reject(
-              new Error(
-                'JS decompression failed: ' +
-                  (error instanceof Error ? error.message : String(error))
-              )
-            );
-          }
-        })
-      );
-    }
-
-    if (CSSPAYLOAD) {
-      decompressPromises.push(
-        new Promise<string>(async (resolve, reject) => {
-          try {
-            const yencDecoded = yencDecode(CSSPAYLOAD);
-            resolve(await decompressGzip(yencDecoded));
-          } catch (error) {
-            reject(
-              new Error(
-                'CSS decompression failed: ' +
-                  (error instanceof Error ? error.message : String(error))
-              )
-            );
-          }
-        })
-      );
-    }
-
-    const [jsPayload, cssPayload] = await Promise.all(decompressPromises);
-
-    setNonce(nonce);
-
-    // Load CSS first to prevent FOUC
     if (cssPayload) {
-      const style = document.createElement('style');
-      style.textContent = cssPayload;
-      style.nonce = nonce;
-      document.head.appendChild(style);
+      const styleElement = document.createElement('style');
+      styleElement.nonce = nonce;
+      styleElement.textContent = cssPayload;
+      document.head.appendChild(styleElement);
     }
 
-    // Then load JavaScript
     if (jsPayload) {
-      const script = document.createElement('script');
-      script.type = 'module';
-      script.nonce = nonce;
-      script.textContent = jsPayload;
-
-      // Add error handling
-      script.onerror = (error) => {
-        console.error('Failed to execute module script:', error);
-      };
-
-      document.head.appendChild(script);
+      const scriptElement = document.createElement('script');
+      scriptElement.nonce = nonce;
+      scriptElement.defer = true;
+      scriptElement.type = 'module';
+      scriptElement.textContent = jsPayload;
+      document.head.appendChild(scriptElement);
     }
 
     console.log('Assets loaded successfully.');

@@ -1,18 +1,18 @@
 import { INTERNAL_METADATA } from './constants';
 
 function BytesToHex(bytes: GoogleAppsScript.Byte[]): string {
-  let hex: string = '';
+  let hex = '';
   for (const byte of bytes) {
     hex += (byte < 0 ? 256 + byte : byte).toString(16).padStart(2, '0');
   }
   return hex;
 }
 
-function Sha256Hash(value: string): string {
-  return BytesToHex(
-    Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, value)
-  );
-}
+// function Sha256Hash(value: string): string {
+//   return BytesToHex(
+//     Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, value)
+//   );
+// }
 
 function HMacSha256(value: string, key: string): string {
   return BytesToHex(Utilities.computeHmacSha256Signature(value, key));
