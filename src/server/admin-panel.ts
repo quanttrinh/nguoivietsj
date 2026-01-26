@@ -1,4 +1,4 @@
-import { INTERNAL_METADATA } from './constants';
+import { INTERNAL_METADATA, INTERNAL_SITES } from './constants';
 import { getRouteHTML, getManifest, getRouteManifest } from './webapp';
 
 interface AdminConfig {
@@ -81,18 +81,26 @@ function getAvailableRoutes(): AvailableRoutes {
     return { routes: [] };
   }
 
-  const routes = Object.keys(manifest.routes);
+  const routes: AvailableRoutes['routes'] = [];
+
+  const routesToIgnore = new Set(Object.values(INTERNAL_SITES) as string[]);
+
+  Object.entries(manifest.routes).forEach(([route, routeManifestPath]) => {
+    if (routesToIgnore.has(route)) {
+      return;
+    }
+
+    const manifest = getRouteManifest(routeManifestPath);
+    const meta = manifest?.meta || {};
+
+    routes.push({
+      path: route,
+      metaFields: meta as Record<string, MetaField>,
+    });
+  });
 
   return {
-    routes: routes.map((route) => {
-      const manifest = getRouteManifest(route);
-      const meta = manifest?.meta || {};
-
-      return {
-        path: route,
-        metaFields: meta as Record<string, MetaField>,
-      };
-    }),
+    routes,
   };
 }
 
