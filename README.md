@@ -1,16 +1,12 @@
-# Tết Việt Service - Event Management System
+# Tết Việt Service
 
 A full-stack event management web application I built to help my Vietnamese community celebrate Lunar New Year 2026. This volunteer project handles everything from event registration to QR code check-ins, deployed as a Google Apps Script Web App with multi-language support.
 
-## Overview
-
-I developed this event management system to solve a real problem: helping community organizers manage our annual Tết celebration without the technical headaches or hosting costs. It features registration tracking, QR code-based check-in, password-protected routes, and an admin panel—all built with modern web technologies and deployed on Google's infrastructure for zero cost.
-
 ### Why I Built This
 
-This project is close to my heart for two reasons. First, it's my way of giving back to the Vietnamese community that shaped who I am. Second, it gave me a chance to learn new technologies (SolidJS and Ark UI) while solving a real-world problem. I wanted to create something sustainable that future organizers could use even after I hand it off—not just another throwaway event website.
+This project is close to my heart for two reasons. First, it's my way of giving back to the Vietnamese community that shaped who I am. Second, it gave me a chance to learn new ways to do things (SolidJS and Google Apps Script) while solving a real-world problem. I wanted to create something sustainable that future organizers could use even after I hand it off.
 
-## Design Philosophy
+## Design Decisions
 
 ### Why Google Apps Script?
 
@@ -27,18 +23,16 @@ I chose Google Apps Script because I wanted this project to outlive my involveme
 Honestly? I wanted to learn something new.
 
 - **Modern Reactivity**: I'd been curious about SolidJS's fine-grained reactivity model—how it avoids the virtual DOM entirely. This project let me dive deep into that.
-- **Performance First**: The compilation approach meant I got great performance without spending hours optimizing.
-- **Accessibility**: Ark UI's headless components gave me WCAG compliance out of the box. For a community event, accessibility isn't optional.
-- **Growth Mindset**: Learning emerging frameworks keeps me adaptable. Plus, experimenting on a real project beats tutorial hell any day.
+- **Accessibility**: Ark UI's headless components gave me WCAG compliance out of the box.
+- **Growth Mindset**: Learning emerging frameworks keeps me adaptable.
 
 ## Key Features
 
-### Event Registration System
+### Event Registration
 - Ticket availability tracking with automatic capacity management
-- Dual confirmation workflow (initial and final email confirmations)
+- Email confirmations
 - QR code generation for contactless check-in
-- Support for multiple ticket types (adult and child tickets)
-- Multiple payment method tracking (e-transfer and cash)
+- Support for multiple ticket types
 
 ### Check-In Management
 - Camera-based QR code scanner for fast attendee verification
@@ -71,19 +65,19 @@ Honestly? I wanted to learn something new.
 - **Google Drive** - Asset and template management
 
 ### Build System & Tooling
-- Custom Vite plugin architecture for Google Apps Script deployment
+- Custom Vite plugin for Google Apps Script deployment
 - Code splitting with dynamic route loading
-- HTML minification and compression for bandwidth optimization
+- Minification and compression for bandwidth optimization
 - CLASP integration for automated deployment
 - ESLint + Prettier for code quality and consistency
 
 ### Advanced Implementation Details
 
 #### Custom Build Pipeline
-Developed a sophisticated Vite plugin system that:
+Developed a custom Vite plugin system that:
 - Bundles multiple SPA routes into IIFE modules for Apps Script compatibility
 - Implements code compression using yEnc encoding to further reduce payload size
-- Generates a manifest-based routing system for optimal performance
+- Generates a manifest-based routing system for easy deployment with Apps Script
 - Exposes module functions to global scope for Apps Script event handling
 
 #### Security Architecture
@@ -139,47 +133,6 @@ npm run lint:fix
 npm run format
 ```
 
-### Build Process
-The build system orchestrates several tasks:
-1. Compiles TypeScript to optimized JavaScript
-2. Bundles each route as an independent module
-3. Processes and minifies HTML templates
-4. Compresses code using yEnc for size optimization
-5. Generates route manifest for dynamic loading
-6. Copies static assets to output directory
-
-## Technical Highlights
-
-### Performance Optimizations
-- **Code Splitting**: Each route loads independently, reducing initial bundle size
-- **Asset Compression**: yEnc encoding reduces deployed file sizes by ~20-30%
-- **Minification**: HTML/CSS/JS minification for faster load times
-
-### Browser Compatibility
-- Baseline support for widely-available features (ES2020+)
-- Progressive enhancement for modern features
-- Polyfills for TextEncoder/TextDecoder in Apps Script environment
-
-### Developer Experience
-- TypeScript for type safety across full stack
-- Comprehensive ESLint rules for code quality
-- Prettier for consistent code formatting
-- Path aliases for clean imports
-
-## Real-World Impact: Tết 2026
-
-Seeing this system run in production for our community's Tết celebration was incredibly rewarding. It handled:
-- 200+ registrations with automatic capacity management (no more oversold tickets!)
-- Bilingual confirmation emails in English and Vietnamese
-- Smooth QR code check-ins for 200+ guests on event day
-
-## Deployment
-
-The application is deployed as a Google Apps Script Web App, providing:
-- Zero infrastructure costs
-- Built-in authentication via Google accounts
-- Seamless integration with Google Workspace services
-
 ## What's Next: Lessons Learned and Future Improvements
 
 While Google Apps Script was a fine choice for this community project, I've hit enough limitations to appreciate what a more traditional stack offers. Here's what I'm planning to explore next:
@@ -200,14 +153,13 @@ Working with Apps Script taught me valuable lessons about constraint-based probl
 - **ES6+ Compatibility**: No native support for modern JavaScript features like `TextEncoder`/`TextDecoder`, requiring custom polyfills
 - **Not a Real API**: Google Apps Script can't return arbitrary JSON with proper HTTP status codes. Everything goes through `HtmlService` or `ContentService` with limited control over headers and response types
 - **No RESTful Patterns**: Can't build proper REST endpoints with different HTTP methods (GET, POST, PUT, DELETE). All requests come through `doGet()` or `doPost()` with limited routing control
-- **Execution Time Limits**: 6-minute maximum runtime for web requests means complex operations need careful chunking
 - **Limited Debugging**: Sparse error messages and no source maps made troubleshooting painful at times
-- **No WebSocket Support**: Real-time features require polling workarounds instead of proper bidirectional communication
+- **No WebSocket Support**: Real-time features require polling instead of proper bidirectional communication
 
-**Security Limitations That Kept Me Up at Night:**
+**Security Limitations:**
 - **Session Management Constraints**: Using `CacheService` for sessions with arbitrary expiration times isn't as robust as Redis or proper JWT token management
 - **No CORS Control**: Can't properly configure CORS policies. All Apps Script web apps are effectively wide open to cross-origin requests
-- **Script Properties Visibility**: Anyone with edit access to the Google Sheet can view Script Properties where I store the admin password—there's no secrets management
+- **Script Properties Visibility**: Anyone with edit access to the Google Sheet can view Script Properties where I store the admin password
 
 These constraints forced creative problem-solving, but for a production system with growth potential, I'd choose a stack with fewer guardrails. The experience was invaluable for learning how to work within limitations, but I'm excited to explore what's possible without them.
 
