@@ -2,6 +2,13 @@
 
 A full-stack event management web application I built to help my Vietnamese community celebrate Lunar New Year 2026. This volunteer project handles everything from event registration to QR code check-ins, deployed as a Google Apps Script Web App with multi-language support.
 
+<img width="2541" height="1329" alt="image" src="https://github.com/user-attachments/assets/cdf58b1e-755e-4eee-9fcb-2330f990b210" />
+<img width="2541" height="1328" alt="Screenshot 2026-09-16 at 21-39-16 checkin" src="https://github.com/user-attachments/assets/9fce5616-ec7e-469b-b40d-a77c06964a47" />
+<img width="1141" height="961" alt="Screenshot 2026-09-16 at 21-40-32 Registrations - Google Sheets" src="https://github.com/user-attachments/assets/342e9f86-8a25-4d41-ab08-1fca0979c862" />
+<img width="1138" height="957" alt="Screenshot 2026-09-16 at 21-40-54 Registrations - Google Sheets" src="https://github.com/user-attachments/assets/05eabd1b-8ae8-4bf6-9e50-20b64448ac8c" />
+<img width="1140" height="958" alt="Screenshot 2026-09-16 at 21-41-41 Registrations - Google Sheets" src="https://github.com/user-attachments/assets/9ce129cc-eef7-44d3-8386-75168bc222a4" />
+
+
 ### Why I Built This
 
 This project is close to my heart for two reasons. First, it's my way of giving back to the Vietnamese community that shaped who I am. Second, it gave me a chance to learn new ways to do things (SolidJS and Google Apps Script) while solving a real-world problem. I wanted to create something sustainable that future organizers could use even after I hand it off.
