@@ -22,7 +22,7 @@ I chose Google Apps Script because I wanted this project to outlive my involveme
 
 Honestly? I wanted to learn something new.
 
-- **Modern Reactivity**: I'd been curious about SolidJS's fine-grained reactivity model—how it avoids the virtual DOM entirely. This project let me dive deep into that.
+- **Modern Reactivity**: I'd been curious about SolidJS's fine-grained reactivity model.
 - **Accessibility**: Ark UI's headless components gave me WCAG compliance out of the box.
 - **Growth Mindset**: Learning emerging frameworks keeps me adaptable.
 
