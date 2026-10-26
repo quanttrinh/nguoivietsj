@@ -1,0 +1,76 @@
+---
+// @boundary client
+import { useDictionary, useLocale } from "astro-intlayer";
+
+import { css, cx } from "styled-system/css";
+import engineAdminContent from "~/events/content/admin.content";
+import BaseLayout from "~/layouts/BaseLayout.astro";
+
+import AdminAuthGate from "./AdminAuthGate.astro";
+import AdminBreadcrumbs from "./AdminBreadcrumbs";
+import AdminLogout from "./AdminLogout.astro";
+import AdminRefresh from "./AdminRefresh.astro";
+
+interface Props {
+  title: string;
+  description: string;
+  noindex?: boolean;
+}
+
+const { title, description, noindex = false }: Props = Astro.props;
+const { locale } = useLocale();
+const content = useDictionary(engineAdminContent, locale);
+
+const styles = {
+  headerActions: css({ display: "flex", alignItems: "center", gap: "3" }),
+  protectedContent: css({
+    "&[hidden]": { display: "none !important" },
+  }),
+};
+---
+
+<BaseLayout title={title} description={description} noindex={noindex}>
+  <Fragment slot="header-actions">
+    <div data-admin-protected hidden class={cx(styles.headerActions, styles.protectedContent)}>
+      <AdminRefresh label={content.refresh.value} />
+      <AdminLogout locale={locale} />
+    </div>
+  </Fragment>
+  <div data-admin-protected hidden class={styles.protectedContent}>
+    <AdminBreadcrumbs
+      client:only="preact"
+      locale={locale}
+      labels={{
+        administration: content.adminHome.value,
+        users: content.manageUsers.value,
+        events: content.manageEvents.value,
+        event: content.event.value,
+        newEvent: content.newEvent.value,
+        editEvent: content.editEvent.value,
+        form: content.newForm.value,
+        payments: content.payments.value,
+        support: content.support.value,
+        activity: content.activity.value,
+        checkin: content.checkIn.value,
+        qr: content.qrCode.value,
+        clone: content.cloneEvent.value,
+        newTicketType: content.newTicketType.value,
+        editTicketType: content.editTicketType.value,
+      }}
+    />
+  </div>
+  <div data-admin-protected hidden class={styles.protectedContent}>
+    <slot />
+  </div>
+  <AdminAuthGate
+    required={content.authRequired.value}
+    message={content.authRequiredMessage.value}
+    login={content.login.value}
+    loginHref={`/${locale}/login`}
+  />
+  <script>
+    import { getSharedSession } from "~/shared/client/auth/session";
+
+    void getSharedSession();
+  </script>
+</BaseLayout>

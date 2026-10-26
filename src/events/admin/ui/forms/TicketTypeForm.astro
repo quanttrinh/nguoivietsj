@@ -1,0 +1,56 @@
+---
+// @boundary client
+import { useDictionary } from "astro-intlayer";
+
+import engineAdminContent from "~/events/content/admin.content";
+
+import TicketTypeFormIsland, { type TicketTypeConfig } from "./TicketTypeForm.tsx";
+
+interface Props {
+  locale: string;
+  mode: "create" | "edit";
+}
+
+const { locale, mode }: Props = Astro.props;
+const content = useDictionary(engineAdminContent, locale);
+
+const config: TicketTypeConfig = {
+  locale,
+  messages: {
+    saving: content.saving.value,
+    saveFailed: content.ticketSaveFailed.value,
+    invalidPayload: content.invalidPayload.value,
+    ticketTypeExists: content.ticketTypeExists.value,
+    archiveConfirm: content.archiveTicketConfirm.value,
+    archiveFailed: content.saveFailed.value,
+    loadFailed: content.loadFailed.value,
+  },
+  text: {
+    newTicketType: content.newTicketType.value,
+    editTicketType: content.editTicketType.value,
+    ticketTypeIntro: content.ticketTypeIntro.value,
+    addTicketType: content.addTicketType.value,
+    save: content.save.value,
+    archiveTicketType: content.archiveTicketType.value,
+    cancel: content.cancel.value,
+  },
+  ticket: {
+    ticketTypes: content.ticketTypes.value,
+    removeTicketType: content.removeTicketType.value,
+    ticketKey: content.ticketKey.value,
+    priceMinor: content.priceMinor.value,
+    priceMinorHelp: content.priceMinorHelp.value,
+    ticketLabel: content.ticketLabel.value,
+    ticketDescription: content.ticketDescription.value,
+    minPerRegistration: content.minPerRegistration.value,
+    maxPerRegistration: content.maxPerRegistration.value,
+    defaultQuantity: content.defaultQuantity.value,
+    capacity: content.capacity.value,
+    sortOrder: content.sortOrder.value,
+    active: content.active.value,
+    noLimit: content.noLimit.value,
+  },
+};
+---
+
+<TicketTypeFormIsland client:load mode={mode} config={config} />

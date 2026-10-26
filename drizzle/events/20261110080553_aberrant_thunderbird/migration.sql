@@ -1,0 +1,1 @@
+CREATE INDEX `events_created_at` ON `events` (`created_at`,`id`);

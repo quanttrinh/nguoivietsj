@@ -1,0 +1,114 @@
+---
+// @boundary client
+import { useDictionary } from "astro-intlayer";
+
+import engineAdminContent from "~/events/content/admin.content";
+
+import EventFormIsland, { type EventFormConfig } from "./EventForm.tsx";
+
+interface Props {
+  locale: string;
+  mode: "create" | "edit" | "clone";
+}
+
+const { locale, mode }: Props = Astro.props;
+const content = useDictionary(engineAdminContent, locale);
+
+const config: EventFormConfig = {
+  locale,
+  messages: {
+    saving: content.saving.value,
+    saved: content.saved.value,
+    saveFailed: content.saveFailed.value,
+    invalidPayload: content.invalidPayload.value,
+    eventExists: content.eventExists.value,
+    loadFailed: content.loadFailed.value,
+  },
+  text: {
+    eventIdentity: content.eventIdentity.value,
+    editEventIntro: content.editEventIntro.value,
+    createEventIntro: content.createEventIntro.value,
+    cloneEventIntro: content.cloneEventIntro.value,
+    slug: content.slug.value,
+    eventType: content.eventType.value,
+    editionYear: content.editionYear.value,
+    status: content.status.value,
+    statusDraft: content.statusDraft.value,
+    statusUpcoming: content.statusUpcoming.value,
+    statusActive: content.statusActive.value,
+    statusArchived: content.statusArchived.value,
+    defaultLocale: content.defaultLocale.value,
+    defaultLocaleHelp: content.defaultLocaleHelp.value,
+    aliases: content.aliases.value,
+    aliasesHelp: content.aliasesHelp.value,
+    timezone: content.timezone.value,
+    enabled: content.enabled.value,
+    registrationOpen: content.registrationOpen.value,
+    localizedContent: content.localizedContent.value,
+    eventTitle: content.eventTitle.value,
+    summary: content.summary.value,
+    optionalTranslation: content.optionalTranslation.value,
+    startsAt: content.startsAt.value,
+    endsAt: content.endsAt.value,
+    eventLocation: content.eventLocation.value,
+    optionalUrl: content.optionalUrl.value,
+    locationName: content.locationName.value,
+    locationMapUrl: content.locationMapUrl.value,
+    locationAddress: content.locationAddress.value,
+    locationMapEmbedUrl: content.locationMapEmbedUrl.value,
+    eventLimits: content.eventLimits.value,
+    currency: content.currency.value,
+    maxTicketsPerRegistration: content.maxTicketsPerRegistration.value,
+    maxTotalTickets: content.maxTotalTickets.value,
+    noLimit: content.noLimit.value,
+    paymentMethods: content.paymentMethods.value,
+    etransferPayment: content.etransferPayment.value,
+    etransferEmail: content.etransferEmail.value,
+    cashPayment: content.cashPayment.value,
+    cashAddress: content.cashAddress.value,
+    cashMapUrl: content.cashMapUrl.value,
+    cashMapEmbedUrl: content.cashMapEmbedUrl.value,
+    notesSection: content.notesSection.value,
+    notesHelp: content.notesHelp.value,
+    addParagraph: content.addParagraph.value,
+    addBulletList: content.addBulletList.value,
+    addLink: content.addLink.value,
+    initialTicketTypes: content.initialTicketTypes.value,
+    addTicketType: content.addTicketType.value,
+    saveEvent: content.saveEvent.value,
+    createEvent: content.createEvent.value,
+    cloneEvent: content.cloneEvent.value,
+    cancel: content.cancel.value,
+  },
+  ticket: {
+    ticketTypes: content.ticketTypes.value,
+    removeTicketType: content.removeTicketType.value,
+    ticketKey: content.ticketKey.value,
+    priceMinor: content.priceMinor.value,
+    priceMinorHelp: content.priceMinorHelp.value,
+    ticketLabel: content.ticketLabel.value,
+    ticketDescription: content.ticketDescription.value,
+    minPerRegistration: content.minPerRegistration.value,
+    maxPerRegistration: content.maxPerRegistration.value,
+    defaultQuantity: content.defaultQuantity.value,
+    capacity: content.capacity.value,
+    sortOrder: content.sortOrder.value,
+    active: content.active.value,
+    noLimit: content.noLimit.value,
+  },
+  note: {
+    noteParagraph: content.noteParagraph.value,
+    noteBullets: content.noteBullets.value,
+    noteLink: content.noteLink.value,
+    moveUp: content.moveUp.value,
+    moveDown: content.moveDown.value,
+    removeNoteBlock: content.removeNoteBlock.value,
+    noteText: content.noteText.value,
+    noteBulletsHelp: content.noteBulletsHelp.value,
+    noteLabel: content.noteLabel.value,
+    noteUrl: content.noteUrl.value,
+  },
+};
+---
+
+<EventFormIsland client:only="preact" mode={mode} config={config} />

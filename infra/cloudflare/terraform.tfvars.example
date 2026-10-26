@@ -1,0 +1,49 @@
+cloudflare_zone_id    = "replace-with-zone-id"
+cloudflare_account_id = "replace-with-account-id"
+staging_hostname      = "staging.nguoivietsj.ca"
+
+# Cloudflare Access protects the whole staging hostname only. Production staff
+# authentication is handled in-app by Better Auth.
+staging_session_duration = "8h"
+
+public_registration_path_regex = "^/api/events/[^/]+/registrations$"
+
+# Apply the Turnstile widget, deploy the Worker with its site key and secret,
+# then set this to true to create the WAF challenge.
+turnstile_preclearance_confirmed = false
+
+# HSTS is applied at the zone. Enable subdomains only after confirming every
+# subdomain serves HTTPS.
+hsts_include_subdomains = false
+
+turnstile_widget_name     = "Event registration"
+turnstile_widget_mode     = "managed"
+turnstile_clearance_level = "managed"
+turnstile_domains = [
+  "nguoivietsj.ca",
+  "staging.nguoivietsj.ca",
+]
+
+# Additional DNS records not owned by Wrangler custom domains.
+# Only add records here after checking they are not already managed by Wrangler.
+# Example:
+# dns_records = {
+#   dmarc = {
+#     name    = "_dmarc"
+#     type    = "TXT"
+#     content = "v=DMARC1; p=none"
+#   }
+# }
+dns_records = {}
+
+# Staging Access allow list. Empty uses allowed_emails.
+staging_allowed_emails = []
+
+allowed_emails = [
+  "organizer@example.com",
+]
+
+# Optional Access service token IDs for automated staging checks. Create the
+# token in Zero Trust, then add its ID here. The token must use a Service Auth
+# policy, not an Allow policy containing only email rules.
+access_service_token_ids = []

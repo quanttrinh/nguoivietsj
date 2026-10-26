@@ -1,0 +1,77 @@
+---
+// @boundary astro
+import { useDictionary, useLocale } from "astro-intlayer";
+import { locales } from "intlayer";
+
+import AdminLayout from "~/events/admin/ui/shared/AdminLayout.astro";
+import AdminPageHeader from "~/events/admin/ui/shared/AdminPageHeader.astro";
+import { adminPageStyles } from "~/events/admin/ui/shared/styles/admin-styles";
+import AdminUsers from "~/events/admin/ui/users/AdminUsers";
+import engineAdminContent from "~/events/content/admin.content";
+
+export function getStaticPaths(): { params: { locale: string } }[] {
+  return locales.map((locale) => ({ params: { locale } }));
+}
+
+const { locale } = useLocale();
+const content = useDictionary(engineAdminContent, locale);
+
+const config = {
+  locale,
+  createUser: content.createUser.value,
+  editUser: content.editUser.value,
+  deleteUser: content.deleteUser.value,
+  userName: content.userName.value,
+  userEmail: content.userEmail.value,
+  userPassword: content.userPassword.value,
+  newPassword: content.newPassword.value,
+  userRole: content.userRole.value,
+  userSearch: content.userSearch.value,
+  userSearchPlaceholder: content.userSearchPlaceholder.value,
+  userSearchField: content.userSearchField.value,
+  userSearchAction: content.userSearchAction.value,
+  userClearFilters: content.userClearFilters.value,
+  allRoles: content.allRoles.value,
+  previousPage: content.previousPage.value,
+  nextPage: content.nextPage.value,
+  pageOfParts: content.pageOfParts.map((part) => part.value),
+  userCreatedAt: content.userCreatedAt.value,
+  userActions: content.userActions.value,
+  userSave: content.userSave.value,
+  userSaving: content.userSaving.value,
+  userCreated: content.userCreated.value,
+  userUpdated: content.userUpdated.value,
+  userDeleted: content.userDeleted.value,
+  deleteUserConfirm: content.deleteUserConfirm.value,
+  noUsers: content.noUsers.value,
+  userRequired: content.userRequired.value,
+  passwordTooShort: content.passwordTooShort.value,
+  passwordHelp: content.passwordHelp.value,
+  roleUser: content.roleUser.value,
+  roleAdmin: content.roleAdmin.value,
+  roleEventStaff: content.roleEventStaff.value,
+  roleEventCheckin: content.roleEventCheckin.value,
+  userLoadFailed: content.userLoadFailed.value,
+  userSaveFailed: content.userSaveFailed.value,
+  userDeleteFailed: content.userDeleteFailed.value,
+  userEdit: content.userEdit.value,
+  userDelete: content.userDelete.value,
+  userCancel: content.userCancel.value,
+  userClose: content.userClose.value,
+};
+---
+
+<AdminLayout
+  title={content.manageUsers.value}
+  description={content.userManagementIntro.value}
+  noindex
+>
+  <section class={adminPageStyles.section} id="engine-admin-users">
+    <AdminPageHeader
+      locale={locale}
+      title={content.manageUsers.value}
+      intro={content.userManagementIntro}
+    />
+    <AdminUsers client:load config={config} />
+  </section>
+</AdminLayout>

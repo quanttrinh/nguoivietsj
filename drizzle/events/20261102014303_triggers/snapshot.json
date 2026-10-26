@@ -1,0 +1,2844 @@
+{
+  "dialect": "sqlite",
+  "id": "83f66694-8a13-4738-b506-5fcb3ac5098b",
+  "prevIds": ["07453f52-ea02-42d3-80eb-02c1ae9b1527"],
+  "version": "7",
+  "ddl": [
+    {
+      "name": "audit_events",
+      "entityType": "tables"
+    },
+    {
+      "name": "checkins",
+      "entityType": "tables"
+    },
+    {
+      "name": "email_deliveries",
+      "entityType": "tables"
+    },
+    {
+      "name": "event_aliases",
+      "entityType": "tables"
+    },
+    {
+      "name": "event_form_versions",
+      "entityType": "tables"
+    },
+    {
+      "name": "event_slug_claims",
+      "entityType": "tables"
+    },
+    {
+      "name": "event_ticket_limits",
+      "entityType": "tables"
+    },
+    {
+      "name": "event_ticket_types",
+      "entityType": "tables"
+    },
+    {
+      "name": "events",
+      "entityType": "tables"
+    },
+    {
+      "name": "payments",
+      "entityType": "tables"
+    },
+    {
+      "name": "registration_contacts",
+      "entityType": "tables"
+    },
+    {
+      "name": "registration_failures",
+      "entityType": "tables"
+    },
+    {
+      "name": "registration_field_values",
+      "entityType": "tables"
+    },
+    {
+      "name": "registration_phone_claims",
+      "entityType": "tables"
+    },
+    {
+      "name": "registration_stats",
+      "entityType": "tables"
+    },
+    {
+      "name": "registration_status_otps",
+      "entityType": "tables"
+    },
+    {
+      "name": "registration_status_sessions",
+      "entityType": "tables"
+    },
+    {
+      "name": "registration_tickets",
+      "entityType": "tables"
+    },
+    {
+      "name": "registrations",
+      "entityType": "tables"
+    },
+    {
+      "name": "ticket_type_stats",
+      "entityType": "tables"
+    },
+    {
+      "table": "audit_events",
+      "name": "id",
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "audit_events",
+      "name": "event_id",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "audit_events",
+      "name": "actor_user_id",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "audit_events",
+      "name": "action",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "audit_events",
+      "name": "target_id",
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "audit_events",
+      "name": "metadata",
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "audit_events",
+      "name": "created_at",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "checkins",
+      "name": "id",
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "checkins",
+      "name": "registration_id",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "checkins",
+      "name": "checked_in_at",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "email_deliveries",
+      "name": "idempotency_key",
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "email_deliveries",
+      "name": "job_type",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "email_deliveries",
+      "name": "status",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "'processing'",
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "email_deliveries",
+      "name": "attempts",
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "1",
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "email_deliveries",
+      "name": "last_error",
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "email_deliveries",
+      "name": "created_at",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "email_deliveries",
+      "name": "updated_at",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "event_aliases",
+      "name": "alias",
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "event_aliases",
+      "name": "event_id",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "event_aliases",
+      "name": "created_at",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "event_form_versions",
+      "name": "event_id",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "event_form_versions",
+      "name": "version",
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "event_form_versions",
+      "name": "schema_json",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "event_form_versions",
+      "name": "status",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "event_form_versions",
+      "name": "created_by",
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "event_form_versions",
+      "name": "created_at",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "event_form_versions",
+      "name": "published_at",
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "event_slug_claims",
+      "name": "slug",
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "event_slug_claims",
+      "name": "event_id",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "event_ticket_limits",
+      "name": "event_id",
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "event_ticket_limits",
+      "name": "currency",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "'CAD'",
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "event_ticket_limits",
+      "name": "max_tickets_per_registration",
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "event_ticket_limits",
+      "name": "max_total_tickets",
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "event_ticket_limits",
+      "name": "created_at",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "event_ticket_limits",
+      "name": "updated_at",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "event_ticket_types",
+      "name": "event_id",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "event_ticket_types",
+      "name": "key",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "event_ticket_types",
+      "name": "label_json",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "event_ticket_types",
+      "name": "description_json",
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "event_ticket_types",
+      "name": "price_minor",
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "0",
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "event_ticket_types",
+      "name": "min_per_registration",
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "0",
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "event_ticket_types",
+      "name": "max_per_registration",
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "event_ticket_types",
+      "name": "default_quantity",
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "0",
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "event_ticket_types",
+      "name": "capacity",
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "event_ticket_types",
+      "name": "active",
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "1",
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "event_ticket_types",
+      "name": "sort_order",
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "0",
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "event_ticket_types",
+      "name": "created_at",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "event_ticket_types",
+      "name": "updated_at",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "events",
+      "name": "id",
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "events",
+      "name": "slug",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "events",
+      "name": "event_type",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "events",
+      "name": "edition_year",
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "events",
+      "name": "default_locale",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "'en'",
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "events",
+      "name": "status",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "'draft'",
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "events",
+      "name": "enabled",
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "0",
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "events",
+      "name": "registration_open",
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "0",
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "events",
+      "name": "starts_at",
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "events",
+      "name": "ends_at",
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "events",
+      "name": "timezone",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "'UTC'",
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "events",
+      "name": "title_json",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "events",
+      "name": "summary_json",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "'{}'",
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "events",
+      "name": "location_name",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "''",
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "events",
+      "name": "location_address",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "''",
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "events",
+      "name": "location_map_url",
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "events",
+      "name": "location_map_embed_url",
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "events",
+      "name": "payment_etransfer_enabled",
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "0",
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "events",
+      "name": "payment_etransfer_email",
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "events",
+      "name": "payment_cash_enabled",
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "0",
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "events",
+      "name": "payment_cash_address",
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "events",
+      "name": "payment_cash_map_url",
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "events",
+      "name": "payment_cash_map_embed_url",
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "events",
+      "name": "notes_json",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "'{}'",
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "events",
+      "name": "created_at",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "events",
+      "name": "updated_at",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "payments",
+      "name": "id",
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "payments",
+      "name": "registration_id",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "payments",
+      "name": "amount_minor",
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "payments",
+      "name": "currency",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "payments",
+      "name": "method",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "payments",
+      "name": "confirmed_by",
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "payments",
+      "name": "note",
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "payments",
+      "name": "created_at",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "payments",
+      "name": "updated_at",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registration_contacts",
+      "name": "id",
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registration_contacts",
+      "name": "registration_id",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registration_contacts",
+      "name": "event_id",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registration_contacts",
+      "name": "kind",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registration_contacts",
+      "name": "label",
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registration_contacts",
+      "name": "is_primary",
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "0",
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registration_contacts",
+      "name": "is_confirmation_method",
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "0",
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registration_contacts",
+      "name": "email_address",
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registration_contacts",
+      "name": "email_normalized",
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registration_contacts",
+      "name": "phone_number",
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registration_contacts",
+      "name": "phone_normalized",
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registration_contacts",
+      "name": "address_line1",
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registration_contacts",
+      "name": "address_line2",
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registration_contacts",
+      "name": "city",
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registration_contacts",
+      "name": "province",
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registration_contacts",
+      "name": "postal_code",
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registration_contacts",
+      "name": "country",
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registration_contacts",
+      "name": "value_json",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "'{}'",
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registration_contacts",
+      "name": "created_at",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registration_failures",
+      "name": "id",
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registration_failures",
+      "name": "event_id",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registration_failures",
+      "name": "reason",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registration_failures",
+      "name": "email_address",
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registration_failures",
+      "name": "created_at",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registration_field_values",
+      "name": "registration_id",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registration_field_values",
+      "name": "event_id",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registration_field_values",
+      "name": "field_key",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registration_field_values",
+      "name": "form_version",
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registration_field_values",
+      "name": "value_json",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registration_field_values",
+      "name": "created_at",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registration_phone_claims",
+      "name": "registration_id",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registration_phone_claims",
+      "name": "event_id",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registration_phone_claims",
+      "name": "phone_normalized",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registration_phone_claims",
+      "name": "full_name_normalized",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registration_stats",
+      "name": "event_id",
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registration_stats",
+      "name": "registration_count",
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "0",
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registration_stats",
+      "name": "tickets_total",
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "0",
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registration_status_otps",
+      "name": "id",
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registration_status_otps",
+      "name": "registration_id",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registration_status_otps",
+      "name": "code_hash",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registration_status_otps",
+      "name": "attempts",
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "0",
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registration_status_otps",
+      "name": "expires_at",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registration_status_otps",
+      "name": "consumed_at",
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registration_status_otps",
+      "name": "created_at",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registration_status_sessions",
+      "name": "id",
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registration_status_sessions",
+      "name": "registration_id",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registration_status_sessions",
+      "name": "token_hash",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registration_status_sessions",
+      "name": "expires_at",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registration_status_sessions",
+      "name": "created_at",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registration_tickets",
+      "name": "registration_id",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registration_tickets",
+      "name": "event_id",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registration_tickets",
+      "name": "ticket_type_key",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registration_tickets",
+      "name": "quantity",
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registration_tickets",
+      "name": "unit_price_minor",
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registration_tickets",
+      "name": "currency",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registration_tickets",
+      "name": "label_snapshot_json",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registration_tickets",
+      "name": "created_at",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registrations",
+      "name": "id",
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registrations",
+      "name": "event_id",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registrations",
+      "name": "form_version",
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registrations",
+      "name": "full_name",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registrations",
+      "name": "full_name_normalized",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registrations",
+      "name": "consent_at",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registrations",
+      "name": "confirmation_email_sent_at",
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registrations",
+      "name": "payment_confirmation_email_sent_at",
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registrations",
+      "name": "metadata_json",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "'{}'",
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "registrations",
+      "name": "created_at",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "ticket_type_stats",
+      "name": "event_id",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "ticket_type_stats",
+      "name": "ticket_type_key",
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "ticket_type_stats",
+      "name": "tickets_sold",
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "0",
+      "generated": null,
+      "entityType": "columns"
+    },
+    {
+      "table": "audit_events",
+      "name": "audit_events_event_created_at",
+      "columns": [
+        {
+          "value": "event_id",
+          "isExpression": false
+        },
+        {
+          "value": "created_at",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "entityType": "indexes"
+    },
+    {
+      "table": "audit_events",
+      "name": "audit_events_event_target",
+      "columns": [
+        {
+          "value": "event_id",
+          "isExpression": false
+        },
+        {
+          "value": "target_id",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "entityType": "indexes"
+    },
+    {
+      "table": "checkins",
+      "name": "checkins_registration_unique",
+      "columns": [
+        {
+          "value": "registration_id",
+          "isExpression": false
+        }
+      ],
+      "isUnique": true,
+      "where": null,
+      "origin": "manual",
+      "entityType": "indexes"
+    },
+    {
+      "table": "email_deliveries",
+      "name": "email_deliveries_status_updated_at",
+      "columns": [
+        {
+          "value": "status",
+          "isExpression": false
+        },
+        {
+          "value": "updated_at",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "entityType": "indexes"
+    },
+    {
+      "table": "event_aliases",
+      "name": "event_aliases_event_id",
+      "columns": [
+        {
+          "value": "event_id",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "entityType": "indexes"
+    },
+    {
+      "table": "event_form_versions",
+      "name": "event_form_versions_published",
+      "columns": [
+        {
+          "value": "event_id",
+          "isExpression": false
+        }
+      ],
+      "isUnique": true,
+      "where": "\"event_form_versions\".\"status\" = 'published'",
+      "origin": "manual",
+      "entityType": "indexes"
+    },
+    {
+      "table": "event_form_versions",
+      "name": "event_form_versions_event_status",
+      "columns": [
+        {
+          "value": "event_id",
+          "isExpression": false
+        },
+        {
+          "value": "status",
+          "isExpression": false
+        },
+        {
+          "value": "version",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "entityType": "indexes"
+    },
+    {
+      "table": "event_ticket_types",
+      "name": "event_ticket_types_active",
+      "columns": [
+        {
+          "value": "event_id",
+          "isExpression": false
+        },
+        {
+          "value": "active",
+          "isExpression": false
+        },
+        {
+          "value": "sort_order",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "entityType": "indexes"
+    },
+    {
+      "table": "events",
+      "name": "events_slug_unique",
+      "columns": [
+        {
+          "value": "slug",
+          "isExpression": false
+        }
+      ],
+      "isUnique": true,
+      "where": null,
+      "origin": "manual",
+      "entityType": "indexes"
+    },
+    {
+      "table": "events",
+      "name": "events_type_year_unique",
+      "columns": [
+        {
+          "value": "event_type",
+          "isExpression": false
+        },
+        {
+          "value": "edition_year",
+          "isExpression": false
+        }
+      ],
+      "isUnique": true,
+      "where": null,
+      "origin": "manual",
+      "entityType": "indexes"
+    },
+    {
+      "table": "events",
+      "name": "events_public_list",
+      "columns": [
+        {
+          "value": "enabled",
+          "isExpression": false
+        },
+        {
+          "value": "status",
+          "isExpression": false
+        },
+        {
+          "value": "starts_at",
+          "isExpression": false
+        },
+        {
+          "value": "id",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "entityType": "indexes"
+    },
+    {
+      "table": "payments",
+      "name": "payments_registration_unique",
+      "columns": [
+        {
+          "value": "registration_id",
+          "isExpression": false
+        }
+      ],
+      "isUnique": true,
+      "where": null,
+      "origin": "manual",
+      "entityType": "indexes"
+    },
+    {
+      "table": "registration_contacts",
+      "name": "registration_contacts_registration",
+      "columns": [
+        {
+          "value": "registration_id",
+          "isExpression": false
+        },
+        {
+          "value": "kind",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "entityType": "indexes"
+    },
+    {
+      "table": "registration_contacts",
+      "name": "registration_contacts_one_primary",
+      "columns": [
+        {
+          "value": "registration_id",
+          "isExpression": false
+        }
+      ],
+      "isUnique": true,
+      "where": "\"registration_contacts\".\"is_primary\" = 1",
+      "origin": "manual",
+      "entityType": "indexes"
+    },
+    {
+      "table": "registration_contacts",
+      "name": "registration_contacts_one_confirmation",
+      "columns": [
+        {
+          "value": "registration_id",
+          "isExpression": false
+        }
+      ],
+      "isUnique": true,
+      "where": "\"registration_contacts\".\"is_confirmation_method\" = 1",
+      "origin": "manual",
+      "entityType": "indexes"
+    },
+    {
+      "table": "registration_contacts",
+      "name": "registration_contacts_one_mail",
+      "columns": [
+        {
+          "value": "registration_id",
+          "isExpression": false
+        }
+      ],
+      "isUnique": true,
+      "where": "\"registration_contacts\".\"kind\" = 'mail'",
+      "origin": "manual",
+      "entityType": "indexes"
+    },
+    {
+      "table": "registration_contacts",
+      "name": "registration_contacts_event_email",
+      "columns": [
+        {
+          "value": "event_id",
+          "isExpression": false
+        },
+        {
+          "value": "email_normalized",
+          "isExpression": false
+        }
+      ],
+      "isUnique": true,
+      "where": "\"registration_contacts\".\"kind\" = 'email' AND \"registration_contacts\".\"email_normalized\" IS NOT NULL",
+      "origin": "manual",
+      "entityType": "indexes"
+    },
+    {
+      "table": "registration_contacts",
+      "name": "registration_contacts_registration_phone",
+      "columns": [
+        {
+          "value": "registration_id",
+          "isExpression": false
+        },
+        {
+          "value": "phone_normalized",
+          "isExpression": false
+        }
+      ],
+      "isUnique": true,
+      "where": "\"registration_contacts\".\"kind\" = 'phone' AND \"registration_contacts\".\"phone_normalized\" IS NOT NULL",
+      "origin": "manual",
+      "entityType": "indexes"
+    },
+    {
+      "table": "registration_contacts",
+      "name": "registration_contacts_event_phone",
+      "columns": [
+        {
+          "value": "event_id",
+          "isExpression": false
+        },
+        {
+          "value": "phone_normalized",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": "\"registration_contacts\".\"kind\" = 'phone' AND \"registration_contacts\".\"phone_normalized\" IS NOT NULL",
+      "origin": "manual",
+      "entityType": "indexes"
+    },
+    {
+      "table": "registration_contacts",
+      "name": "registration_contacts_event_postal",
+      "columns": [
+        {
+          "value": "event_id",
+          "isExpression": false
+        },
+        {
+          "value": "postal_code",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": "\"registration_contacts\".\"kind\" = 'mail'",
+      "origin": "manual",
+      "entityType": "indexes"
+    },
+    {
+      "table": "registration_failures",
+      "name": "registration_failures_event_created_at",
+      "columns": [
+        {
+          "value": "event_id",
+          "isExpression": false
+        },
+        {
+          "value": "created_at",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "entityType": "indexes"
+    },
+    {
+      "table": "registration_field_values",
+      "name": "registration_field_values_event_field",
+      "columns": [
+        {
+          "value": "event_id",
+          "isExpression": false
+        },
+        {
+          "value": "field_key",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "entityType": "indexes"
+    },
+    {
+      "table": "registration_field_values",
+      "name": "registration_field_values_event_value",
+      "columns": [
+        {
+          "value": "event_id",
+          "isExpression": false
+        },
+        {
+          "value": "field_key",
+          "isExpression": false
+        },
+        {
+          "value": "value_json",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "entityType": "indexes"
+    },
+    {
+      "table": "registration_phone_claims",
+      "name": "registration_phone_claims_identity",
+      "columns": [
+        {
+          "value": "event_id",
+          "isExpression": false
+        },
+        {
+          "value": "phone_normalized",
+          "isExpression": false
+        },
+        {
+          "value": "full_name_normalized",
+          "isExpression": false
+        }
+      ],
+      "isUnique": true,
+      "where": null,
+      "origin": "manual",
+      "entityType": "indexes"
+    },
+    {
+      "table": "registration_status_otps",
+      "name": "registration_status_otps_registration",
+      "columns": [
+        {
+          "value": "registration_id",
+          "isExpression": false
+        },
+        {
+          "value": "created_at",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "entityType": "indexes"
+    },
+    {
+      "table": "registration_status_sessions",
+      "name": "registration_status_sessions_token",
+      "columns": [
+        {
+          "value": "token_hash",
+          "isExpression": false
+        }
+      ],
+      "isUnique": true,
+      "where": null,
+      "origin": "manual",
+      "entityType": "indexes"
+    },
+    {
+      "table": "registration_status_sessions",
+      "name": "registration_status_sessions_registration",
+      "columns": [
+        {
+          "value": "registration_id",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "entityType": "indexes"
+    },
+    {
+      "table": "registration_tickets",
+      "name": "registration_tickets_event_type",
+      "columns": [
+        {
+          "value": "event_id",
+          "isExpression": false
+        },
+        {
+          "value": "ticket_type_key",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "entityType": "indexes"
+    },
+    {
+      "table": "registrations",
+      "name": "registrations_id_event_unique",
+      "columns": [
+        {
+          "value": "id",
+          "isExpression": false
+        },
+        {
+          "value": "event_id",
+          "isExpression": false
+        }
+      ],
+      "isUnique": true,
+      "where": null,
+      "origin": "manual",
+      "entityType": "indexes"
+    },
+    {
+      "table": "registrations",
+      "name": "registrations_id_event_form_version_unique",
+      "columns": [
+        {
+          "value": "id",
+          "isExpression": false
+        },
+        {
+          "value": "event_id",
+          "isExpression": false
+        },
+        {
+          "value": "form_version",
+          "isExpression": false
+        }
+      ],
+      "isUnique": true,
+      "where": null,
+      "origin": "manual",
+      "entityType": "indexes"
+    },
+    {
+      "table": "registrations",
+      "name": "registrations_event_created_at",
+      "columns": [
+        {
+          "value": "event_id",
+          "isExpression": false
+        },
+        {
+          "value": "created_at",
+          "isExpression": false
+        },
+        {
+          "value": "id",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "entityType": "indexes"
+    },
+    {
+      "table": "audit_events",
+      "name": "audit_events_event_id_events_id_fk",
+      "columns": ["event_id"],
+      "tableTo": "events",
+      "columnsTo": ["id"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "RESTRICT",
+      "nameExplicit": false,
+      "entityType": "fks"
+    },
+    {
+      "table": "checkins",
+      "name": "checkins_registration_id_registrations_id_fk",
+      "columns": ["registration_id"],
+      "tableTo": "registrations",
+      "columnsTo": ["id"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "nameExplicit": false,
+      "entityType": "fks"
+    },
+    {
+      "table": "event_aliases",
+      "name": "event_aliases_event_id_events_id_fk",
+      "columns": ["event_id"],
+      "tableTo": "events",
+      "columnsTo": ["id"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "RESTRICT",
+      "nameExplicit": false,
+      "entityType": "fks"
+    },
+    {
+      "table": "event_form_versions",
+      "name": "event_form_versions_event_id_events_id_fk",
+      "columns": ["event_id"],
+      "tableTo": "events",
+      "columnsTo": ["id"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "RESTRICT",
+      "nameExplicit": false,
+      "entityType": "fks"
+    },
+    {
+      "table": "event_slug_claims",
+      "name": "event_slug_claims_event_id_events_id_fk",
+      "columns": ["event_id"],
+      "tableTo": "events",
+      "columnsTo": ["id"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "nameExplicit": false,
+      "entityType": "fks"
+    },
+    {
+      "table": "event_ticket_limits",
+      "name": "event_ticket_limits_event_id_events_id_fk",
+      "columns": ["event_id"],
+      "tableTo": "events",
+      "columnsTo": ["id"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "RESTRICT",
+      "nameExplicit": false,
+      "entityType": "fks"
+    },
+    {
+      "table": "event_ticket_types",
+      "name": "event_ticket_types_event_id_event_ticket_limits_event_id_fk",
+      "columns": ["event_id"],
+      "tableTo": "event_ticket_limits",
+      "columnsTo": ["event_id"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "RESTRICT",
+      "nameExplicit": false,
+      "entityType": "fks"
+    },
+    {
+      "table": "payments",
+      "name": "payments_registration_id_registrations_id_fk",
+      "columns": ["registration_id"],
+      "tableTo": "registrations",
+      "columnsTo": ["id"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "nameExplicit": false,
+      "entityType": "fks"
+    },
+    {
+      "table": "registration_contacts",
+      "name": "registration_contacts_registration_id_event_id_registrations_id_event_id_fk",
+      "columns": ["registration_id", "event_id"],
+      "tableTo": "registrations",
+      "columnsTo": ["id", "event_id"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "nameExplicit": false,
+      "entityType": "fks"
+    },
+    {
+      "table": "registration_contacts",
+      "name": "registration_contacts_event_id_events_id_fk",
+      "columns": ["event_id"],
+      "tableTo": "events",
+      "columnsTo": ["id"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "RESTRICT",
+      "nameExplicit": false,
+      "entityType": "fks"
+    },
+    {
+      "table": "registration_failures",
+      "name": "registration_failures_event_id_events_id_fk",
+      "columns": ["event_id"],
+      "tableTo": "events",
+      "columnsTo": ["id"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "RESTRICT",
+      "nameExplicit": false,
+      "entityType": "fks"
+    },
+    {
+      "table": "registration_field_values",
+      "name": "registration_field_values_registration_id_event_id_form_version_registrations_id_event_id_form_version_fk",
+      "columns": ["registration_id", "event_id", "form_version"],
+      "tableTo": "registrations",
+      "columnsTo": ["id", "event_id", "form_version"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "nameExplicit": false,
+      "entityType": "fks"
+    },
+    {
+      "table": "registration_phone_claims",
+      "name": "registration_phone_claims_registration_id_registrations_id_fk",
+      "columns": ["registration_id"],
+      "tableTo": "registrations",
+      "columnsTo": ["id"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "nameExplicit": false,
+      "entityType": "fks"
+    },
+    {
+      "table": "registration_phone_claims",
+      "name": "registration_phone_claims_event_id_events_id_fk",
+      "columns": ["event_id"],
+      "tableTo": "events",
+      "columnsTo": ["id"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "RESTRICT",
+      "nameExplicit": false,
+      "entityType": "fks"
+    },
+    {
+      "table": "registration_stats",
+      "name": "registration_stats_event_id_events_id_fk",
+      "columns": ["event_id"],
+      "tableTo": "events",
+      "columnsTo": ["id"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "RESTRICT",
+      "nameExplicit": false,
+      "entityType": "fks"
+    },
+    {
+      "table": "registration_status_otps",
+      "name": "registration_status_otps_registration_id_registrations_id_fk",
+      "columns": ["registration_id"],
+      "tableTo": "registrations",
+      "columnsTo": ["id"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "nameExplicit": false,
+      "entityType": "fks"
+    },
+    {
+      "table": "registration_status_sessions",
+      "name": "registration_status_sessions_registration_id_registrations_id_fk",
+      "columns": ["registration_id"],
+      "tableTo": "registrations",
+      "columnsTo": ["id"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "nameExplicit": false,
+      "entityType": "fks"
+    },
+    {
+      "table": "registration_tickets",
+      "name": "registration_tickets_registration_id_event_id_registrations_id_event_id_fk",
+      "columns": ["registration_id", "event_id"],
+      "tableTo": "registrations",
+      "columnsTo": ["id", "event_id"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "nameExplicit": false,
+      "entityType": "fks"
+    },
+    {
+      "table": "registration_tickets",
+      "name": "registration_tickets_event_id_events_id_fk",
+      "columns": ["event_id"],
+      "tableTo": "events",
+      "columnsTo": ["id"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "RESTRICT",
+      "nameExplicit": false,
+      "entityType": "fks"
+    },
+    {
+      "table": "registration_tickets",
+      "name": "registration_tickets_event_id_ticket_type_key_event_ticket_types_event_id_key_fk",
+      "columns": ["event_id", "ticket_type_key"],
+      "tableTo": "event_ticket_types",
+      "columnsTo": ["event_id", "key"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "RESTRICT",
+      "nameExplicit": false,
+      "entityType": "fks"
+    },
+    {
+      "table": "registrations",
+      "name": "registrations_event_id_events_id_fk",
+      "columns": ["event_id"],
+      "tableTo": "events",
+      "columnsTo": ["id"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "RESTRICT",
+      "nameExplicit": false,
+      "entityType": "fks"
+    },
+    {
+      "table": "registrations",
+      "name": "registrations_event_id_form_version_event_form_versions_event_id_version_fk",
+      "columns": ["event_id", "form_version"],
+      "tableTo": "event_form_versions",
+      "columnsTo": ["event_id", "version"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "nameExplicit": false,
+      "entityType": "fks"
+    },
+    {
+      "table": "ticket_type_stats",
+      "name": "ticket_type_stats_event_id_ticket_type_key_event_ticket_types_event_id_key_fk",
+      "columns": ["event_id", "ticket_type_key"],
+      "tableTo": "event_ticket_types",
+      "columnsTo": ["event_id", "key"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "RESTRICT",
+      "nameExplicit": false,
+      "entityType": "fks"
+    },
+    {
+      "table": "audit_events",
+      "name": "audit_events_pk",
+      "columns": ["id"],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "table": "checkins",
+      "name": "checkins_pk",
+      "columns": ["id"],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "table": "email_deliveries",
+      "name": "email_deliveries_pk",
+      "columns": ["idempotency_key"],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "table": "event_aliases",
+      "name": "event_aliases_pk",
+      "columns": ["alias"],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "table": "event_form_versions",
+      "name": "event_form_versions_event_id_version_pk",
+      "columns": ["event_id", "version"],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "table": "event_slug_claims",
+      "name": "event_slug_claims_pk",
+      "columns": ["slug"],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "table": "event_ticket_limits",
+      "name": "event_ticket_limits_pk",
+      "columns": ["event_id"],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "table": "event_ticket_types",
+      "name": "event_ticket_types_event_id_key_pk",
+      "columns": ["event_id", "key"],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "table": "events",
+      "name": "events_pk",
+      "columns": ["id"],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "table": "payments",
+      "name": "payments_pk",
+      "columns": ["id"],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "table": "registration_contacts",
+      "name": "registration_contacts_pk",
+      "columns": ["id"],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "table": "registration_failures",
+      "name": "registration_failures_pk",
+      "columns": ["id"],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "table": "registration_field_values",
+      "name": "registration_field_values_registration_id_field_key_pk",
+      "columns": ["registration_id", "field_key"],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "table": "registration_phone_claims",
+      "name": "registration_phone_claims_registration_id_phone_normalized_pk",
+      "columns": ["registration_id", "phone_normalized"],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "table": "registration_stats",
+      "name": "registration_stats_pk",
+      "columns": ["event_id"],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "table": "registration_status_otps",
+      "name": "registration_status_otps_pk",
+      "columns": ["id"],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "table": "registration_status_sessions",
+      "name": "registration_status_sessions_pk",
+      "columns": ["id"],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "table": "registration_tickets",
+      "name": "registration_tickets_registration_id_ticket_type_key_pk",
+      "columns": ["registration_id", "ticket_type_key"],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "table": "registrations",
+      "name": "registrations_pk",
+      "columns": ["id"],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "table": "ticket_type_stats",
+      "name": "ticket_type_stats_event_id_ticket_type_key_pk",
+      "columns": ["event_id", "ticket_type_key"],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "table": "audit_events",
+      "name": "audit_events_metadata",
+      "value": "\"metadata\" IS NULL OR json_valid(\"metadata\")",
+      "entityType": "checks"
+    },
+    {
+      "table": "email_deliveries",
+      "name": "email_deliveries_status",
+      "value": "\"status\" IN ('processing', 'sent', 'failed')",
+      "entityType": "checks"
+    },
+    {
+      "table": "event_form_versions",
+      "name": "event_form_versions_schema_json",
+      "value": "json_valid(\"schema_json\") AND json_type(\"schema_json\") = 'object' AND length(\"schema_json\") <= 65536",
+      "entityType": "checks"
+    },
+    {
+      "table": "event_form_versions",
+      "name": "event_form_versions_version",
+      "value": "\"version\" > 0",
+      "entityType": "checks"
+    },
+    {
+      "table": "event_form_versions",
+      "name": "event_form_versions_status",
+      "value": "\"status\" IN ('draft', 'published', 'archived')",
+      "entityType": "checks"
+    },
+    {
+      "table": "event_ticket_limits",
+      "name": "event_ticket_limits_currency",
+      "value": "length(\"currency\") = 3",
+      "entityType": "checks"
+    },
+    {
+      "table": "event_ticket_limits",
+      "name": "event_ticket_limits_max_registration",
+      "value": "\"max_tickets_per_registration\" IS NULL OR \"max_tickets_per_registration\" >= 0",
+      "entityType": "checks"
+    },
+    {
+      "table": "event_ticket_limits",
+      "name": "event_ticket_limits_max_total",
+      "value": "\"max_total_tickets\" IS NULL OR \"max_total_tickets\" >= 0",
+      "entityType": "checks"
+    },
+    {
+      "table": "event_ticket_types",
+      "name": "event_ticket_types_label_json",
+      "value": "json_valid(\"label_json\") AND json_type(\"label_json\") = 'object' AND length(\"label_json\") <= 4096",
+      "entityType": "checks"
+    },
+    {
+      "table": "event_ticket_types",
+      "name": "event_ticket_types_description_json",
+      "value": "\"description_json\" IS NULL OR (json_valid(\"description_json\") AND json_type(\"description_json\") = 'object' AND length(\"description_json\") <= 8192)",
+      "entityType": "checks"
+    },
+    {
+      "table": "event_ticket_types",
+      "name": "event_ticket_types_key",
+      "value": "length(\"key\") BETWEEN 1 AND 64 AND \"key\" GLOB '[a-z]*' AND \"key\" NOT GLOB '*[^a-z0-9_]*'",
+      "entityType": "checks"
+    },
+    {
+      "table": "event_ticket_types",
+      "name": "event_ticket_types_price",
+      "value": "\"price_minor\" >= 0",
+      "entityType": "checks"
+    },
+    {
+      "table": "event_ticket_types",
+      "name": "event_ticket_types_min",
+      "value": "\"min_per_registration\" >= 0",
+      "entityType": "checks"
+    },
+    {
+      "table": "event_ticket_types",
+      "name": "event_ticket_types_max",
+      "value": "\"max_per_registration\" IS NULL OR \"max_per_registration\" >= 0",
+      "entityType": "checks"
+    },
+    {
+      "table": "event_ticket_types",
+      "name": "event_ticket_types_default",
+      "value": "\"default_quantity\" >= 0",
+      "entityType": "checks"
+    },
+    {
+      "table": "event_ticket_types",
+      "name": "event_ticket_types_capacity",
+      "value": "\"capacity\" IS NULL OR \"capacity\" >= 0",
+      "entityType": "checks"
+    },
+    {
+      "table": "event_ticket_types",
+      "name": "event_ticket_types_active_check",
+      "value": "\"active\" IN (0, 1)",
+      "entityType": "checks"
+    },
+    {
+      "table": "event_ticket_types",
+      "name": "event_ticket_types_max_min",
+      "value": "\"max_per_registration\" IS NULL OR \"max_per_registration\" >= \"min_per_registration\"",
+      "entityType": "checks"
+    },
+    {
+      "table": "event_ticket_types",
+      "name": "event_ticket_types_default_min",
+      "value": "\"default_quantity\" >= \"min_per_registration\"",
+      "entityType": "checks"
+    },
+    {
+      "table": "event_ticket_types",
+      "name": "event_ticket_types_default_max",
+      "value": "\"max_per_registration\" IS NULL OR \"default_quantity\" <= \"max_per_registration\"",
+      "entityType": "checks"
+    },
+    {
+      "table": "events",
+      "name": "events_edition_year",
+      "value": "\"edition_year\" BETWEEN 2000 AND 2100",
+      "entityType": "checks"
+    },
+    {
+      "table": "events",
+      "name": "events_status",
+      "value": "\"status\" IN ('draft', 'upcoming', 'active', 'archived')",
+      "entityType": "checks"
+    },
+    {
+      "table": "events",
+      "name": "events_enabled",
+      "value": "\"enabled\" IN (0, 1)",
+      "entityType": "checks"
+    },
+    {
+      "table": "events",
+      "name": "events_registration_open",
+      "value": "\"registration_open\" IN (0, 1)",
+      "entityType": "checks"
+    },
+    {
+      "table": "events",
+      "name": "events_title_json",
+      "value": "json_valid(\"title_json\") AND json_type(\"title_json\") = 'object'",
+      "entityType": "checks"
+    },
+    {
+      "table": "events",
+      "name": "events_summary_json",
+      "value": "json_valid(\"summary_json\") AND json_type(\"summary_json\") = 'object'",
+      "entityType": "checks"
+    },
+    {
+      "table": "events",
+      "name": "events_etransfer_enabled",
+      "value": "\"payment_etransfer_enabled\" IN (0, 1)",
+      "entityType": "checks"
+    },
+    {
+      "table": "events",
+      "name": "events_cash_enabled",
+      "value": "\"payment_cash_enabled\" IN (0, 1)",
+      "entityType": "checks"
+    },
+    {
+      "table": "events",
+      "name": "events_dates",
+      "value": "\"ends_at\" IS NULL OR \"starts_at\" IS NULL OR \"ends_at\" >= \"starts_at\"",
+      "entityType": "checks"
+    },
+    {
+      "table": "payments",
+      "name": "payments_amount",
+      "value": "\"amount_minor\" >= 0",
+      "entityType": "checks"
+    },
+    {
+      "table": "payments",
+      "name": "payments_method",
+      "value": "\"method\" IN ('cash', 'etransfer')",
+      "entityType": "checks"
+    },
+    {
+      "table": "registration_contacts",
+      "name": "registration_contacts_kind",
+      "value": "\"kind\" IN ('email', 'phone', 'mail')",
+      "entityType": "checks"
+    },
+    {
+      "table": "registration_contacts",
+      "name": "registration_contacts_primary",
+      "value": "\"is_primary\" IN (0, 1)",
+      "entityType": "checks"
+    },
+    {
+      "table": "registration_contacts",
+      "name": "registration_contacts_confirmation",
+      "value": "\"is_confirmation_method\" IN (0, 1)",
+      "entityType": "checks"
+    },
+    {
+      "table": "registration_contacts",
+      "name": "registration_contacts_country",
+      "value": "\"country\" IS NULL OR length(\"country\") = 2",
+      "entityType": "checks"
+    },
+    {
+      "table": "registration_contacts",
+      "name": "registration_contacts_value_json",
+      "value": "json_valid(\"value_json\") AND json_type(\"value_json\") = 'object' AND length(\"value_json\") <= 4096",
+      "entityType": "checks"
+    },
+    {
+      "table": "registration_contacts",
+      "name": "registration_contacts_shape",
+      "value": "(\n        \"kind\" = 'email'\n        AND \"email_address\" IS NOT NULL\n        AND \"email_normalized\" IS NOT NULL\n        AND \"phone_number\" IS NULL\n        AND \"phone_normalized\" IS NULL\n        AND \"address_line1\" IS NULL\n        AND \"address_line2\" IS NULL\n        AND \"city\" IS NULL\n        AND \"province\" IS NULL\n        AND \"postal_code\" IS NULL\n        AND \"country\" IS NULL\n      ) OR (\n        \"kind\" = 'phone'\n        AND \"phone_number\" IS NOT NULL\n        AND \"phone_normalized\" IS NOT NULL\n        AND \"email_address\" IS NULL\n        AND \"email_normalized\" IS NULL\n        AND \"address_line1\" IS NULL\n        AND \"address_line2\" IS NULL\n        AND \"city\" IS NULL\n        AND \"province\" IS NULL\n        AND \"postal_code\" IS NULL\n        AND \"country\" IS NULL\n      ) OR (\n        \"kind\" = 'mail'\n        AND \"address_line1\" IS NOT NULL\n        AND \"city\" IS NOT NULL\n        AND \"province\" IS NOT NULL\n        AND \"postal_code\" IS NOT NULL\n        AND \"country\" IS NOT NULL\n        AND \"email_address\" IS NULL\n        AND \"email_normalized\" IS NULL\n        AND \"phone_number\" IS NULL\n        AND \"phone_normalized\" IS NULL\n      )",
+      "entityType": "checks"
+    },
+    {
+      "table": "registration_failures",
+      "name": "registration_failures_reason",
+      "value": "\"reason\" IN ('ticket_limit_reached', 'ticket_type_capacity_reached', 'event_capacity_reached', 'processing_failed', 'duplicate_registration')",
+      "entityType": "checks"
+    },
+    {
+      "table": "registration_field_values",
+      "name": "registration_field_values_json",
+      "value": "json_valid(\"value_json\") AND length(\"value_json\") <= 4096",
+      "entityType": "checks"
+    },
+    {
+      "table": "registration_stats",
+      "name": "registration_stats_count",
+      "value": "\"registration_count\" >= 0",
+      "entityType": "checks"
+    },
+    {
+      "table": "registration_stats",
+      "name": "registration_stats_tickets",
+      "value": "\"tickets_total\" >= 0",
+      "entityType": "checks"
+    },
+    {
+      "table": "registration_status_otps",
+      "name": "registration_status_otps_attempts",
+      "value": "\"attempts\" >= 0",
+      "entityType": "checks"
+    },
+    {
+      "table": "registration_tickets",
+      "name": "registration_tickets_label_json",
+      "value": "json_valid(\"label_snapshot_json\") AND json_type(\"label_snapshot_json\") = 'object' AND length(\"label_snapshot_json\") <= 4096",
+      "entityType": "checks"
+    },
+    {
+      "table": "registration_tickets",
+      "name": "registration_tickets_quantity",
+      "value": "\"quantity\" > 0",
+      "entityType": "checks"
+    },
+    {
+      "table": "registration_tickets",
+      "name": "registration_tickets_price",
+      "value": "\"unit_price_minor\" >= 0",
+      "entityType": "checks"
+    },
+    {
+      "table": "registrations",
+      "name": "registrations_metadata_json",
+      "value": "json_valid(\"metadata_json\") AND json_type(\"metadata_json\") = 'object' AND length(\"metadata_json\") <= 16384",
+      "entityType": "checks"
+    },
+    {
+      "table": "ticket_type_stats",
+      "name": "ticket_type_stats_sold",
+      "value": "\"tickets_sold\" >= 0",
+      "entityType": "checks"
+    }
+  ],
+  "renames": []
+}

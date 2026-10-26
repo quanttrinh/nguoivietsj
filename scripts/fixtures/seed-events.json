@@ -1,0 +1,439 @@
+{
+  "createdAt": "2026-11-01T00:00:00.000Z",
+  "events": [
+    {
+      "key": "summer",
+      "id": [0, 1],
+      "slug": "summer-picnic-2027",
+      "eventType": "summer-picnic",
+      "editionYear": 2027,
+      "defaultLocale": "en",
+      "status": "active",
+      "enabled": true,
+      "registrationOpen": true,
+      "startsAt": "2027-07-17T16:00:00.000Z",
+      "endsAt": "2027-07-17T21:00:00.000Z",
+      "timezone": "UTC",
+      "title": {
+        "en": "Summer Picnic 2027",
+        "fr": "Pique-nique d'été 2027",
+        "vi": "Dã ngoại mùa hè 2027"
+      },
+      "summary": {
+        "en": "Food, games, and a relaxed afternoon by the water.",
+        "fr": "Repas, jeux et un après-midi détendu au bord de l'eau.",
+        "vi": "Đồ ăn, trò chơi và một buổi chiều thư giãn bên bờ nước."
+      },
+      "location": {
+        "name": "Seaside Park",
+        "address": "1 Market Square, Saint John, NB",
+        "mapUrl": "https://example.com/summer-picnic-map",
+        "mapEmbedUrl": null
+      },
+      "payments": {
+        "etransfer": {
+          "enabled": true,
+          "email": "treasurer@example.com"
+        },
+        "cash": {
+          "enabled": true,
+          "address": "1 Market Square, Saint John, NB",
+          "mapUrl": "https://example.com/summer-picnic-map",
+          "mapEmbedUrl": null
+        }
+      },
+      "notes": {
+        "en": [
+          {
+            "type": "paragraph",
+            "text": "Bring a lawn chair and a reusable water bottle."
+          },
+          {
+            "type": "bullets",
+            "items": ["Rain or shine", "Family friendly", "Free parking nearby"]
+          },
+          {
+            "type": "link",
+            "label": "Venue map",
+            "href": "https://example.com/summer-picnic-map"
+          }
+        ]
+      },
+      "aliases": ["summer-picnic", "picnic-2027"],
+      "limits": {
+        "currency": "CAD",
+        "maxTicketsPerRegistration": 8,
+        "maxTotalTickets": 200
+      },
+      "tickets": [
+        {
+          "key": "general",
+          "priceMinor": 1500,
+          "label": {
+            "en": "General admission",
+            "fr": "Admission générale",
+            "vi": "Vé thường"
+          },
+          "capacity": 100,
+          "maxPerRegistration": 6,
+          "defaultQuantity": 1
+        },
+        {
+          "key": "child",
+          "priceMinor": 800,
+          "label": {
+            "en": "Child",
+            "fr": "Enfant",
+            "vi": "Trẻ em"
+          },
+          "capacity": 40,
+          "maxPerRegistration": 4,
+          "defaultQuantity": 0
+        },
+        {
+          "key": "vip",
+          "priceMinor": 5000,
+          "label": {
+            "en": "VIP",
+            "fr": "VIP",
+            "vi": "VIP"
+          },
+          "capacity": 20,
+          "maxPerRegistration": 4,
+          "defaultQuantity": 0
+        },
+        {
+          "key": "volunteer",
+          "priceMinor": 0,
+          "label": {
+            "en": "Volunteer",
+            "fr": "Bénévole",
+            "vi": "Tình nguyện viên"
+          },
+          "capacity": 15,
+          "maxPerRegistration": 4,
+          "defaultQuantity": 0
+        }
+      ],
+      "formDetails": true,
+      "customFields": [
+        {
+          "key": "volunteer",
+          "type": "checkbox",
+          "required": false,
+          "label": {
+            "en": "I can volunteer",
+            "fr": "Je peux être bénévole",
+            "vi": "Tôi có thể tình nguyện"
+          }
+        },
+        {
+          "key": "dietaryRestrictions",
+          "type": "text",
+          "required": false,
+          "label": {
+            "en": "Dietary restrictions",
+            "fr": "Restrictions alimentaires",
+            "vi": "Hạn chế ăn uống"
+          },
+          "placeholder": {
+            "en": "Vegetarian, allergies, etc.",
+            "fr": "Végétarien, allergies, etc.",
+            "vi": "Ăn chay, dị ứng, v.v."
+          }
+        },
+        {
+          "key": "tshirtSize",
+          "type": "select",
+          "required": false,
+          "label": {
+            "en": "T-shirt size",
+            "fr": "Taille de t-shirt",
+            "vi": "Cỡ áo"
+          },
+          "options": [
+            {
+              "value": "s",
+              "label": {
+                "en": "Small",
+                "fr": "Petit",
+                "vi": "Nhỏ"
+              }
+            },
+            {
+              "value": "m",
+              "label": {
+                "en": "Medium",
+                "fr": "Moyen",
+                "vi": "Vừa"
+              }
+            },
+            {
+              "value": "l",
+              "label": {
+                "en": "Large",
+                "fr": "Grand",
+                "vi": "Lớn"
+              }
+            }
+          ],
+          "visibleWhen": {
+            "field": "ticket.general",
+            "op": "gt",
+            "value": 0
+          }
+        },
+        {
+          "key": "accessibility",
+          "type": "textarea",
+          "required": false,
+          "label": {
+            "en": "Accessibility needs",
+            "fr": "Besoins d'accessibilité",
+            "vi": "Nhu cầu hỗ trợ"
+          },
+          "rows": 3,
+          "visibleWhen": {
+            "field": "custom.volunteer",
+            "op": "equals",
+            "value": true
+          }
+        }
+      ]
+    },
+    {
+      "key": "test",
+      "id": [0, 2],
+      "slug": "test-event-2027",
+      "eventType": "test",
+      "editionYear": 2027,
+      "defaultLocale": "en",
+      "status": "upcoming",
+      "enabled": true,
+      "registrationOpen": true,
+      "startsAt": "2027-09-18T14:00:00.000Z",
+      "endsAt": "2027-09-18T18:00:00.000Z",
+      "timezone": "UTC",
+      "title": {
+        "en": "Test Event 2027",
+        "fr": "Événement test 2027",
+        "vi": "Sự kiện thử nghiệm 2027"
+      },
+      "summary": {
+        "en": "Internal event used for registration and check-in testing.",
+        "fr": "Événement interne pour tester les inscriptions et le pointage.",
+        "vi": "Sự kiện nội bộ để kiểm tra đăng ký và điểm danh."
+      },
+      "location": {
+        "name": "Community Hall",
+        "address": "10 Main Street, Saint John, NB",
+        "mapUrl": null,
+        "mapEmbedUrl": null
+      },
+      "payments": {
+        "etransfer": {
+          "enabled": false,
+          "email": null
+        },
+        "cash": {
+          "enabled": true,
+          "address": "10 Main Street, Saint John, NB",
+          "mapUrl": null,
+          "mapEmbedUrl": null
+        }
+      },
+      "notes": {
+        "en": [
+          {
+            "type": "paragraph",
+            "text": "Use this event when testing admin and staff workflows."
+          },
+          {
+            "type": "bullets",
+            "items": ["Unpaid registration available", "Child ticket available"]
+          }
+        ]
+      },
+      "aliases": ["test-event", "test-2027"],
+      "limits": {
+        "currency": "CAD",
+        "maxTicketsPerRegistration": 4,
+        "maxTotalTickets": 75
+      },
+      "tickets": [
+        {
+          "key": "general",
+          "priceMinor": 2000,
+          "label": {
+            "en": "General admission",
+            "fr": "Admission générale",
+            "vi": "Vé thường"
+          },
+          "capacity": 100,
+          "maxPerRegistration": 6,
+          "defaultQuantity": 1
+        },
+        {
+          "key": "child",
+          "priceMinor": 1000,
+          "label": {
+            "en": "Child",
+            "fr": "Enfant",
+            "vi": "Trẻ em"
+          },
+          "capacity": 40,
+          "maxPerRegistration": 4,
+          "defaultQuantity": 0
+        }
+      ],
+      "formDetails": false,
+      "customFields": [
+        {
+          "key": "company",
+          "type": "text",
+          "required": false,
+          "label": {
+            "en": "Company or group",
+            "fr": "Entreprise ou groupe",
+            "vi": "Công ty hoặc nhóm"
+          }
+        }
+      ]
+    }
+  ],
+  "registrations": [
+    {
+      "name": "Ada Lovelace",
+      "event": "summer",
+      "email": "ada@example.com",
+      "phone": "5065550101",
+      "mail": {
+        "line1": "1 Analytical Engine Way",
+        "city": "Saint John",
+        "province": "NB",
+        "postal": "E2K 1A1",
+        "country": "CA"
+      },
+      "tickets": [["general", 2]],
+      "answers": {
+        "dietaryRestrictions": "Vegetarian",
+        "tshirtSize": "m",
+        "volunteer": true,
+        "accessibility": "Wheelchair access, ground-floor entrance"
+      },
+      "payment": {
+        "method": "cash",
+        "amount": 3000,
+        "note": "Seed cash payment"
+      },
+      "checkin": "2026-10-28T18:10:00.000Z",
+      "created": "2026-10-28T18:02:27.259Z",
+      "token": "local-ada-lovelace-summer-picnic-2027"
+    },
+    {
+      "name": "Grace Hopper",
+      "event": "summer",
+      "email": "grace@example.com",
+      "phone": "5065550102",
+      "mail": null,
+      "tickets": [["vip", 1]],
+      "answers": {},
+      "payment": {
+        "method": "etransfer",
+        "amount": 5000,
+        "note": "Seed e-transfer payment"
+      },
+      "checkin": null,
+      "created": "2026-10-28T18:02:44.623Z",
+      "token": "local-grace-hopper-summer-picnic-2027"
+    },
+    {
+      "name": "Alan Turing",
+      "event": "summer",
+      "email": "alan@example.com",
+      "phone": null,
+      "mail": null,
+      "tickets": [["general", 1]],
+      "answers": {},
+      "payment": null,
+      "checkin": null,
+      "created": "2026-10-28T18:03:28.264Z",
+      "token": "local-alan-turing-summer-picnic-2027"
+    },
+    {
+      "name": "Katherine Johnson",
+      "event": "summer",
+      "email": "katherine@example.com",
+      "phone": "5065550104",
+      "mail": {
+        "line1": "4 Orbit Lane",
+        "city": "Saint John",
+        "province": "NB",
+        "postal": "E2K 1A2",
+        "country": "CA"
+      },
+      "tickets": [
+        ["general", 1],
+        ["child", 2]
+      ],
+      "answers": {
+        "dietaryRestrictions": "No nuts",
+        "tshirtSize": "l"
+      },
+      "payment": {
+        "method": "cash",
+        "amount": 3100,
+        "note": "Seed cash payment"
+      },
+      "checkin": "2026-10-28T18:15:00.000Z",
+      "created": "2026-10-28T18:03:38.412Z",
+      "token": "local-katherine-johnson-summer-picnic-2027"
+    },
+    {
+      "name": "Mary Jackson",
+      "event": "summer",
+      "email": "mary@example.com",
+      "phone": "5065550105",
+      "mail": null,
+      "tickets": [["volunteer", 1]],
+      "answers": {
+        "volunteer": true,
+        "accessibility": "Can help with setup"
+      },
+      "payment": null,
+      "checkin": "2026-10-28T20:20:00.000Z",
+      "created": "2026-10-28T20:08:42.673Z",
+      "token": "local-mary-jackson-summer-picnic-2027"
+    },
+    {
+      "name": "Dorothy Vaughan",
+      "event": "test",
+      "email": "dorothy@example.com",
+      "phone": "5065550106",
+      "mail": null,
+      "tickets": [["general", 1]],
+      "answers": {
+        "company": "Acme Research"
+      },
+      "payment": null,
+      "checkin": null,
+      "created": "2026-10-28T20:12:00.000Z",
+      "token": "local-dorothy-vaughan-test-event-2027"
+    },
+    {
+      "name": "Lillian Gilbreth",
+      "event": "test",
+      "email": "lillian@example.com",
+      "phone": null,
+      "mail": null,
+      "tickets": [["child", 1]],
+      "answers": {
+        "company": "Gilbreth Consulting"
+      },
+      "payment": null,
+      "checkin": null,
+      "created": "2026-10-28T20:15:00.000Z",
+      "token": "local-lillian-gilbreth-test-event-2027"
+    }
+  ]
+}

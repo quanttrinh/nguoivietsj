@@ -1,0 +1,1 @@
+CREATE INDEX `event_slug_claims_event_id` ON `event_slug_claims` (`event_id`);

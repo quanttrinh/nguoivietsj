@@ -1,0 +1,39 @@
+{
+  "extends": ["astro/tsconfigs/strictest", "./tsconfig.paths.json"],
+  "compilerOptions": {
+    "composite": true,
+    "noEmit": false,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "outDir": "./.astro/tsconfig/server",
+    "tsBuildInfoFile": "./.astro/tsconfig/server.tsbuildinfo",
+    "types": ["node"],
+    "lib": ["ESNext"]
+  },
+  "include": [
+    ".intlayer/**/*.ts",
+    ".astro/types.d.ts",
+    ".astro/env.d.ts",
+    "src/types/**/*.d.ts",
+    "src/backfills/**/*.ts",
+    "better-auth.config.ts",
+    "manage.ts",
+    "plugins/**/*.ts",
+    "scripts/**/*.ts",
+    "tooling/**/*.ts",
+    "src/*.ts",
+    "src/auth/**/*.ts",
+    "src/db/**/*.ts",
+    "src/events/content/**/*.ts",
+    "src/events/domain/**/*.ts",
+    "src/events/permissions.ts",
+    "src/events/services/**/*.ts",
+    "src/server/**/*.ts",
+    "src/shared/api/**/*.ts",
+    "src/shared/constants/**/*.ts",
+    "src/shared/server/**/*.ts",
+    "src/shared/utils/**/*.ts",
+    "src/users/**/*.ts"
+  ],
+  "exclude": ["dist", "src/**/ui/**", "src/shared/client/**"]
+}

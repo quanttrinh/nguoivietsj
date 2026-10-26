@@ -1,0 +1,17 @@
+---
+# aqua - Declarative CLI Version Manager
+# https://aquaproj.github.io/
+checksum:
+  enabled: true
+registries:
+  - type: standard
+    ref: v4.587.0 # renovate: depName=aquaproj/aqua-registry
+  - name: local
+    type: local
+    path: registry.yaml
+packages:
+  - name: oven-sh/bun@bun-v1.4.4
+  - name: nodejs/node@v24.22.1
+  - name: opentofu/opentofu@v1.13.9
+  - name: DopplerHQ/cli@3.77.1
+    registry: local

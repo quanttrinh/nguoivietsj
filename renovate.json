@@ -1,0 +1,70 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended", "github>aquaproj/aqua-renovate-config#2.15.0"],
+  "timezone": "America/Moncton",
+  "schedule": ["before 6am on monday"],
+  "dependencyDashboard": true,
+  "minimumReleaseAge": "3 days",
+  "rangeStrategy": "pin",
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 6am on the first day of the month"]
+  },
+  "packageRules": [
+    {
+      "description": "Group one-time range-to-pin updates.",
+      "groupName": "Pin dependencies",
+      "matchUpdateTypes": ["pin"]
+    },
+    {
+      "description": "Group Astro updates.",
+      "groupName": "Astro",
+      "matchPackageNames": ["/^astro$/", "/^@astrojs\\//", "/^astro-intlayer$/"]
+    },
+    {
+      "description": "Group Panda CSS updates.",
+      "groupName": "Panda CSS",
+      "matchPackageNames": ["/^@pandacss\\//"]
+    },
+    {
+      "description": "Group Drizzle updates.",
+      "groupName": "Drizzle",
+      "matchPackageNames": ["/^drizzle-/"]
+    },
+    {
+      "description": "Group Better Auth updates.",
+      "groupName": "Better Auth",
+      "matchPackageNames": ["/^better-auth$/", "/^@better-auth\\//", "/^auth$/"]
+    },
+    {
+      "description": "Group Qui component-library updates.",
+      "groupName": "Qui",
+      "matchPackageNames": ["/^@quanttrinh\\//"]
+    },
+    {
+      "description": "Group lint and format tooling.",
+      "groupName": "Lint and format",
+      "matchPackageNames": ["/^oxc-/", "/^oxfmt$/", "/^oxlint$/", "/^oxlint-/"]
+    },
+    {
+      "description": "Auto-merge patch updates to development dependencies.",
+      "matchDepTypes": ["devDependencies"],
+      "matchUpdateTypes": ["patch"],
+      "automerge": true
+    },
+    {
+      "description": "Auto-merge minor and patch updates to GitHub Actions.",
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "description": "Major updates require dashboard approval.",
+      "matchUpdateTypes": ["major"],
+      "dependencyDashboardApproval": true
+    }
+  ],
+  "semanticCommits": "enabled",
+  "semanticCommitType": "chore",
+  "semanticCommitScope": "deps"
+}

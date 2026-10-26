@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-deps
+      - name: Schema drift
+        run: |
+          bun run db:generate:events
+          bun run db:generate:app
+          git diff --exit-code -- drizzle
+          bun x drizzle-kit check --config=drizzle.events.config.ts
+          bun x drizzle-kit check --config=drizzle.app.config.ts
+      - name: Database smoke test
+        run: bun run db:smoke
+      - name: Test
+        run: bun run test
+      - name: Check
+        run: bun run check
+      - name: Lint
+        run: bun run lint
+      - name: Format check
+        run: bun run fmt:check
+      - name: OpenTofu format check
+        run: tofu fmt -check -recursive infra
+      - name: OpenTofu validate Cloudflare
+        working-directory: infra/cloudflare
+        run: |
+          tofu init -backend=false -input=false
+          tofu validate
+      - name: Build
+        run: bunx astro build

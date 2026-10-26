@@ -1,0 +1,71 @@
+name: Backfill
+
+on:
+  workflow_dispatch:
+    inputs:
+      backfill:
+        description: Backfill name or path under backfills/
+        required: true
+        type: string
+      target:
+        description: Deployment target
+        required: true
+        default: staging
+        type: choice
+        options:
+          - staging
+          - production
+      args:
+        description: Backfill arguments as a JSON array of strings
+        required: false
+        default: "[]"
+        type: string
+      dry_run:
+        description: Print SQL instead of executing it
+        required: true
+        default: true
+        type: boolean
+
+concurrency:
+  group: backfill-${{ inputs.target }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: ${{ inputs.target }}
+    env:
+      DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup-deps
+
+      - name: Validate arguments
+        env:
+          ARGS: ${{ inputs.args }}
+        run: |
+          if ! jq -e 'type == "array" and all(.[]; type == "string")' <<< "$ARGS" >/dev/null; then
+            echo "::error::args must be a JSON array of strings, for example: [\"--database\",\"events\"]"
+            exit 1
+          fi
+
+      - name: Run backfill
+        env:
+          BACKFILL: ${{ inputs.backfill }}
+          TARGET: ${{ inputs.target }}
+          DRY_RUN: ${{ inputs.dry_run }}
+          ARGS: ${{ inputs.args }}
+        run: |
+          mapfile -t backfill_args < <(jq -r '.[]' <<< "$ARGS")
+          command=(bun manage.ts backfill "$BACKFILL" --target "$TARGET")
+          if [ "$DRY_RUN" = "true" ]; then
+            command+=(--dry-run)
+          fi
+          command+=(--)
+          doppler run -- "${command[@]}" "${backfill_args[@]}"

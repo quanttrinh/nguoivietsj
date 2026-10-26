@@ -1,0 +1,30 @@
+---
+// @boundary astro
+import { useDictionary, useLocale } from "astro-intlayer";
+import { locales } from "intlayer";
+
+import TicketTypeForm from "~/events/admin/ui/forms/TicketTypeForm.astro";
+import AdminLayout from "~/events/admin/ui/shared/AdminLayout.astro";
+import AdminPageHeader from "~/events/admin/ui/shared/AdminPageHeader.astro";
+import { adminPageStyles } from "~/events/admin/ui/shared/styles/admin-styles";
+import engineAdminContent from "~/events/content/admin.content";
+
+export function getStaticPaths(): { params: { locale: string } }[] {
+  return locales.map((locale) => ({ params: { locale } }));
+}
+
+const { locale } = useLocale();
+const content = useDictionary(engineAdminContent, locale);
+---
+
+<AdminLayout
+  title={content.editTicketType.value}
+  description={content.ticketTypeIntro.value}
+  noindex
+>
+  <section class={adminPageStyles.section}>
+    <AdminPageHeader locale={locale} title={content.editTicketType} />
+
+    <TicketTypeForm locale={locale} mode="edit" />
+  </section>
+</AdminLayout>

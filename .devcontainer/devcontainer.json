@@ -1,0 +1,54 @@
+{
+  "name": "nguoivietsj",
+  "build": {
+    "dockerfile": "Containerfile",
+    "context": ".."
+  },
+  "features": {
+    "ghcr.io/aquaproj/devcontainer-features/aqua-installer:0.1.7": {
+      "aqua_version": "v2.66.1"
+    }
+  },
+  "remoteUser": "dev",
+  "remoteEnv": {
+    "PATH": "/home/dev/.local/share/aquaproj-aqua/bin:${containerEnv:PATH}",
+    "EDITOR": "code --wait",
+    "GIT_EDITOR": "code --wait",
+    "GIT_SEQUENCE_EDITOR": "code --wait"
+  },
+  "secrets": {
+    "NODE_AUTH_TOKEN": {
+      "description": "GitHub token with read:packages, used to install @quanttrinh/qui from GitHub Packages."
+    },
+    "DOPPLER_TOKEN": {
+      "description": "Doppler service token for the web dev_personal config. Optional if you run `doppler login`."
+    }
+  },
+  "postCreateCommand": "export PATH=\"$HOME/.local/share/aquaproj-aqua/bin:$PATH\" && (cd aqua && aqua policy allow aqua-policy.yaml && aqua i) && bun install --frozen-lockfile && bun manage.ts migrate --target local && bun manage.ts seed",
+  "forwardPorts": [4321],
+  "portsAttributes": {
+    "4321": {
+      "label": "Astro dev server",
+      "onAutoForward": "notify"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "astro-build.astro-vscode",
+        "oven.bun-vscode",
+        "oxc.oxc-vscode",
+        "OpenTofu.vscode-opentofu"
+      ],
+      "settings": {
+        "editor.codeActionsOnSave": {
+          "source.fixAll.oxc": "always"
+        },
+        "editor.defaultFormatter": "oxc.oxc-vscode",
+        "editor.formatOnSave": true,
+        "terminal.integrated.defaultProfile.linux": "zsh",
+        "js/ts.tsdk.path": "node_modules/typescript/lib"
+      }
+    }
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "extends": ["astro/tsconfigs/strictest", "./tsconfig.paths.json"],
+  "compilerOptions": {
+    "composite": true,
+    "noEmit": false,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "outDir": "./.astro/tsconfig/client",
+    "tsBuildInfoFile": "./.astro/tsconfig/client.tsbuildinfo",
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "jsx": "preserve",
+    "jsxImportSource": "preact",
+    "types": ["node"]
+  },
+  "include": [
+    ".astro/types.d.ts",
+    ".astro/env.d.ts",
+    ".intlayer/**/*.ts",
+    "src/types/raw.d.ts",
+    "package.json",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.astro",
+    "better-auth.config.ts"
+  ],
+  "exclude": ["dist", "src/backfills/**"]
+}

@@ -1,0 +1,51 @@
+---
+// @boundary client
+import { useDictionary } from "astro-intlayer";
+
+import engineAdminContent from "~/events/content/admin.content";
+
+import FormEditorIsland, { type FormEditorConfig } from "./FormEditor.tsx";
+
+interface Props {
+  locale: string;
+}
+
+const { locale }: Props = Astro.props;
+const content = useDictionary(engineAdminContent, locale);
+
+const config: FormEditorConfig = {
+  locale,
+  messages: {
+    formatFailed: content.formatFailed.value,
+    formValidationFailed: content.formValidationFailed.value,
+    saveFailed: content.saveFailed.value,
+    saving: content.saving.value,
+    formSavedDraft: content.formSavedDraft.value,
+    formSavedPublished: content.formSavedPublished.value,
+    loadFailed: content.loadFailed.value,
+  },
+  text: {
+    formSchema: content.formSchema.value,
+    formEditorCopyNotice: content.formEditorCopyNotice.value,
+    sourceVersion: content.sourceVersion.value,
+    newVersion: content.newVersion.value,
+    active: content.active.value,
+    noTicketTypesForForm: content.noTicketTypesForForm.value,
+    formSchemaHelp: content.formSchemaHelp.value,
+    formSchemaInstructionsTitle: content.formSchemaInstructionsTitle.value,
+    formSchemaInstructionsIntro: content.formSchemaInstructionsIntro.value,
+    formSchemaInstructionsKeys: content.formSchemaInstructionsKeys.value,
+    formSchemaInstructionsRefs: content.formSchemaInstructionsRefs.value,
+    formSchemaInstructionsLocalized: content.formSchemaInstructionsLocalized.value,
+    formSchemaInstructionsConditions: content.formSchemaInstructionsConditions.value,
+    formSchemaInstructionsValidation: content.formSchemaInstructionsValidation.value,
+    formSchemaInstructionsExample: content.formSchemaInstructionsExample.value,
+    formatJson: content.formatJson.value,
+    saveDraft: content.saveDraft.value,
+    publishForm: content.publishForm.value,
+    cancel: content.cancel.value,
+  },
+};
+---
+
+<FormEditorIsland client:only="preact" config={config} />

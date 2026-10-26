@@ -1,0 +1,71 @@
+---
+// @boundary astro
+import { useDictionary, useLocale } from "astro-intlayer";
+import { locales } from "intlayer";
+
+import AdminCheckinScanner from "~/events/admin/ui/checkin/AdminCheckinScanner";
+import AdminEventTitleLoader from "~/events/admin/ui/shared/AdminEventTitleLoader.astro";
+import AdminLayout from "~/events/admin/ui/shared/AdminLayout.astro";
+import AdminPageHeader from "~/events/admin/ui/shared/AdminPageHeader.astro";
+import { adminPageStyles } from "~/events/admin/ui/shared/styles/admin-styles";
+import engineAdminContent from "~/events/content/admin.content";
+import engineCheckinContent from "~/events/content/checkin.content";
+import Panel from "~/shared/ui/Panel.astro";
+
+export function getStaticPaths(): { params: { locale: string } }[] {
+  return locales.map((locale) => ({ params: { locale } }));
+}
+
+const { locale } = useLocale();
+const content = useDictionary(engineCheckinContent, locale);
+const adminContent = useDictionary(engineAdminContent, locale);
+
+const styles = {
+  section: adminPageStyles.section,
+};
+
+const config = {
+  locale,
+  fullName: adminContent.fullName.value,
+  checkedInAt: content.checkedInAt.value,
+  loadFailed: adminContent.loadFailed.value,
+  forbidden: adminContent.forbidden.value,
+  eventNotFound: adminContent.eventNotFound.value,
+  scannerTitle: content.scannerTitle.value,
+  scannerHelp: content.scannerHelp.value,
+  startCamera: content.startCamera.value,
+  stopCamera: content.stopCamera.value,
+  manualTitle: content.manualTitle.value,
+  manualPlaceholder: content.manualPlaceholder.value,
+  lookUp: content.lookUp.value,
+  undo: content.undo.value,
+  scanAgain: content.scanAgain.value,
+  cameraError: content.cameraError.value,
+  cameraUnsupported: content.cameraUnsupported.value,
+  invalidCode: content.invalidCode.value,
+  checkinSuccess: content.checkinSuccess.value,
+  alreadyCheckedIn: content.alreadyCheckedIn.value,
+  checkinFailed: content.checkinFailed.value,
+  registrationNotFound: content.registrationNotFound.value,
+  paymentRequired: content.paymentRequired.value,
+  undoSuccess: content.undoSuccess.value,
+  undoFailed: content.undoFailed.value,
+};
+---
+
+<AdminLayout title={content.title.value} description={content.intro.value} noindex>
+  <section class={styles.section} id="engine-admin-checkin">
+    <AdminEventTitleLoader />
+    <AdminPageHeader
+      locale={locale}
+      title=""
+      titleId="engine-checkin-title"
+      preserveTitle
+      intro={content.intro}
+    />
+
+    <Panel padding="lg">
+      <AdminCheckinScanner client:load config={config} />
+    </Panel>
+  </section>
+</AdminLayout>

@@ -1,0 +1,142 @@
+name: Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment
+        required: true
+        default: staging
+        type: choice
+        options:
+          - staging
+          - production
+      pr:
+        description: Staging only - PR number to deploy. Leave blank to deploy main.
+        required: false
+        default: ""
+        type: string
+
+concurrency:
+  group: deploy-${{ inputs.environment }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: ${{ inputs.environment }}
+    env:
+      DEPLOY_ENV: ${{ inputs.environment }}
+      DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
+
+    steps:
+      - name: Resolve deploy ref
+        id: ref
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TARGET: ${{ inputs.environment }}
+          PR_NUMBER: ${{ inputs.pr }}
+        run: |
+          set -euo pipefail
+
+          if [ -n "$PR_NUMBER" ] && [ "$TARGET" != "staging" ]; then
+            echo "::error::PR deploys are staging-only."
+            exit 1
+          fi
+
+          if [ -z "$PR_NUMBER" ]; then
+            echo "ref=main" >> "$GITHUB_OUTPUT"
+            echo "Deploying main to $TARGET."
+            exit 0
+          fi
+
+          data=$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" \
+            --json headRefOid,isCrossRepository,state \
+            --jq '[.headRefOid, .isCrossRepository, .state] | @tsv')
+          IFS=$'\t' read -r sha cross_repository state <<< "$data"
+
+          if [ "$cross_repository" = "true" ]; then
+            echo "::error::Fork PRs cannot be deployed to staging."
+            exit 1
+          fi
+
+          if [ "$state" != "OPEN" ]; then
+            echo "::error::PR #$PR_NUMBER is not open."
+            exit 1
+          fi
+
+          echo "ref=$sha" >> "$GITHUB_OUTPUT"
+          echo "Deploying PR #$PR_NUMBER ($sha) to staging."
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.ref.outputs.ref }}
+
+      - uses: ./.github/actions/setup-deps
+
+      - name: Write Terraform variables
+        run: |
+          if ! doppler secrets get TERRAFORM_TFVARS --plain > infra/cloudflare/terraform.tfvars; then
+            echo "Doppler secret TERRAFORM_TFVARS is required. Use the contents of infra/cloudflare/terraform.tfvars." >&2
+            exit 1
+          fi
+
+      - name: Apply Cloudflare infrastructure
+        working-directory: infra/cloudflare
+        run: |
+          doppler run -- tofu init -input=false
+          doppler run -- tofu apply -input=false -auto-approve
+
+      - name: Sync generated secrets to Doppler
+        env:
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_WRITE_TOKEN }}
+        run: |
+          if [ -z "${DOPPLER_TOKEN:-}" ]; then
+            echo "Skipping: DOPPLER_WRITE_TOKEN is not set."
+            exit 0
+          fi
+          doppler run -- bun scripts/infra.ts push-doppler --env "$DEPLOY_ENV"
+
+      - name: Sync Cloudflare config and secrets
+        run: doppler run -- bun scripts/infra.ts apply --env "$DEPLOY_ENV"
+
+      - name: Apply D1 migrations
+        run: doppler run -- bun run db:migrate --target "$DEPLOY_ENV"
+
+      - name: Check deploy configuration
+        run: |
+          if [ "$DEPLOY_ENV" = "staging" ]; then
+            bun scripts/check-deploy-config.ts --env=staging
+          else
+            bun scripts/check-deploy-config.ts
+          fi
+
+      - name: Build and deploy
+        run: |
+          if [ "$DEPLOY_ENV" = "staging" ]; then
+            CLOUDFLARE_ENV=staging bunx astro build
+          else
+            bunx astro build
+          fi
+          bunx wrangler deploy
+
+      - name: Smoke test staging through Cloudflare Access
+        if: env.DEPLOY_ENV == 'staging'
+        run: |
+          doppler run -- bash -c '
+            if [ -z "${STAGING_ACCESS_CLIENT_ID:-}" ] || [ -z "${STAGING_ACCESS_CLIENT_SECRET:-}" ]; then
+              echo "Skipping: STAGING_ACCESS_CLIENT_ID/SECRET are not set in Doppler."
+              exit 0
+            fi
+
+            curl --fail --silent --show-error --head \
+              --retry 3 --retry-delay 2 \
+              -H "CF-Access-Client-Id: $STAGING_ACCESS_CLIENT_ID" \
+              -H "CF-Access-Client-Secret: $STAGING_ACCESS_CLIENT_SECRET" \
+              https://staging.nguoivietsj.ca/
+          '

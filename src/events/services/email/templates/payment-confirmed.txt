@@ -1,0 +1,12 @@
+Hi {{full_name}},
+
+Your payment for {{event_title}} has been confirmed.
+
+Registration ID: {{registration_id}}
+Amount paid: {{amount}}
+Method: {{method}}
+
+Your check-in QR code is attached to this email. Show it at the event entrance.
+
+View your registration status:
+{{status_url}}

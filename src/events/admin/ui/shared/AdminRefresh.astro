@@ -1,0 +1,31 @@
+---
+// @boundary client
+interface Props {
+  label: string;
+}
+
+const { label }: Props = Astro.props;
+---
+
+<qui-button id="engine-admin-refresh" variant="text" size="sm">
+  {label}
+</qui-button>
+
+<script>
+  import { revalidateKeys } from "~/shared/client/query/client";
+
+  function initAdminRefresh(): void {
+    const button = document.querySelector<HTMLElement>("#engine-admin-refresh");
+
+    if (button === null || button.dataset.refreshBound === "true") {
+      return;
+    }
+
+    button.dataset.refreshBound = "true";
+    button.addEventListener("click", () => {
+      revalidateKeys(() => true);
+    });
+  }
+
+  document.addEventListener("astro:page-load", initAdminRefresh);
+</script>

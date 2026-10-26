@@ -1,0 +1,29 @@
+{
+  "checksums": [
+    {
+      "id": "github_release/github.com/DopplerHQ/cli/3.77.1/doppler_3.77.1_linux_amd64.tar.gz",
+      "checksum": "001F89A42629F9CB827CD86683C4C2DBF87C6299A8D6130643B98044BF5ED80A",
+      "algorithm": "sha256"
+    },
+    {
+      "id": "github_release/github.com/opentofu/opentofu/v1.13.9/tofu_1.13.9_linux_amd64.tar.gz",
+      "checksum": "B34B327CC1EF07178207B6F2CD1F5276537D3E5B7BE316500F6DAC50D4C0A857",
+      "algorithm": "sha256"
+    },
+    {
+      "id": "github_release/github.com/oven-sh/bun/bun-v1.4.4/bun-linux-x64.zip",
+      "checksum": "BF8CCBFB2B0B80159E0F9A6D15C55317ADD8077534DBC6130A3EDB52FCCB395C",
+      "algorithm": "sha256"
+    },
+    {
+      "id": "http/nodejs.org/dist/v24.22.1/node-v24.22.1-linux-x64.tar.gz",
+      "checksum": "EB6728E77C576A35162C122C45CCADF224D89FF00ABC8DAE46CC2897C6002D7C",
+      "algorithm": "sha256"
+    },
+    {
+      "id": "registries/github_content/github.com/aquaproj/aqua-registry/v4.587.0/registry.yaml",
+      "checksum": "729309DB5E7562072096CFB1EA4B8DE7A6DC41A9A9D57F2923784EEFD422F330",
+      "algorithm": "sha256"
+    }
+  ]
+}
