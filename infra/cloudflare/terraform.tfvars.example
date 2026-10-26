@@ -1,0 +1,51 @@
+cloudflare_zone_id    = "replace-with-zone-id"
+cloudflare_account_id = "replace-with-account-id"
+staging_hostname      = "staging.nguoivietsj.ca"
+
+public_registration_path_regex = "^/api/events/public/events/[^/]+/registrations$"
+
+# Apply the Turnstile widget, deploy the Worker with its site key and secret,
+# then set this to true to create the WAF challenge.
+turnstile_preclearance_confirmed = false
+
+# HSTS is applied at the zone. Enable subdomains only after confirming every
+# subdomain serves HTTPS.
+hsts_include_subdomains = false
+
+turnstile_widget_name      = "Event registration"
+turnstile_widget_mode      = "managed"
+turnstile_clearance_level  = "managed"
+turnstile_domains = [
+  "nguoivietsj.ca",
+  "staging.nguoivietsj.ca",
+]
+
+# Additional DNS records not owned by Wrangler custom domains.
+# Only add records here after checking they are not already managed by Wrangler.
+# Example:
+# dns_records = {
+#   dmarc = {
+#     name    = "_dmarc"
+#     type    = "TXT"
+#     content = "v=DMARC1; p=none"
+#   }
+# }
+dns_records = {}
+
+enable_staff_access = true
+staff_destinations = [
+  "nguoivietsj.ca/*/events/admin*",
+  "nguoivietsj.ca/api/events/admin/*",
+]
+
+allowed_emails = [
+  "organizer@example.com",
+]
+
+# Optional per-environment overrides. Empty means use allowed_emails.
+staging_allowed_emails = []
+staff_allowed_emails   = []
+
+# Optional Access service token IDs. Access service tokens use the Service Auth
+# policy and require the matching token ID here.
+access_service_token_ids = []

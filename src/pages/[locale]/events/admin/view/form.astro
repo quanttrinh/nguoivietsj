@@ -1,0 +1,66 @@
+---
+import { useDictionary } from "astro-intlayer";
+import { locales } from "intlayer";
+
+import { css } from "styled-system/css";
+import AdminPageHeader from "~/events/admin/ui/AdminPageHeader.astro";
+import FormEditor from "~/events/admin/ui/FormEditor.astro";
+import { adminPageStyles } from "~/events/admin/ui/styles/admin-styles";
+import engineAdminContent from "~/events/content/admin.content";
+import BaseLayout from "~/layouts/BaseLayout.astro";
+import { DEFAULT_LOCALE } from "~/shared/constants/locales";
+
+export function getStaticPaths(): { params: { locale: string } }[] {
+  return locales.map((locale) => ({ params: { locale } }));
+}
+
+export const prerender = true;
+
+const locale = Astro.params.locale ?? DEFAULT_LOCALE;
+const content = useDictionary(engineAdminContent, locale);
+const errorStyle = css({
+  margin: "0",
+  borderRadius: "lg",
+  borderWidth: "thin",
+  borderStyle: "solid",
+  borderColor: "error",
+  backgroundColor: "errorContainer",
+  color: "onErrorContainer",
+  padding: "4",
+  fontSize: "sm",
+});
+---
+
+<BaseLayout title={content.formEditor.value} description={content.formEditorIntro.value} noindex>
+  <section class={adminPageStyles.section}>
+    <AdminPageHeader
+      backHref={`/${locale}/events/admin`}
+      backId="engine-form-back"
+      backLabel={content.backToEvent}
+      eyebrow={content.formEditor}
+      title=""
+      titleId="engine-form-title"
+      preserveTitle
+      intro={content.formEditorIntro}
+    />
+
+    <p id="engine-form-load-error" class={errorStyle} role="alert" hidden></p>
+
+    <FormEditor
+      locale={locale}
+      event={{ id: "", ticketTypes: [] }}
+      schema={{}}
+      sourceVersion={null}
+      nextVersion={1}
+      deferInit
+    />
+  </section>
+
+  <script>
+    import { initFormEditorLoader } from "~/events/admin/islands/forms/editor-load";
+
+    await customElements.whenDefined("qui-textarea");
+    initFormEditorLoader();
+    document.addEventListener("astro:page-load", initFormEditorLoader);
+  </script>
+</BaseLayout>

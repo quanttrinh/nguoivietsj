@@ -1,0 +1,31 @@
+---
+import { useIntlayer, useLocale } from "astro-intlayer";
+import { getLocalizedUrl } from "intlayer";
+
+import SiteLayout from "~/layouts/shared/SiteLayout.astro";
+
+interface Props {
+  title: string;
+  description: string;
+  noindex?: boolean;
+}
+
+const { title, description, noindex = false }: Props = Astro.props;
+const { locale } = useLocale();
+const messages = useIntlayer("site");
+---
+
+<SiteLayout
+  title={title}
+  description={description}
+  brand={messages.brand}
+  brandSubtitle={messages.brandSubtitle}
+  homeHref={getLocalizedUrl("/", locale)}
+  skipHref="#main"
+  skipLabel={messages.skipToContent}
+  languageLabel={messages.language}
+  repositoryUrl="https://github.com/quanttrinh/tet-viet-service"
+  noindex={noindex}
+>
+  <slot />
+</SiteLayout>

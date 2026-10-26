@@ -1,0 +1,103 @@
+export interface PublicRegistrationMessages {
+  required: string;
+  fullName: string;
+  fullNameInvalid: string;
+  email: string;
+  phone: string;
+  postalCode: string;
+  atLeastOneContact: string;
+  atLeastOneTicket: string;
+  ticketLimit: string;
+  ticketTypeLimit: string;
+  eventCapacity: string;
+  duplicate: string;
+  confirmationRequired: string;
+  confirmationContact: string;
+  confirmationMultiple: string;
+  confirmationNotAllowed: string;
+  duplicateContact: string;
+  invalidValue: string;
+  ticketUnavailable: string;
+  groupOneOf: string;
+  groupAtLeastOne: string;
+  groupAllOf: string;
+  invalidNumber: string;
+  invalidOption: string;
+  submit: string;
+  invalidPayload: string;
+  submitting: string;
+  successTitle: string;
+  successBody: string;
+  registrationClosed: string;
+  eventUnavailable: string;
+  rateLimited: string;
+  turnstile: string;
+}
+export interface PublicRegistrationConfig {
+  locale: string;
+  languages: string[];
+  eyebrow: string;
+  intro: string;
+  formTitle: string;
+  formDescription: string;
+  submit: string;
+  noscript: string;
+  successReference: string;
+  previewNotice: string;
+  statusLink: string;
+  statusLookup: string;
+  infoTitle: string;
+  detailsLabel: string;
+  when: string;
+  location: string;
+  venueTba: string;
+  pricing: string;
+  payment: string;
+  notes: string;
+  free: string;
+  remainingParts: string[];
+  soldOut: string;
+  registrationClosed: string;
+  registrationClosedBody: string;
+  unavailable: string;
+  unavailableBody: string;
+  etransfer: string;
+  cash: string;
+  paymentNotConfigured: string;
+  fields: {
+    fullNameLabel: string;
+    fullNamePlaceholder: string;
+    fullNameHelp: string;
+    consentLabel: string;
+    consentHelp: string;
+    confirmationLabel: string;
+    confirmationHelp: string;
+    confirmationNone: string;
+    mailLabel: string;
+    mailHelp: string;
+    mail: {
+      addressLine1: string;
+      addressLine2: string;
+      city: string;
+      province: string;
+      postalCode: string;
+      country: string;
+      addressLine1Placeholder: string;
+      addressLine2Placeholder: string;
+      cityPlaceholder: string;
+      provincePlaceholder: string;
+      postalCodePlaceholder: string;
+      countryPlaceholder: string;
+    };
+    groupsNone: string;
+  };
+  messages: PublicRegistrationMessages;
+  turnstile: {
+    siteKey: string;
+    action: string;
+  };
+}
+export interface Props {
+  config: PublicRegistrationConfig;
+  preview?: boolean;
+}

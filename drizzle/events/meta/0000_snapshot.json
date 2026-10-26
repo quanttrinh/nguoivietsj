@@ -1,0 +1,1974 @@
+{
+  "version": "6",
+  "dialect": "sqlite",
+  "id": "07453f52-ea02-42d3-80eb-02c1ae9b1527",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "tables": {
+    "audit_events": {
+      "name": "audit_events",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "event_id": {
+          "name": "event_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "actor_user_id": {
+          "name": "actor_user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "action": {
+          "name": "action",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "target_id": {
+          "name": "target_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "metadata": {
+          "name": "metadata",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        }
+      },
+      "indexes": {
+        "audit_events_event_created_at": {
+          "name": "audit_events_event_created_at",
+          "columns": ["event_id", "created_at"],
+          "isUnique": false
+        },
+        "audit_events_event_target": {
+          "name": "audit_events_event_target",
+          "columns": ["event_id", "target_id"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "audit_events_event_id_events_id_fk": {
+          "name": "audit_events_event_id_events_id_fk",
+          "tableFrom": "audit_events",
+          "tableTo": "events",
+          "columnsFrom": ["event_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "audit_events_metadata": {
+          "name": "audit_events_metadata",
+          "value": "\"audit_events\".\"metadata\" IS NULL OR json_valid(\"audit_events\".\"metadata\")"
+        }
+      }
+    },
+    "checkins": {
+      "name": "checkins",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "registration_id": {
+          "name": "registration_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "checked_in_at": {
+          "name": "checked_in_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        }
+      },
+      "indexes": {
+        "checkins_registration_unique": {
+          "name": "checkins_registration_unique",
+          "columns": ["registration_id"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "checkins_registration_id_registrations_id_fk": {
+          "name": "checkins_registration_id_registrations_id_fk",
+          "tableFrom": "checkins",
+          "tableTo": "registrations",
+          "columnsFrom": ["registration_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "email_deliveries": {
+      "name": "email_deliveries",
+      "columns": {
+        "idempotency_key": {
+          "name": "idempotency_key",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "job_type": {
+          "name": "job_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'processing'"
+        },
+        "attempts": {
+          "name": "attempts",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 1
+        },
+        "last_error": {
+          "name": "last_error",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        }
+      },
+      "indexes": {
+        "email_deliveries_status_updated_at": {
+          "name": "email_deliveries_status_updated_at",
+          "columns": ["status", "updated_at"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "email_deliveries_status": {
+          "name": "email_deliveries_status",
+          "value": "\"email_deliveries\".\"status\" IN ('processing', 'sent', 'failed')"
+        }
+      }
+    },
+    "event_aliases": {
+      "name": "event_aliases",
+      "columns": {
+        "alias": {
+          "name": "alias",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "event_id": {
+          "name": "event_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        }
+      },
+      "indexes": {
+        "event_aliases_event_id": {
+          "name": "event_aliases_event_id",
+          "columns": ["event_id"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "event_aliases_event_id_events_id_fk": {
+          "name": "event_aliases_event_id_events_id_fk",
+          "tableFrom": "event_aliases",
+          "tableTo": "events",
+          "columnsFrom": ["event_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "event_form_versions": {
+      "name": "event_form_versions",
+      "columns": {
+        "event_id": {
+          "name": "event_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "version": {
+          "name": "version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "schema_json": {
+          "name": "schema_json",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        },
+        "published_at": {
+          "name": "published_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "event_form_versions_published": {
+          "name": "event_form_versions_published",
+          "columns": ["event_id"],
+          "isUnique": true,
+          "where": "\"event_form_versions\".\"status\" = 'published'"
+        },
+        "event_form_versions_event_status": {
+          "name": "event_form_versions_event_status",
+          "columns": ["event_id", "status", "version"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "event_form_versions_event_id_events_id_fk": {
+          "name": "event_form_versions_event_id_events_id_fk",
+          "tableFrom": "event_form_versions",
+          "tableTo": "events",
+          "columnsFrom": ["event_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "event_form_versions_event_id_version_pk": {
+          "columns": ["event_id", "version"],
+          "name": "event_form_versions_event_id_version_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "event_form_versions_schema_json": {
+          "name": "event_form_versions_schema_json",
+          "value": "json_valid(\"event_form_versions\".\"schema_json\") AND json_type(\"event_form_versions\".\"schema_json\") = 'object' AND length(\"event_form_versions\".\"schema_json\") <= 65536"
+        },
+        "event_form_versions_version": {
+          "name": "event_form_versions_version",
+          "value": "\"event_form_versions\".\"version\" > 0"
+        },
+        "event_form_versions_status": {
+          "name": "event_form_versions_status",
+          "value": "\"event_form_versions\".\"status\" IN ('draft', 'published', 'archived')"
+        }
+      }
+    },
+    "event_slug_claims": {
+      "name": "event_slug_claims",
+      "columns": {
+        "slug": {
+          "name": "slug",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "event_id": {
+          "name": "event_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "event_slug_claims_event_id_events_id_fk": {
+          "name": "event_slug_claims_event_id_events_id_fk",
+          "tableFrom": "event_slug_claims",
+          "tableTo": "events",
+          "columnsFrom": ["event_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "event_ticket_limits": {
+      "name": "event_ticket_limits",
+      "columns": {
+        "event_id": {
+          "name": "event_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "currency": {
+          "name": "currency",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'CAD'"
+        },
+        "max_tickets_per_registration": {
+          "name": "max_tickets_per_registration",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "max_total_tickets": {
+          "name": "max_total_tickets",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "event_ticket_limits_event_id_events_id_fk": {
+          "name": "event_ticket_limits_event_id_events_id_fk",
+          "tableFrom": "event_ticket_limits",
+          "tableTo": "events",
+          "columnsFrom": ["event_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "event_ticket_limits_currency": {
+          "name": "event_ticket_limits_currency",
+          "value": "length(\"event_ticket_limits\".\"currency\") = 3"
+        },
+        "event_ticket_limits_max_registration": {
+          "name": "event_ticket_limits_max_registration",
+          "value": "\"event_ticket_limits\".\"max_tickets_per_registration\" IS NULL OR \"event_ticket_limits\".\"max_tickets_per_registration\" >= 0"
+        },
+        "event_ticket_limits_max_total": {
+          "name": "event_ticket_limits_max_total",
+          "value": "\"event_ticket_limits\".\"max_total_tickets\" IS NULL OR \"event_ticket_limits\".\"max_total_tickets\" >= 0"
+        }
+      }
+    },
+    "event_ticket_types": {
+      "name": "event_ticket_types",
+      "columns": {
+        "event_id": {
+          "name": "event_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "key": {
+          "name": "key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "label_json": {
+          "name": "label_json",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "description_json": {
+          "name": "description_json",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "price_minor": {
+          "name": "price_minor",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "min_per_registration": {
+          "name": "min_per_registration",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "max_per_registration": {
+          "name": "max_per_registration",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "default_quantity": {
+          "name": "default_quantity",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "capacity": {
+          "name": "capacity",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "active": {
+          "name": "active",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "1"
+        },
+        "sort_order": {
+          "name": "sort_order",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        }
+      },
+      "indexes": {
+        "event_ticket_types_active": {
+          "name": "event_ticket_types_active",
+          "columns": ["event_id", "active", "sort_order"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "event_ticket_types_event_id_event_ticket_limits_event_id_fk": {
+          "name": "event_ticket_types_event_id_event_ticket_limits_event_id_fk",
+          "tableFrom": "event_ticket_types",
+          "tableTo": "event_ticket_limits",
+          "columnsFrom": ["event_id"],
+          "columnsTo": ["event_id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "event_ticket_types_event_id_key_pk": {
+          "columns": ["event_id", "key"],
+          "name": "event_ticket_types_event_id_key_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "event_ticket_types_label_json": {
+          "name": "event_ticket_types_label_json",
+          "value": "json_valid(\"event_ticket_types\".\"label_json\") AND json_type(\"event_ticket_types\".\"label_json\") = 'object' AND length(\"event_ticket_types\".\"label_json\") <= 4096"
+        },
+        "event_ticket_types_description_json": {
+          "name": "event_ticket_types_description_json",
+          "value": "\"event_ticket_types\".\"description_json\" IS NULL OR (json_valid(\"event_ticket_types\".\"description_json\") AND json_type(\"event_ticket_types\".\"description_json\") = 'object' AND length(\"event_ticket_types\".\"description_json\") <= 8192)"
+        },
+        "event_ticket_types_key": {
+          "name": "event_ticket_types_key",
+          "value": "length(\"event_ticket_types\".\"key\") BETWEEN 1 AND 64 AND \"event_ticket_types\".\"key\" GLOB '[a-z]*' AND \"event_ticket_types\".\"key\" NOT GLOB '*[^a-z0-9_]*'"
+        },
+        "event_ticket_types_price": {
+          "name": "event_ticket_types_price",
+          "value": "\"event_ticket_types\".\"price_minor\" >= 0"
+        },
+        "event_ticket_types_min": {
+          "name": "event_ticket_types_min",
+          "value": "\"event_ticket_types\".\"min_per_registration\" >= 0"
+        },
+        "event_ticket_types_max": {
+          "name": "event_ticket_types_max",
+          "value": "\"event_ticket_types\".\"max_per_registration\" IS NULL OR \"event_ticket_types\".\"max_per_registration\" >= 0"
+        },
+        "event_ticket_types_default": {
+          "name": "event_ticket_types_default",
+          "value": "\"event_ticket_types\".\"default_quantity\" >= 0"
+        },
+        "event_ticket_types_capacity": {
+          "name": "event_ticket_types_capacity",
+          "value": "\"event_ticket_types\".\"capacity\" IS NULL OR \"event_ticket_types\".\"capacity\" >= 0"
+        },
+        "event_ticket_types_active_check": {
+          "name": "event_ticket_types_active_check",
+          "value": "\"event_ticket_types\".\"active\" IN (0, 1)"
+        },
+        "event_ticket_types_max_min": {
+          "name": "event_ticket_types_max_min",
+          "value": "\"event_ticket_types\".\"max_per_registration\" IS NULL OR \"event_ticket_types\".\"max_per_registration\" >= \"event_ticket_types\".\"min_per_registration\""
+        },
+        "event_ticket_types_default_min": {
+          "name": "event_ticket_types_default_min",
+          "value": "\"event_ticket_types\".\"default_quantity\" >= \"event_ticket_types\".\"min_per_registration\""
+        },
+        "event_ticket_types_default_max": {
+          "name": "event_ticket_types_default_max",
+          "value": "\"event_ticket_types\".\"max_per_registration\" IS NULL OR \"event_ticket_types\".\"default_quantity\" <= \"event_ticket_types\".\"max_per_registration\""
+        }
+      }
+    },
+    "events": {
+      "name": "events",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "slug": {
+          "name": "slug",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "event_type": {
+          "name": "event_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "edition_year": {
+          "name": "edition_year",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "default_locale": {
+          "name": "default_locale",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'en'"
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'draft'"
+        },
+        "enabled": {
+          "name": "enabled",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "0"
+        },
+        "registration_open": {
+          "name": "registration_open",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "0"
+        },
+        "starts_at": {
+          "name": "starts_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "ends_at": {
+          "name": "ends_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "timezone": {
+          "name": "timezone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'UTC'"
+        },
+        "title_json": {
+          "name": "title_json",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "summary_json": {
+          "name": "summary_json",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'{}'"
+        },
+        "location_name": {
+          "name": "location_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "''"
+        },
+        "location_address": {
+          "name": "location_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "''"
+        },
+        "location_map_url": {
+          "name": "location_map_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "location_map_embed_url": {
+          "name": "location_map_embed_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "payment_etransfer_enabled": {
+          "name": "payment_etransfer_enabled",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "0"
+        },
+        "payment_etransfer_email": {
+          "name": "payment_etransfer_email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "payment_cash_enabled": {
+          "name": "payment_cash_enabled",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "0"
+        },
+        "payment_cash_address": {
+          "name": "payment_cash_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "payment_cash_map_url": {
+          "name": "payment_cash_map_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "payment_cash_map_embed_url": {
+          "name": "payment_cash_map_embed_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "notes_json": {
+          "name": "notes_json",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'{}'"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        }
+      },
+      "indexes": {
+        "events_slug_unique": {
+          "name": "events_slug_unique",
+          "columns": ["slug"],
+          "isUnique": true
+        },
+        "events_type_year_unique": {
+          "name": "events_type_year_unique",
+          "columns": ["event_type", "edition_year"],
+          "isUnique": true
+        },
+        "events_public_list": {
+          "name": "events_public_list",
+          "columns": ["enabled", "status", "starts_at", "id"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "events_edition_year": {
+          "name": "events_edition_year",
+          "value": "\"events\".\"edition_year\" BETWEEN 2000 AND 2100"
+        },
+        "events_status": {
+          "name": "events_status",
+          "value": "\"events\".\"status\" IN ('draft', 'upcoming', 'active', 'archived')"
+        },
+        "events_enabled": {
+          "name": "events_enabled",
+          "value": "\"events\".\"enabled\" IN (0, 1)"
+        },
+        "events_registration_open": {
+          "name": "events_registration_open",
+          "value": "\"events\".\"registration_open\" IN (0, 1)"
+        },
+        "events_title_json": {
+          "name": "events_title_json",
+          "value": "json_valid(\"events\".\"title_json\") AND json_type(\"events\".\"title_json\") = 'object'"
+        },
+        "events_summary_json": {
+          "name": "events_summary_json",
+          "value": "json_valid(\"events\".\"summary_json\") AND json_type(\"events\".\"summary_json\") = 'object'"
+        },
+        "events_etransfer_enabled": {
+          "name": "events_etransfer_enabled",
+          "value": "\"events\".\"payment_etransfer_enabled\" IN (0, 1)"
+        },
+        "events_cash_enabled": {
+          "name": "events_cash_enabled",
+          "value": "\"events\".\"payment_cash_enabled\" IN (0, 1)"
+        },
+        "events_dates": {
+          "name": "events_dates",
+          "value": "\"events\".\"ends_at\" IS NULL OR \"events\".\"starts_at\" IS NULL OR \"events\".\"ends_at\" >= \"events\".\"starts_at\""
+        }
+      }
+    },
+    "payments": {
+      "name": "payments",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "registration_id": {
+          "name": "registration_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "amount_minor": {
+          "name": "amount_minor",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "currency": {
+          "name": "currency",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "method": {
+          "name": "method",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "confirmed_by": {
+          "name": "confirmed_by",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "note": {
+          "name": "note",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        }
+      },
+      "indexes": {
+        "payments_registration_unique": {
+          "name": "payments_registration_unique",
+          "columns": ["registration_id"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "payments_registration_id_registrations_id_fk": {
+          "name": "payments_registration_id_registrations_id_fk",
+          "tableFrom": "payments",
+          "tableTo": "registrations",
+          "columnsFrom": ["registration_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "payments_amount": {
+          "name": "payments_amount",
+          "value": "\"payments\".\"amount_minor\" >= 0"
+        },
+        "payments_method": {
+          "name": "payments_method",
+          "value": "\"payments\".\"method\" IN ('cash', 'etransfer')"
+        }
+      }
+    },
+    "registration_contacts": {
+      "name": "registration_contacts",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "registration_id": {
+          "name": "registration_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "event_id": {
+          "name": "event_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "kind": {
+          "name": "kind",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "label": {
+          "name": "label",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "is_primary": {
+          "name": "is_primary",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "0"
+        },
+        "is_confirmation_method": {
+          "name": "is_confirmation_method",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "0"
+        },
+        "email_address": {
+          "name": "email_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "email_normalized": {
+          "name": "email_normalized",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "phone_number": {
+          "name": "phone_number",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "phone_normalized": {
+          "name": "phone_normalized",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "address_line1": {
+          "name": "address_line1",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "address_line2": {
+          "name": "address_line2",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "city": {
+          "name": "city",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "province": {
+          "name": "province",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "postal_code": {
+          "name": "postal_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "country": {
+          "name": "country",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "value_json": {
+          "name": "value_json",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'{}'"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        }
+      },
+      "indexes": {
+        "registration_contacts_registration": {
+          "name": "registration_contacts_registration",
+          "columns": ["registration_id", "kind"],
+          "isUnique": false
+        },
+        "registration_contacts_one_primary": {
+          "name": "registration_contacts_one_primary",
+          "columns": ["registration_id"],
+          "isUnique": true,
+          "where": "\"registration_contacts\".\"is_primary\" = 1"
+        },
+        "registration_contacts_one_confirmation": {
+          "name": "registration_contacts_one_confirmation",
+          "columns": ["registration_id"],
+          "isUnique": true,
+          "where": "\"registration_contacts\".\"is_confirmation_method\" = 1"
+        },
+        "registration_contacts_one_mail": {
+          "name": "registration_contacts_one_mail",
+          "columns": ["registration_id"],
+          "isUnique": true,
+          "where": "\"registration_contacts\".\"kind\" = 'mail'"
+        },
+        "registration_contacts_event_email": {
+          "name": "registration_contacts_event_email",
+          "columns": ["event_id", "email_normalized"],
+          "isUnique": true,
+          "where": "\"registration_contacts\".\"kind\" = 'email' AND \"registration_contacts\".\"email_normalized\" IS NOT NULL"
+        },
+        "registration_contacts_registration_phone": {
+          "name": "registration_contacts_registration_phone",
+          "columns": ["registration_id", "phone_normalized"],
+          "isUnique": true,
+          "where": "\"registration_contacts\".\"kind\" = 'phone' AND \"registration_contacts\".\"phone_normalized\" IS NOT NULL"
+        },
+        "registration_contacts_event_phone": {
+          "name": "registration_contacts_event_phone",
+          "columns": ["event_id", "phone_normalized"],
+          "isUnique": false,
+          "where": "\"registration_contacts\".\"kind\" = 'phone' AND \"registration_contacts\".\"phone_normalized\" IS NOT NULL"
+        },
+        "registration_contacts_event_postal": {
+          "name": "registration_contacts_event_postal",
+          "columns": ["event_id", "postal_code"],
+          "isUnique": false,
+          "where": "\"registration_contacts\".\"kind\" = 'mail'"
+        }
+      },
+      "foreignKeys": {
+        "registration_contacts_registration_id_event_id_registrations_id_event_id_fk": {
+          "name": "registration_contacts_registration_id_event_id_registrations_id_event_id_fk",
+          "tableFrom": "registration_contacts",
+          "tableTo": "registrations",
+          "columnsFrom": ["registration_id", "event_id"],
+          "columnsTo": ["id", "event_id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "registration_contacts_event_id_events_id_fk": {
+          "name": "registration_contacts_event_id_events_id_fk",
+          "tableFrom": "registration_contacts",
+          "tableTo": "events",
+          "columnsFrom": ["event_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "registration_contacts_kind": {
+          "name": "registration_contacts_kind",
+          "value": "\"registration_contacts\".\"kind\" IN ('email', 'phone', 'mail')"
+        },
+        "registration_contacts_primary": {
+          "name": "registration_contacts_primary",
+          "value": "\"registration_contacts\".\"is_primary\" IN (0, 1)"
+        },
+        "registration_contacts_confirmation": {
+          "name": "registration_contacts_confirmation",
+          "value": "\"registration_contacts\".\"is_confirmation_method\" IN (0, 1)"
+        },
+        "registration_contacts_country": {
+          "name": "registration_contacts_country",
+          "value": "\"registration_contacts\".\"country\" IS NULL OR length(\"registration_contacts\".\"country\") = 2"
+        },
+        "registration_contacts_value_json": {
+          "name": "registration_contacts_value_json",
+          "value": "json_valid(\"registration_contacts\".\"value_json\") AND json_type(\"registration_contacts\".\"value_json\") = 'object' AND length(\"registration_contacts\".\"value_json\") <= 4096"
+        },
+        "registration_contacts_shape": {
+          "name": "registration_contacts_shape",
+          "value": "(\n        \"registration_contacts\".\"kind\" = 'email'\n        AND \"registration_contacts\".\"email_address\" IS NOT NULL\n        AND \"registration_contacts\".\"email_normalized\" IS NOT NULL\n        AND \"registration_contacts\".\"phone_number\" IS NULL\n        AND \"registration_contacts\".\"phone_normalized\" IS NULL\n        AND \"registration_contacts\".\"address_line1\" IS NULL\n        AND \"registration_contacts\".\"address_line2\" IS NULL\n        AND \"registration_contacts\".\"city\" IS NULL\n        AND \"registration_contacts\".\"province\" IS NULL\n        AND \"registration_contacts\".\"postal_code\" IS NULL\n        AND \"registration_contacts\".\"country\" IS NULL\n      ) OR (\n        \"registration_contacts\".\"kind\" = 'phone'\n        AND \"registration_contacts\".\"phone_number\" IS NOT NULL\n        AND \"registration_contacts\".\"phone_normalized\" IS NOT NULL\n        AND \"registration_contacts\".\"email_address\" IS NULL\n        AND \"registration_contacts\".\"email_normalized\" IS NULL\n        AND \"registration_contacts\".\"address_line1\" IS NULL\n        AND \"registration_contacts\".\"address_line2\" IS NULL\n        AND \"registration_contacts\".\"city\" IS NULL\n        AND \"registration_contacts\".\"province\" IS NULL\n        AND \"registration_contacts\".\"postal_code\" IS NULL\n        AND \"registration_contacts\".\"country\" IS NULL\n      ) OR (\n        \"registration_contacts\".\"kind\" = 'mail'\n        AND \"registration_contacts\".\"address_line1\" IS NOT NULL\n        AND \"registration_contacts\".\"city\" IS NOT NULL\n        AND \"registration_contacts\".\"province\" IS NOT NULL\n        AND \"registration_contacts\".\"postal_code\" IS NOT NULL\n        AND \"registration_contacts\".\"country\" IS NOT NULL\n        AND \"registration_contacts\".\"email_address\" IS NULL\n        AND \"registration_contacts\".\"email_normalized\" IS NULL\n        AND \"registration_contacts\".\"phone_number\" IS NULL\n        AND \"registration_contacts\".\"phone_normalized\" IS NULL\n      )"
+        }
+      }
+    },
+    "registration_failures": {
+      "name": "registration_failures",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "event_id": {
+          "name": "event_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "reason": {
+          "name": "reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "email_address": {
+          "name": "email_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        }
+      },
+      "indexes": {
+        "registration_failures_event_created_at": {
+          "name": "registration_failures_event_created_at",
+          "columns": ["event_id", "created_at"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "registration_failures_event_id_events_id_fk": {
+          "name": "registration_failures_event_id_events_id_fk",
+          "tableFrom": "registration_failures",
+          "tableTo": "events",
+          "columnsFrom": ["event_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "registration_failures_reason": {
+          "name": "registration_failures_reason",
+          "value": "\"registration_failures\".\"reason\" IN ('ticket_limit_reached', 'ticket_type_capacity_reached', 'event_capacity_reached', 'processing_failed', 'duplicate_registration')"
+        }
+      }
+    },
+    "registration_field_values": {
+      "name": "registration_field_values",
+      "columns": {
+        "registration_id": {
+          "name": "registration_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "event_id": {
+          "name": "event_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "field_key": {
+          "name": "field_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "form_version": {
+          "name": "form_version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "value_json": {
+          "name": "value_json",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        }
+      },
+      "indexes": {
+        "registration_field_values_event_field": {
+          "name": "registration_field_values_event_field",
+          "columns": ["event_id", "field_key"],
+          "isUnique": false
+        },
+        "registration_field_values_event_value": {
+          "name": "registration_field_values_event_value",
+          "columns": ["event_id", "field_key", "value_json"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "registration_field_values_registration_id_event_id_form_version_registrations_id_event_id_form_version_fk": {
+          "name": "registration_field_values_registration_id_event_id_form_version_registrations_id_event_id_form_version_fk",
+          "tableFrom": "registration_field_values",
+          "tableTo": "registrations",
+          "columnsFrom": ["registration_id", "event_id", "form_version"],
+          "columnsTo": ["id", "event_id", "form_version"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "registration_field_values_registration_id_field_key_pk": {
+          "columns": ["registration_id", "field_key"],
+          "name": "registration_field_values_registration_id_field_key_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "registration_field_values_json": {
+          "name": "registration_field_values_json",
+          "value": "json_valid(\"registration_field_values\".\"value_json\") AND length(\"registration_field_values\".\"value_json\") <= 4096"
+        }
+      }
+    },
+    "registration_phone_claims": {
+      "name": "registration_phone_claims",
+      "columns": {
+        "registration_id": {
+          "name": "registration_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "event_id": {
+          "name": "event_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "phone_normalized": {
+          "name": "phone_normalized",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "full_name_normalized": {
+          "name": "full_name_normalized",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "registration_phone_claims_identity": {
+          "name": "registration_phone_claims_identity",
+          "columns": ["event_id", "phone_normalized", "full_name_normalized"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "registration_phone_claims_registration_id_registrations_id_fk": {
+          "name": "registration_phone_claims_registration_id_registrations_id_fk",
+          "tableFrom": "registration_phone_claims",
+          "tableTo": "registrations",
+          "columnsFrom": ["registration_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "registration_phone_claims_event_id_events_id_fk": {
+          "name": "registration_phone_claims_event_id_events_id_fk",
+          "tableFrom": "registration_phone_claims",
+          "tableTo": "events",
+          "columnsFrom": ["event_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "registration_phone_claims_registration_id_phone_normalized_pk": {
+          "columns": ["registration_id", "phone_normalized"],
+          "name": "registration_phone_claims_registration_id_phone_normalized_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "registration_stats": {
+      "name": "registration_stats",
+      "columns": {
+        "event_id": {
+          "name": "event_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "registration_count": {
+          "name": "registration_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "tickets_total": {
+          "name": "tickets_total",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "registration_stats_event_id_events_id_fk": {
+          "name": "registration_stats_event_id_events_id_fk",
+          "tableFrom": "registration_stats",
+          "tableTo": "events",
+          "columnsFrom": ["event_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "registration_stats_count": {
+          "name": "registration_stats_count",
+          "value": "\"registration_stats\".\"registration_count\" >= 0"
+        },
+        "registration_stats_tickets": {
+          "name": "registration_stats_tickets",
+          "value": "\"registration_stats\".\"tickets_total\" >= 0"
+        }
+      }
+    },
+    "registration_status_otps": {
+      "name": "registration_status_otps",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "registration_id": {
+          "name": "registration_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "code_hash": {
+          "name": "code_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "attempts": {
+          "name": "attempts",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "consumed_at": {
+          "name": "consumed_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        }
+      },
+      "indexes": {
+        "registration_status_otps_registration": {
+          "name": "registration_status_otps_registration",
+          "columns": ["registration_id", "created_at"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "registration_status_otps_registration_id_registrations_id_fk": {
+          "name": "registration_status_otps_registration_id_registrations_id_fk",
+          "tableFrom": "registration_status_otps",
+          "tableTo": "registrations",
+          "columnsFrom": ["registration_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "registration_status_otps_attempts": {
+          "name": "registration_status_otps_attempts",
+          "value": "\"registration_status_otps\".\"attempts\" >= 0"
+        }
+      }
+    },
+    "registration_status_sessions": {
+      "name": "registration_status_sessions",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "registration_id": {
+          "name": "registration_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "token_hash": {
+          "name": "token_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        }
+      },
+      "indexes": {
+        "registration_status_sessions_token": {
+          "name": "registration_status_sessions_token",
+          "columns": ["token_hash"],
+          "isUnique": true
+        },
+        "registration_status_sessions_registration": {
+          "name": "registration_status_sessions_registration",
+          "columns": ["registration_id"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "registration_status_sessions_registration_id_registrations_id_fk": {
+          "name": "registration_status_sessions_registration_id_registrations_id_fk",
+          "tableFrom": "registration_status_sessions",
+          "tableTo": "registrations",
+          "columnsFrom": ["registration_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "registration_tickets": {
+      "name": "registration_tickets",
+      "columns": {
+        "registration_id": {
+          "name": "registration_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "event_id": {
+          "name": "event_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "ticket_type_key": {
+          "name": "ticket_type_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "quantity": {
+          "name": "quantity",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "unit_price_minor": {
+          "name": "unit_price_minor",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "currency": {
+          "name": "currency",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "label_snapshot_json": {
+          "name": "label_snapshot_json",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        }
+      },
+      "indexes": {
+        "registration_tickets_event_type": {
+          "name": "registration_tickets_event_type",
+          "columns": ["event_id", "ticket_type_key"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "registration_tickets_registration_id_event_id_registrations_id_event_id_fk": {
+          "name": "registration_tickets_registration_id_event_id_registrations_id_event_id_fk",
+          "tableFrom": "registration_tickets",
+          "tableTo": "registrations",
+          "columnsFrom": ["registration_id", "event_id"],
+          "columnsTo": ["id", "event_id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "registration_tickets_event_id_events_id_fk": {
+          "name": "registration_tickets_event_id_events_id_fk",
+          "tableFrom": "registration_tickets",
+          "tableTo": "events",
+          "columnsFrom": ["event_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "registration_tickets_event_id_ticket_type_key_event_ticket_types_event_id_key_fk": {
+          "name": "registration_tickets_event_id_ticket_type_key_event_ticket_types_event_id_key_fk",
+          "tableFrom": "registration_tickets",
+          "tableTo": "event_ticket_types",
+          "columnsFrom": ["event_id", "ticket_type_key"],
+          "columnsTo": ["event_id", "key"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "registration_tickets_registration_id_ticket_type_key_pk": {
+          "columns": ["registration_id", "ticket_type_key"],
+          "name": "registration_tickets_registration_id_ticket_type_key_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "registration_tickets_label_json": {
+          "name": "registration_tickets_label_json",
+          "value": "json_valid(\"registration_tickets\".\"label_snapshot_json\") AND json_type(\"registration_tickets\".\"label_snapshot_json\") = 'object' AND length(\"registration_tickets\".\"label_snapshot_json\") <= 4096"
+        },
+        "registration_tickets_quantity": {
+          "name": "registration_tickets_quantity",
+          "value": "\"registration_tickets\".\"quantity\" > 0"
+        },
+        "registration_tickets_price": {
+          "name": "registration_tickets_price",
+          "value": "\"registration_tickets\".\"unit_price_minor\" >= 0"
+        }
+      }
+    },
+    "registrations": {
+      "name": "registrations",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "event_id": {
+          "name": "event_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "form_version": {
+          "name": "form_version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "full_name": {
+          "name": "full_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "full_name_normalized": {
+          "name": "full_name_normalized",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "consent_at": {
+          "name": "consent_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "confirmation_email_sent_at": {
+          "name": "confirmation_email_sent_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "payment_confirmation_email_sent_at": {
+          "name": "payment_confirmation_email_sent_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "metadata_json": {
+          "name": "metadata_json",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'{}'"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        }
+      },
+      "indexes": {
+        "registrations_id_event_unique": {
+          "name": "registrations_id_event_unique",
+          "columns": ["id", "event_id"],
+          "isUnique": true
+        },
+        "registrations_id_event_form_version_unique": {
+          "name": "registrations_id_event_form_version_unique",
+          "columns": ["id", "event_id", "form_version"],
+          "isUnique": true
+        },
+        "registrations_event_created_at": {
+          "name": "registrations_event_created_at",
+          "columns": ["event_id", "created_at", "id"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "registrations_event_id_events_id_fk": {
+          "name": "registrations_event_id_events_id_fk",
+          "tableFrom": "registrations",
+          "tableTo": "events",
+          "columnsFrom": ["event_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "registrations_event_id_form_version_event_form_versions_event_id_version_fk": {
+          "name": "registrations_event_id_form_version_event_form_versions_event_id_version_fk",
+          "tableFrom": "registrations",
+          "tableTo": "event_form_versions",
+          "columnsFrom": ["event_id", "form_version"],
+          "columnsTo": ["event_id", "version"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "registrations_metadata_json": {
+          "name": "registrations_metadata_json",
+          "value": "json_valid(\"registrations\".\"metadata_json\") AND json_type(\"registrations\".\"metadata_json\") = 'object' AND length(\"registrations\".\"metadata_json\") <= 16384"
+        }
+      }
+    },
+    "ticket_type_stats": {
+      "name": "ticket_type_stats",
+      "columns": {
+        "event_id": {
+          "name": "event_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "ticket_type_key": {
+          "name": "ticket_type_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "tickets_sold": {
+          "name": "tickets_sold",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "ticket_type_stats_event_id_ticket_type_key_event_ticket_types_event_id_key_fk": {
+          "name": "ticket_type_stats_event_id_ticket_type_key_event_ticket_types_event_id_key_fk",
+          "tableFrom": "ticket_type_stats",
+          "tableTo": "event_ticket_types",
+          "columnsFrom": ["event_id", "ticket_type_key"],
+          "columnsTo": ["event_id", "key"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "ticket_type_stats_event_id_ticket_type_key_pk": {
+          "columns": ["event_id", "ticket_type_key"],
+          "name": "ticket_type_stats_event_id_ticket_type_key_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "ticket_type_stats_sold": {
+          "name": "ticket_type_stats_sold",
+          "value": "\"ticket_type_stats\".\"tickets_sold\" >= 0"
+        }
+      }
+    }
+  },
+  "views": {},
+  "enums": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  },
+  "internal": {
+    "indexes": {}
+  }
+}

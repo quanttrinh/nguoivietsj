@@ -1,0 +1,27 @@
+---
+interface Props {
+  label: string;
+  logoutUrl: string;
+  fallbackUrl: string;
+}
+
+const { label, logoutUrl, fallbackUrl }: Props = Astro.props;
+---
+
+<qui-button
+  data-logout-button
+  data-logout-url={logoutUrl}
+  data-fallback-url={fallbackUrl}
+  variant="elevated"
+  size="sm"
+>
+  {label}
+</qui-button>
+
+<script>
+  import "virtual:qui/register?components=qui-button";
+  import { initLogoutButtons } from "~/shared/client/logout";
+
+  initLogoutButtons();
+  document.addEventListener("astro:page-load", initLogoutButtons);
+</script>

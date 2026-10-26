@@ -1,0 +1,63 @@
+---
+import { useIntlayer, useLocale } from "astro-intlayer";
+import { getLocalizedUrl } from "intlayer";
+
+import { css } from "styled-system/css";
+import { center, vstack } from "styled-system/patterns";
+import BaseLayout from "~/layouts/BaseLayout.astro";
+import Eyebrow from "~/shared/ui/Eyebrow.astro";
+
+Astro.response.status = 404;
+
+const { locale } = useLocale();
+const messages = useIntlayer("site");
+
+const styles = {
+  section: center({
+    textAlign: "center",
+    paddingBlockStart: { base: "2", md: "3" },
+    paddingBlockEnd: "16",
+  }),
+  panel: vstack({
+    alignItems: "center",
+    gap: "4",
+    maxWidth: "xl",
+  }),
+  title: css({
+    margin: "0",
+    fontFamily: "display",
+    fontSize: { base: "4xl", md: "5xl" },
+    lineHeight: "none",
+    letterSpacing: "tight",
+    color: "onSurface",
+  }),
+  message: css({
+    margin: "0",
+    fontSize: "lg",
+    lineHeight: "relaxed",
+    color: "onSurfaceVariant",
+  }),
+};
+---
+
+<BaseLayout
+  title={`${messages.notFound.title} · ${messages.brand}`}
+  description={messages.notFound.message}
+>
+  <section class={styles.section}>
+    <div class={styles.panel}>
+      <Eyebrow as="span" tone="primary">
+        404
+      </Eyebrow>
+      <h1 class={styles.title}>{messages.notFound.title}</h1>
+      <p class={styles.message}>{messages.notFound.message}</p>
+      <qui-button href={getLocalizedUrl("/", locale)} variant="filled">
+        {messages.backToHome}
+      </qui-button>
+    </div>
+  </section>
+
+  <script>
+    import "virtual:qui/register?components=qui-button";
+  </script>
+</BaseLayout>

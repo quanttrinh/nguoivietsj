@@ -1,0 +1,325 @@
+import { css } from "styled-system/css";
+import { grid, vstack, wrap } from "styled-system/patterns";
+
+export const styles = {
+  section: grid({
+    gap: {
+      base: "8",
+      lg: "10",
+    },
+    gridTemplateColumns: {
+      base: "minmax(0, 1fr)",
+      lg: "minmax(0, 1fr) minmax(0, 1.15fr)",
+    },
+    alignItems: "start",
+    paddingBlockStart: {
+      base: "2",
+      lg: "3",
+    },
+  }),
+  hero: vstack({
+    gap: "5",
+    alignItems: "stretch",
+  }),
+  title: css({
+    margin: "0",
+    fontFamily: "display",
+    fontSize: {
+      base: "4xl",
+      md: "5xl",
+    },
+    lineHeight: "none",
+    letterSpacing: "tight",
+    fontWeight: "bold",
+    color: "onSurface",
+  }),
+  lead: css({
+    margin: "0",
+    maxWidth: "2xl",
+    fontSize: "lg",
+    lineHeight: "relaxed",
+    color: "onSurfaceVariant",
+  }),
+  info: vstack({
+    alignItems: "stretch",
+    width: "full",
+    gap: "2",
+  }),
+  accordion: css({
+    width: "full",
+  }),
+  infoRows: vstack({
+    alignItems: "stretch",
+    gap: "0",
+  }),
+  infoRow: grid({
+    gridTemplateColumns: {
+      base: "1fr",
+      sm: "minmax(5.5rem, 0.35fr) minmax(0, 1fr)",
+    },
+    gap: {
+      base: "1",
+      sm: "3",
+    },
+    paddingBlock: "2.5",
+    borderBlockEndWidth: "thin",
+    borderBlockEndStyle: "solid",
+    borderColor: "outlineVariant",
+    _last: {
+      borderBlockEndWidth: "0",
+      paddingBlockEnd: "0",
+    },
+  }),
+  infoTerm: css({
+    margin: "0",
+    paddingBlockStart: "0.5",
+    fontSize: "xs",
+    fontWeight: "bold",
+    letterSpacing: "wide",
+    textTransform: "uppercase",
+    color: "onSurfaceVariant",
+  }),
+  infoValue: css({
+    margin: "0",
+    fontSize: "sm",
+    lineHeight: "relaxed",
+    color: "onSurface",
+    whiteSpace: "pre-line",
+  }),
+  infoMuted: css({
+    margin: "0",
+    fontSize: "sm",
+    lineHeight: "relaxed",
+    color: "onSurfaceVariant",
+  }),
+  ticketList: vstack({
+    alignItems: "stretch",
+    gap: "0",
+  }),
+  ticketRow: css({
+    display: "flex",
+    alignItems: "baseline",
+    justifyContent: "space-between",
+    gap: "3",
+    paddingBlock: "2.5",
+    borderBlockEndWidth: "thin",
+    borderBlockEndStyle: "solid",
+    borderColor: "outlineVariant",
+    _last: {
+      borderBlockEndWidth: "0",
+      paddingBlockEnd: "0",
+    },
+  }),
+  ticketName: css({
+    margin: "0",
+    fontSize: "sm",
+    fontWeight: "medium",
+    color: "onSurface",
+  }),
+  ticketMeta: css({
+    margin: "0",
+    fontSize: "xs",
+    color: "onSurfaceVariant",
+  }),
+  ticketPrice: css({
+    margin: "0",
+    flexShrink: "0",
+    fontSize: "sm",
+    fontWeight: "semibold",
+    color: "primary",
+  }),
+  chips: wrap({
+    gap: "2",
+  }),
+  chip: css({
+    display: "inline-flex",
+    borderRadius: "full",
+    backgroundColor: "secondaryContainer",
+    color: "onSecondaryContainer",
+    paddingInline: "3",
+    paddingBlock: "1",
+    fontSize: "xs",
+    fontWeight: "semibold",
+  }),
+  noteList: css({
+    margin: "0",
+    paddingInlineStart: "5",
+    listStyleType: "disc",
+    listStylePosition: "outside",
+    fontSize: "sm",
+    lineHeight: "relaxed",
+    color: "onSurface",
+    "& > li": {
+      display: "list-item",
+      paddingInlineStart: "1",
+    },
+    "& > li + li": {
+      marginBlockStart: "1.5",
+    },
+    "& > li::marker": {
+      color: "onSurfaceVariant",
+    },
+  }),
+  label: css({
+    margin: "0",
+    fontSize: "xs",
+    fontWeight: "semibold",
+    letterSpacing: "wide",
+    textTransform: "uppercase",
+    color: "onSurfaceVariant",
+  }),
+  text: css({
+    margin: "0",
+    fontSize: "sm",
+    lineHeight: "relaxed",
+    color: "onSurface",
+    whiteSpace: "pre-line",
+  }),
+  panel: css({
+    borderRadius: "2xl",
+    borderWidth: "thin",
+    borderStyle: "solid",
+    borderColor: "outlineVariant",
+    backgroundColor: "surfaceContainerLowest",
+    boxShadow: "lg",
+    paddingInline: {
+      base: "5",
+      md: "10",
+    },
+    paddingBlock: {
+      base: "6",
+      md: "10",
+    },
+  }),
+  cardTitle: css({
+    margin: "0",
+    fontFamily: "display",
+    fontSize: "xl",
+    fontWeight: "bold",
+    letterSpacing: "tight",
+    color: "onSurface",
+  }),
+  cardDescription: css({
+    margin: "0",
+    marginBlockStart: "1.5",
+    fontSize: "sm",
+    color: "onSurfaceVariant",
+  }),
+  form: vstack({
+    alignItems: "stretch",
+    gap: "8",
+    marginBlockStart: "6",
+  }),
+  formSection: vstack({
+    alignItems: "stretch",
+    gap: "4",
+    width: "full",
+    paddingBlockStart: "2",
+    borderBlockStartWidth: "thin",
+    borderBlockStartStyle: "solid",
+    borderColor: "outlineVariant",
+  }),
+  sectionTitle: css({
+    margin: "0",
+    fontFamily: "display",
+    fontSize: "lg",
+    fontWeight: "bold",
+    letterSpacing: "tight",
+    color: "onSurface",
+  }),
+  sectionDescription: css({
+    margin: "0",
+    fontSize: "sm",
+    color: "onSurfaceVariant",
+  }),
+  fields: grid({
+    columns: {
+      base: 1,
+      sm: 2,
+    },
+    gap: "5",
+  }),
+  field: css({
+    minWidth: "0",
+  }),
+  full: css({
+    gridColumn: "1 / -1",
+  }),
+  notice: css({
+    width: "full",
+  }),
+  success: css({
+    marginBlockStart: "5",
+  }),
+  reference: css({
+    display: "block",
+    marginBlockStart: "2",
+    fontFamily: "mono",
+    fontSize: "sm",
+    wordBreak: "break-all",
+  }),
+  statusLink: css({
+    display: "inline-block",
+    "&[hidden]": {
+      display: "none",
+    },
+    marginBlockStart: "3",
+    fontSize: "sm",
+    fontWeight: "semibold",
+    color: "primary",
+    textDecoration: "underline",
+    textUnderlineOffset: "0.5",
+  }),
+  actions: wrap({
+    align: "center",
+    justify: "stretch",
+    gap: "3",
+    paddingBlockStart: "6",
+  }),
+  group: css({
+    minWidth: "0",
+    margin: "0",
+    border: "0",
+    padding: "0",
+  }),
+  legend: css({
+    margin: "0",
+    padding: "0",
+    fontSize: "sm",
+    fontWeight: "semibold",
+    color: "onSurface",
+  }),
+  groupOptions: css({
+    marginBlockStart: "4",
+  }),
+  panels: vstack({
+    alignItems: "stretch",
+    gap: "4",
+    marginBlockStart: "4",
+  }),
+  panelItem: css({
+    minWidth: "0",
+  }),
+  error: css({
+    margin: "0",
+    marginBlockStart: "3",
+    fontSize: "sm",
+    color: "error",
+  }),
+  errorBox: css({
+    margin: "0",
+    borderRadius: "lg",
+    borderWidth: "thin",
+    borderStyle: "solid",
+    borderColor: "error",
+    backgroundColor: "errorContainer",
+    color: "onErrorContainer",
+    padding: "4",
+    fontSize: "sm",
+  }),
+  loading: css({
+    margin: "0",
+    fontSize: "sm",
+    color: "onSurfaceVariant",
+  }),
+};

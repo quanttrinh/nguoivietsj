@@ -1,0 +1,44 @@
+---
+import Eyebrow from "~/shared/ui/Eyebrow.astro";
+import QuiFormRuntime from "~/shared/ui/QuiFormRuntime.astro";
+
+import { adminPageStyles as styles } from "./styles/admin-styles";
+
+interface Props {
+  backHref?: string;
+  backId?: string;
+  backLabel?: string;
+  eyebrow: string;
+  title: string;
+  titleId?: string;
+  preserveTitle?: boolean;
+  intro?: string | null;
+}
+
+const {
+  backHref,
+  backId,
+  backLabel,
+  eyebrow,
+  title,
+  titleId,
+  preserveTitle = false,
+  intro = null,
+}: Props = Astro.props;
+---
+
+<header class={styles.top}>
+  {backHref !== undefined && backLabel !== undefined ? (
+    <a id={backId} class={styles.back} href={backHref}>
+      {backLabel}
+    </a>
+  ) : null}
+  <Eyebrow>{eyebrow}</Eyebrow>
+  <h1 id={titleId} class={styles.title} data-title-preserve={preserveTitle ? "" : undefined}>
+    {title}
+  </h1>
+  {intro !== null && intro.length > 0 ? <p class={styles.intro}>{intro}</p> : null}
+  <slot />
+</header>
+
+<QuiFormRuntime />

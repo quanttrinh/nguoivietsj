@@ -1,0 +1,57 @@
+---
+import { useDictionary } from "astro-intlayer";
+import { locales } from "intlayer";
+
+import AdminActivity from "~/events/admin/ui/AdminActivity";
+import AdminPageHeader from "~/events/admin/ui/AdminPageHeader.astro";
+import { adminPageStyles } from "~/events/admin/ui/styles/admin-styles";
+import engineAdminContent from "~/events/content/admin.content";
+import BaseLayout from "~/layouts/BaseLayout.astro";
+import { DEFAULT_LOCALE } from "~/shared/constants/locales";
+import Panel from "~/shared/ui/Panel.astro";
+
+export function getStaticPaths(): { params: { locale: string } }[] {
+  return locales.map((locale) => ({ params: { locale } }));
+}
+
+export const prerender = true;
+
+const locale = Astro.params.locale ?? DEFAULT_LOCALE;
+const content = useDictionary(engineAdminContent, locale);
+
+const config = {
+  activity: content.activity.value,
+  time: content.time.value,
+  action: content.action.value,
+  actor: content.actor.value,
+  target: content.target.value,
+  metadata: content.metadata.value,
+  noActivity: content.noActivity.value,
+  loading: content.loading.value,
+  paymentConfirmAction: content.paymentConfirmAction.value,
+  paymentUpdateAction: content.paymentUpdateAction.value,
+  paymentUnconfirmAction: content.paymentUnconfirmAction.value,
+  loadFailed: content.loadFailed.value,
+  forbidden: content.forbidden.value,
+  eventNotFound: content.eventNotFound.value,
+};
+---
+
+<BaseLayout title={content.activity.value} description={content.activityIntro.value} noindex>
+  <section class={adminPageStyles.section}>
+    <AdminPageHeader
+      backHref={`/${locale}/events/admin`}
+      backId="engine-activity-back"
+      backLabel={content.backToEvent}
+      eyebrow={content.activity}
+      title=""
+      titleId="engine-activity-title"
+      preserveTitle
+      intro={content.activityIntro}
+    />
+
+    <Panel padding="lg">
+      <AdminActivity client:load config={config} />
+    </Panel>
+  </section>
+</BaseLayout>

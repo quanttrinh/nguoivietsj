@@ -1,0 +1,58 @@
+---
+import { css } from "styled-system/css";
+
+interface Props {
+  id?: string;
+  tone?: "success" | "error";
+  role?: "status" | "alert";
+  focusable?: boolean;
+  hidden?: boolean;
+  class?: string;
+}
+
+const {
+  id,
+  tone = "success",
+  role = "status",
+  focusable = false,
+  hidden = false,
+  class: className,
+}: Props = Astro.props;
+
+const styles = {
+  notice: css({
+    borderRadius: "lg",
+    borderWidth: "thin",
+    borderStyle: "solid",
+    borderColor: "tertiary",
+    backgroundColor: "tertiaryContainer",
+    color: "onTertiaryContainer",
+    paddingInline: "4",
+    paddingBlock: "3.5",
+    fontSize: "sm",
+    lineHeight: "relaxed",
+    _focusVisible: {
+      outlineWidth: "thick",
+      outlineStyle: "solid",
+      outlineColor: "tertiary",
+      outlineOffset: "0.5",
+    },
+    '&[data-tone="error"]': {
+      borderColor: "error",
+      backgroundColor: "errorContainer",
+      color: "onErrorContainer",
+    },
+  }),
+};
+---
+
+<div
+  id={id}
+  class:list={[styles.notice, className]}
+  role={role}
+  tabindex={focusable ? -1 : undefined}
+  data-tone={tone === "error" ? "error" : undefined}
+  hidden={hidden}
+>
+  <slot />
+</div>

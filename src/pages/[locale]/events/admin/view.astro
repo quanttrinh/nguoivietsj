@@ -1,0 +1,70 @@
+---
+import { useDictionary } from "astro-intlayer";
+import { locales } from "intlayer";
+
+import AdminEventDetail from "~/events/admin/ui/AdminEventDetail";
+import engineAdminContent from "~/events/content/admin.content";
+import BaseLayout from "~/layouts/BaseLayout.astro";
+import { DEFAULT_LOCALE } from "~/shared/constants/locales";
+
+export function getStaticPaths(): { params: { locale: string } }[] {
+  return locales.map((locale) => ({ params: { locale } }));
+}
+
+export const prerender = true;
+
+const locale = Astro.params.locale ?? DEFAULT_LOCALE;
+const content = useDictionary(engineAdminContent, locale);
+
+const messages = {
+  event: content.event.value,
+  backToEvents: content.backToEvents.value,
+  editEvent: content.editEvent.value,
+  newForm: content.newForm.value,
+  checkIn: content.checkIn.value,
+  payments: content.payments.value,
+  supportLink: content.supportLink.value,
+  activity: content.activity.value,
+  cloneEvent: content.cloneEvent.value,
+  viewPublicPage: content.viewPublicPage.value,
+  archiveEvent: content.archiveEvent.value,
+  archiveEventConfirm: content.archiveEventConfirm.value,
+  archiveEventFailed: content.archiveEventFailed.value,
+  slug: content.slug.value,
+  defaultLocale: content.defaultLocale.value,
+  registrationCount: content.registrationCount.value,
+  ticketsTotal: content.ticketsTotal.value,
+  ticketTypes: content.ticketTypes.value,
+  addTicketType: content.addTicketType.value,
+  status: content.status.value,
+  price: content.price.value,
+  minMax: content.minMax.value,
+  capacity: content.capacity.value,
+  remaining: content.remaining.value,
+  edit: content.edit.value,
+  active: content.active.value,
+  archived: content.archived.value,
+  formVersions: content.formVersions.value,
+  version: content.version.value,
+  createdAt: content.createdAt.value,
+  preview: content.preview.value,
+  editForm: content.editForm.value,
+  registrations: content.registrations.value,
+  fullName: content.fullName.value,
+  contact: content.contact.value,
+  checkedIn: content.checkedIn.value,
+  notCheckedIn: content.notCheckedIn.value,
+  qrCode: content.qrCode.value,
+  noTicketTypes: content.noTicketTypes.value,
+  noFormVersions: content.noFormVersions.value,
+  noRegistrations: content.noRegistrations.value,
+  loading: content.loading.value,
+  loadFailed: content.loadFailed.value,
+  forbidden: content.forbidden.value,
+  eventNotFound: content.eventNotFound.value,
+};
+---
+
+<BaseLayout title={content.event.value} description={content.intro.value} noindex>
+  <AdminEventDetail client:load locale={locale} messages={messages} />
+</BaseLayout>

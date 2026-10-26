@@ -1,0 +1,56 @@
+---
+import { useDictionary } from "astro-intlayer";
+import { locales } from "intlayer";
+
+import engineRegistrationStatusContent from "~/events/content/status.content";
+import StatusView from "~/events/status/ui/StatusView";
+import BaseLayout from "~/layouts/BaseLayout.astro";
+import { DEFAULT_LOCALE } from "~/shared/constants/locales";
+
+export function getStaticPaths(): { params: { locale: string } }[] {
+  return locales.map((locale) => ({ params: { locale } }));
+}
+
+export const prerender = true;
+
+const locale = Astro.params.locale ?? DEFAULT_LOCALE;
+const content = useDictionary(engineRegistrationStatusContent, locale);
+
+const config = {
+  locale,
+  heading: content.heading.value,
+  intro: content.intro.value,
+  paymentConfirmed: content.paymentConfirmed.value,
+  paymentPending: content.paymentPending.value,
+  noPaymentRequired: content.noPaymentRequired.value,
+  event: content.event.value,
+  fullName: content.fullName.value,
+  registrationId: content.registrationId.value,
+  tickets: content.tickets.value,
+  amountDue: content.amountDue.value,
+  amountPaid: content.amountPaid.value,
+  paymentMethod: content.paymentMethod.value,
+  paymentDate: content.paymentDate.value,
+  paymentNote: content.paymentNote.value,
+  cash: content.cash.value,
+  etransfer: content.etransfer.value,
+  paymentInstructions: content.paymentInstructions.value,
+  etransferInstruction: content.etransferInstruction.value,
+  cashInstruction: content.cashInstruction.value,
+  noPaymentInstructions: content.noPaymentInstructions.value,
+  qrTitle: content.qrTitle.value,
+  qrHelp: content.qrHelp.value,
+  qrPending: content.qrPending.value,
+  checkedIn: content.checkedIn.value,
+  notCheckedIn: content.notCheckedIn.value,
+  checkedInAt: content.checkedInAt.value,
+  backToEvent: content.backToEvent.value,
+  findAnother: content.findAnother.value,
+  loading: content.loading.value,
+  linkInvalid: content.linkInvalid.value,
+};
+---
+
+<BaseLayout title={content.metaTitle.value} description={content.metaDescription.value} noindex>
+  <StatusView client:load config={config} />
+</BaseLayout>

@@ -1,0 +1,11 @@
+---
+import { locales } from "intlayer";
+
+import HomePage from "~/home/ui/HomePage.astro";
+
+export function getStaticPaths(): { params: { locale: string } }[] {
+  return locales.map((locale) => ({ params: { locale } }));
+}
+---
+
+<HomePage />

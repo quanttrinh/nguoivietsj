@@ -1,0 +1,186 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "nguoivietsj",
+  "main": "./src/worker.ts",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "not_found_handling": "404-page",
+  },
+  "routes": [
+    {
+      "pattern": "nguoivietsj.ca",
+      "custom_domain": true,
+    },
+  ],
+  "workers_dev": false,
+  "preview_urls": false,
+  "queues": {
+    "producers": [
+      {
+        "binding": "EMAIL_QUEUE",
+        "queue": "nguoivietsj-emails",
+      },
+    ],
+    "consumers": [
+      {
+        "queue": "nguoivietsj-emails",
+        "max_batch_size": 10,
+        "max_batch_timeout": 5,
+        "max_concurrency": 1,
+        "max_retries": 3,
+        "dead_letter_queue": "nguoivietsj-emails-dlq",
+      },
+      {
+        "queue": "nguoivietsj-emails-dlq",
+        "max_batch_size": 10,
+        "max_batch_timeout": 5,
+        "max_retries": 1,
+      },
+    ],
+  },
+  "secrets": {
+    "required": ["TURNSTILE_SECRET", "MAILTRAP_API_TOKEN"],
+  },
+  "vars": {
+    "TURNSTILE_SITE_KEY": "1x00000000000000000000AA",
+    "TURNSTILE_SCRIPT_URL": "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit",
+    "TURNSTILE_VERIFY_URL": "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+    "TURNSTILE_ALLOW_TEST_KEY": "false",
+    "CF_ACCESS_TEAM_DOMAIN": "",
+    "CF_ACCESS_AUD": "",
+    "MAILTRAP_API_URL": "https://send.api.mailtrap.io/api/send",
+    "MAILTRAP_FROM_EMAIL": "events@nguoivietsj.ca",
+    "MAILTRAP_FROM_NAME": "Người Việt SJ Events",
+    "MAILTRAP_REGISTRATION_TEMPLATE_UUID": "",
+    "MAILTRAP_PAYMENT_TEMPLATE_UUID": "",
+    "MAILTRAP_STATUS_OTP_TEMPLATE_UUID": "",
+  },
+  "ratelimits": [
+    {
+      "name": "EVENT_ENGINE_REGISTRATION_RATE_LIMITER",
+      "namespace_id": "1001",
+      "simple": {
+        "limit": 10,
+        "period": 60,
+      },
+    },
+    {
+      "name": "EVENT_ENGINE_STATUS_RATE_LIMITER",
+      "namespace_id": "1003",
+      "simple": {
+        "limit": 5,
+        "period": 60,
+      },
+    },
+  ],
+  "d1_databases": [
+    {
+      "binding": "APP_DB",
+      "database_name": "nguoivietsj-db",
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "drizzle/app",
+    },
+    {
+      "binding": "EVENT_ENGINE_DB",
+      "database_name": "nguoivietsj-event-engine-db",
+      "database_id": "00000000-0000-0000-0000-000000000001",
+      "migrations_dir": "drizzle/events",
+    },
+  ],
+  "observability": {
+    "enabled": true,
+    "issues": {
+      "enabled": true,
+    },
+  },
+  "env": {
+    "staging": {
+      "name": "nguoivietsj-staging",
+      "routes": [
+        {
+          "pattern": "staging.nguoivietsj.ca",
+          "custom_domain": true,
+        },
+      ],
+      "workers_dev": false,
+      "preview_urls": false,
+      "vars": {
+        "TURNSTILE_SITE_KEY": "1x00000000000000000000AA",
+        "TURNSTILE_SCRIPT_URL": "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit",
+        "TURNSTILE_VERIFY_URL": "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+        "TURNSTILE_ALLOW_TEST_KEY": "false",
+        "CF_ACCESS_TEAM_DOMAIN": "",
+        "CF_ACCESS_AUD": "",
+        "MAILTRAP_API_URL": "https://send.api.mailtrap.io/api/send",
+        "MAILTRAP_FROM_EMAIL": "events@nguoivietsj.ca",
+        "MAILTRAP_FROM_NAME": "Người Việt SJ Events",
+        "MAILTRAP_REGISTRATION_TEMPLATE_UUID": "",
+        "MAILTRAP_PAYMENT_TEMPLATE_UUID": "",
+        "MAILTRAP_STATUS_OTP_TEMPLATE_UUID": "",
+      },
+      "secrets": {
+        "required": ["TURNSTILE_SECRET", "MAILTRAP_API_TOKEN"],
+      },
+      "ratelimits": [
+        {
+          "name": "EVENT_ENGINE_REGISTRATION_RATE_LIMITER",
+          "namespace_id": "1002",
+          "simple": {
+            "limit": 10,
+            "period": 60,
+          },
+        },
+        {
+          "name": "EVENT_ENGINE_STATUS_RATE_LIMITER",
+          "namespace_id": "1004",
+          "simple": {
+            "limit": 5,
+            "period": 60,
+          },
+        },
+      ],
+      "queues": {
+        "producers": [
+          {
+            "binding": "EMAIL_QUEUE",
+            "queue": "nguoivietsj-staging-emails",
+          },
+        ],
+        "consumers": [
+          {
+            "queue": "nguoivietsj-staging-emails",
+            "max_batch_size": 10,
+            "max_batch_timeout": 5,
+            "max_concurrency": 1,
+            "max_retries": 3,
+            "dead_letter_queue": "nguoivietsj-staging-emails-dlq",
+          },
+          {
+            "queue": "nguoivietsj-staging-emails-dlq",
+            "max_batch_size": 10,
+            "max_batch_timeout": 5,
+            "max_retries": 1,
+          },
+        ],
+      },
+      "d1_databases": [
+        {
+          "binding": "APP_DB",
+          "database_name": "nguoivietsj-staging-db",
+          "migrations_dir": "drizzle/app",
+        },
+        {
+          "binding": "EVENT_ENGINE_DB",
+          "database_name": "nguoivietsj-staging-event-engine-db",
+          "migrations_dir": "drizzle/events",
+        },
+      ],
+      "observability": {
+        "enabled": true,
+        "issues": {
+          "enabled": true,
+        },
+      },
+    },
+  },
+}

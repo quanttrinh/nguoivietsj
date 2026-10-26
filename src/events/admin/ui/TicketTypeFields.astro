@@ -1,0 +1,176 @@
+---
+import { useDictionary } from "astro-intlayer";
+import { locales } from "intlayer";
+
+import engineAdminContent from "~/events/content/admin.content";
+import type { TicketTypeRecord } from "~/events/domain/types";
+import { DEFAULT_LOCALE } from "~/shared/constants/locales";
+
+import { adminStyles as styles } from "./styles/admin-styles";
+
+interface Props {
+  locale: string;
+  ticket?: TicketTypeRecord | undefined;
+  removable?: boolean;
+  keyReadOnly?: boolean;
+}
+
+const { locale, ticket, removable = false, keyReadOnly = false }: Props = Astro.props;
+const content = useDictionary(engineAdminContent, locale);
+const languages = locales as readonly string[];
+const label = ticket?.label ?? {};
+const description = ticket?.description ?? {};
+---
+
+<div class={styles.ticketCard} data-ticket>
+  <div class={styles.ticketHeader}>
+    <h3 class={styles.ticketTitle}>{content.ticketTypes}</h3>
+    {removable ? (
+      <qui-button variant="text" size="sm" data-remove-ticket>
+        {content.removeTicketType}
+      </qui-button>
+    ) : null}
+  </div>
+
+  <div class={styles.fieldGrid}>
+    <qui-field class={styles.field}>
+      <qui-field-label>{content.ticketKey}</qui-field-label>
+      <qui-input
+        name="ticketKey"
+        data-ticket-field="key"
+        default-value={ticket?.key ?? ""}
+        input-pattern="[a-z][a-z0-9_]{0,63}"
+        read-only={keyReadOnly || undefined}
+        required
+      ></qui-input>
+      <qui-field-helper-text>a-z, 0-9, _</qui-field-helper-text>
+    </qui-field>
+
+    <qui-field class={styles.field}>
+      <qui-field-label>{content.priceMinor}</qui-field-label>
+      <qui-input
+        name="ticketPrice"
+        data-ticket-field="priceMinor"
+        input-type="number"
+        input-mode-hint="numeric"
+        min={0}
+        step={1}
+        default-value={String(ticket?.priceMinor ?? 0)}
+        required
+      ></qui-input>
+      <qui-field-helper-text>{content.priceMinorHelp}</qui-field-helper-text>
+    </qui-field>
+
+    {languages.map((language) => (
+      <qui-field class={styles.field}>
+        <qui-field-label>
+          {content.ticketLabel} · {language}
+        </qui-field-label>
+        <qui-input
+          name={`ticketLabel-${language}`}
+          data-ticket-label={language}
+          default-value={label[language] ?? ""}
+          required={language === DEFAULT_LOCALE || undefined}
+        ></qui-input>
+      </qui-field>
+    ))}
+
+    {languages.map((language) => (
+      <qui-field class={styles.field}>
+        <qui-field-label>
+          {content.ticketDescription} · {language}
+        </qui-field-label>
+        <qui-input
+          name={`ticketDescription-${language}`}
+          data-ticket-description={language}
+          default-value={description[language] ?? ""}
+        ></qui-input>
+      </qui-field>
+    ))}
+  </div>
+
+  <div class={styles.fieldGrid}>
+    <qui-field class={styles.field}>
+      <qui-field-label>{content.minPerRegistration}</qui-field-label>
+      <qui-input
+        name="ticketMin"
+        data-ticket-field="minPerRegistration"
+        input-type="number"
+        input-mode-hint="numeric"
+        min={0}
+        step={1}
+        default-value={String(ticket?.minPerRegistration ?? 0)}
+        required
+      ></qui-input>
+    </qui-field>
+
+    <qui-field class={styles.field}>
+      <qui-field-label>{content.maxPerRegistration}</qui-field-label>
+      <qui-input
+        name="ticketMax"
+        data-ticket-field="maxPerRegistration"
+        input-type="number"
+        input-mode-hint="numeric"
+        min={0}
+        step={1}
+        default-value={
+          ticket?.maxPerRegistration === null || ticket?.maxPerRegistration === undefined
+            ? ""
+            : String(ticket.maxPerRegistration)
+        }
+      ></qui-input>
+      <qui-field-helper-text>{content.noLimit}</qui-field-helper-text>
+    </qui-field>
+
+    <qui-field class={styles.field}>
+      <qui-field-label>{content.defaultQuantity}</qui-field-label>
+      <qui-input
+        name="ticketDefault"
+        data-ticket-field="defaultQuantity"
+        input-type="number"
+        input-mode-hint="numeric"
+        min={0}
+        step={1}
+        default-value={String(ticket?.defaultQuantity ?? 0)}
+        required
+      ></qui-input>
+    </qui-field>
+
+    <qui-field class={styles.field}>
+      <qui-field-label>{content.capacity}</qui-field-label>
+      <qui-input
+        name="ticketCapacity"
+        data-ticket-field="capacity"
+        input-type="number"
+        input-mode-hint="numeric"
+        min={0}
+        step={1}
+        default-value={
+          ticket?.capacity === null || ticket?.capacity === undefined ? "" : String(ticket.capacity)
+        }
+      ></qui-input>
+      <qui-field-helper-text>{content.noLimit}</qui-field-helper-text>
+    </qui-field>
+
+    <qui-field class={styles.field}>
+      <qui-field-label>{content.sortOrder}</qui-field-label>
+      <qui-input
+        name="ticketSort"
+        data-ticket-field="sortOrder"
+        input-type="number"
+        input-mode-hint="numeric"
+        step={1}
+        default-value={String(ticket?.sortOrder ?? 0)}
+        required
+      ></qui-input>
+    </qui-field>
+
+    <qui-checkbox
+      name="ticketActive"
+      data-ticket-field="active"
+      default-checked={(ticket?.active ?? true) || undefined}
+    >
+      {content.active}
+    </qui-checkbox>
+  </div>
+</div>

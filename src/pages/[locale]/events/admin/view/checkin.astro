@@ -1,0 +1,93 @@
+---
+import { useDictionary } from "astro-intlayer";
+import { locales } from "intlayer";
+
+import AdminCheckinRecent from "~/events/admin/ui/AdminCheckinRecent";
+import AdminCheckinScanner from "~/events/admin/ui/AdminCheckinScanner";
+import AdminPageHeader from "~/events/admin/ui/AdminPageHeader.astro";
+import { adminPageStyles, adminStyles } from "~/events/admin/ui/styles/admin-styles";
+import engineAdminContent from "~/events/content/admin.content";
+import engineCheckinContent from "~/events/content/checkin.content";
+import BaseLayout from "~/layouts/BaseLayout.astro";
+import { DEFAULT_LOCALE } from "~/shared/constants/locales";
+import Panel from "~/shared/ui/Panel.astro";
+
+export function getStaticPaths(): { params: { locale: string } }[] {
+  return locales.map((locale) => ({ params: { locale } }));
+}
+
+export const prerender = true;
+
+const locale = Astro.params.locale ?? DEFAULT_LOCALE;
+const content = useDictionary(engineCheckinContent, locale);
+const adminContent = useDictionary(engineAdminContent, locale);
+
+const styles = {
+  section: adminPageStyles.section,
+  meta: adminPageStyles.meta,
+  badge: adminPageStyles.badge,
+};
+
+const config = {
+  locale,
+  eyebrow: content.eyebrow.value,
+  fullName: adminContent.fullName.value,
+  checkedInAt: content.checkedInAt.value,
+  noRecent: content.noRecent.value,
+  loadFailed: adminContent.loadFailed.value,
+  forbidden: adminContent.forbidden.value,
+  eventNotFound: adminContent.eventNotFound.value,
+  scannerTitle: content.scannerTitle.value,
+  scannerHelp: content.scannerHelp.value,
+  startCamera: content.startCamera.value,
+  stopCamera: content.stopCamera.value,
+  manualTitle: content.manualTitle.value,
+  manualPlaceholder: content.manualPlaceholder.value,
+  lookUp: content.lookUp.value,
+  undo: content.undo.value,
+  scanAgain: content.scanAgain.value,
+  cameraError: content.cameraError.value,
+  cameraUnsupported: content.cameraUnsupported.value,
+  invalidCode: content.invalidCode.value,
+  checkinSuccess: content.checkinSuccess.value,
+  alreadyCheckedIn: content.alreadyCheckedIn.value,
+  checkinFailed: content.checkinFailed.value,
+  registrationNotFound: content.registrationNotFound.value,
+  paymentRequired: content.paymentRequired.value,
+  undoSuccess: content.undoSuccess.value,
+  undoFailed: content.undoFailed.value,
+};
+---
+
+<BaseLayout title={content.eyebrow.value} description={content.intro.value} noindex>
+  <section class={styles.section} id="engine-admin-checkin">
+    <AdminPageHeader
+      backHref={`/${locale}/events/admin`}
+      backId="engine-checkin-back"
+      backLabel={content.backToEvent}
+      eyebrow={content.eyebrow}
+      title=""
+      titleId="engine-checkin-title"
+      preserveTitle
+      intro={content.intro}
+    >
+      <div class={styles.meta}>
+        <span class={styles.badge}>
+          {content.total}: <span id="engine-checkin-total">0</span>
+        </span>
+        <span class={styles.badge}>
+          {adminContent.registrationCount}:<span id="engine-checkin-registrations">0</span>
+        </span>
+      </div>
+    </AdminPageHeader>
+
+    <Panel padding="lg">
+      <AdminCheckinScanner client:load config={config} />
+    </Panel>
+
+    <Panel padding="lg">
+      <h2 class={adminStyles.sectionTitle}>{content.recent}</h2>
+      <AdminCheckinRecent client:load config={config} />
+    </Panel>
+  </section>
+</BaseLayout>

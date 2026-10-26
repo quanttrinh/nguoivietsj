@@ -1,0 +1,91 @@
+---
+import { useDictionary } from "astro-intlayer";
+import { locales } from "intlayer";
+
+import AdminPageHeader from "~/events/admin/ui/AdminPageHeader.astro";
+import AdminSupport from "~/events/admin/ui/AdminSupport";
+import { adminPageStyles } from "~/events/admin/ui/styles/admin-styles";
+import engineAdminContent from "~/events/content/admin.content";
+import BaseLayout from "~/layouts/BaseLayout.astro";
+import { DEFAULT_LOCALE } from "~/shared/constants/locales";
+import Panel from "~/shared/ui/Panel.astro";
+
+export function getStaticPaths(): { params: { locale: string } }[] {
+  return locales.map((locale) => ({ params: { locale } }));
+}
+
+export const prerender = true;
+
+const locale = Astro.params.locale ?? DEFAULT_LOCALE;
+const content = useDictionary(engineAdminContent, locale);
+
+const styles = {
+  section: adminPageStyles.section,
+  actions: adminPageStyles.actions,
+};
+
+const config = {
+  locale,
+  support: content.support.value,
+  results: content.results.value,
+  noResults: content.noResults.value,
+  fullName: content.fullName.value,
+  contact: content.contact.value,
+  ticketsTotal: content.ticketsTotal.value,
+  amountDue: content.amountDue.value,
+  paymentStatus: content.paymentStatus.value,
+  checkinFilter: content.checkinFilter.value,
+  createdAt: content.createdAt.value,
+  qrCode: content.qrCode.value,
+  paid: content.paid.value,
+  unpaid: content.unpaid.value,
+  checkedIn: content.checkedIn.value,
+  notCheckedIn: content.notCheckedIn.value,
+  noPaymentRequired: content.noPaymentRequired.value,
+  cashPayment: content.cashPayment.value,
+  etransferPayment: content.etransferPayment.value,
+  previousPage: content.previousPage.value,
+  nextPage: content.nextPage.value,
+  pageOfParts: content.pageOfParts.map((part) => part.value),
+  loadFailed: content.loadFailed.value,
+  forbidden: content.forbidden.value,
+  eventNotFound: content.eventNotFound.value,
+  search: content.search.value,
+  searchPlaceholder: content.searchPlaceholder.value,
+  paymentFilter: content.paymentFilter.value,
+  all: content.all.value,
+  searchAction: content.searchAction.value,
+  clearFilters: content.clearFilters.value,
+};
+---
+
+<BaseLayout title={content.support.value} description={content.supportIntro.value} noindex>
+  <section class={styles.section} id="engine-admin-support">
+    <AdminPageHeader
+      backHref={`/${locale}/events/admin`}
+      backId="engine-support-back"
+      backLabel={content.backToEvent}
+      eyebrow={content.support}
+      title=""
+      titleId="engine-support-title"
+      preserveTitle
+      intro={content.supportIntro}
+    >
+      <div class={styles.actions}>
+        <qui-button data-event-link="payments" href="#" variant="outlined">
+          {content.payments}
+        </qui-button>
+        <qui-button data-event-link="checkin" href="#" variant="outlined">
+          {content.checkIn}
+        </qui-button>
+        <qui-button data-event-link="activity" href="#" variant="outlined">
+          {content.activity}
+        </qui-button>
+      </div>
+    </AdminPageHeader>
+
+    <Panel padding="lg">
+      <AdminSupport client:load config={config} />
+    </Panel>
+  </section>
+</BaseLayout>

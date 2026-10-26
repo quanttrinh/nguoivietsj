@@ -1,0 +1,70 @@
+---
+---
+
+<script>
+  import "virtual:qui/register?components=qui-button,qui-checkbox,qui-field,qui-field-error-text,qui-field-helper-text,qui-field-label,qui-field-required-indicator,qui-input,qui-option,qui-select,qui-textarea";
+
+  // Fallback for qui versions that do not yet deserialize the JSON default-value attribute on qui-select.
+  const initializeSelectDefaults = (): void => {
+    for (const select of document.querySelectorAll<HTMLQuiSelectElement>(
+      "qui-select[default-value]",
+    )) {
+      if (select.dataset.quiSynced !== "true" && select.defaultValue === undefined) {
+        try {
+          const parsed = JSON.parse(select.getAttribute("default-value") ?? "[]") as unknown;
+
+          if (Array.isArray(parsed)) {
+            select.defaultValue = parsed.map(String);
+          }
+        } catch {
+          // Ignore malformed fallback attributes.
+        }
+
+        select.dataset.quiSynced = "true";
+      }
+    }
+  };
+
+  const bridgeSubmit = (event: Event): void => {
+    const button = event
+      .composedPath()
+      .find(
+        (node): node is HTMLElement =>
+          node instanceof HTMLElement &&
+          node.localName === "qui-button" &&
+          node.getAttribute("type") === "submit",
+      );
+
+    if (button === undefined) {
+      return;
+    }
+
+    const owner = button.closest("form") as HTMLFormElement | null;
+
+    if (owner === null) {
+      return;
+    }
+
+    event.preventDefault();
+
+    const bridge = document.createElement("button");
+    bridge.type = "submit";
+    bridge.hidden = true;
+
+    for (const attribute of button.attributes) {
+      if (attribute.name !== "id" && attribute.name !== "type") {
+        bridge.setAttribute(attribute.name, attribute.value);
+      }
+    }
+
+    // oxlint-disable-next-line unicorn/prefer-dom-node-append -- Workers types shadow DOM append.
+    owner.appendChild(bridge);
+    bridge.click();
+    bridge.remove();
+  };
+
+  await customElements.whenDefined("qui-select");
+  initializeSelectDefaults();
+  document.addEventListener("click", bridgeSubmit);
+  document.addEventListener("astro:page-load", initializeSelectDefaults);
+</script>

@@ -1,0 +1,17 @@
+import "virtual:qui/register?components=qui-accordion";
+import "virtual:qui/register?components=qui-accordion-content";
+import "virtual:qui/register?components=qui-accordion-item";
+import "virtual:qui/register?components=qui-accordion-trigger";
+import "virtual:qui/register?components=qui-button";
+import "virtual:qui/register?components=qui-checkbox";
+import "virtual:qui/register?components=qui-field";
+import "virtual:qui/register?components=qui-field-error-text";
+import "virtual:qui/register?components=qui-field-helper-text";
+import "virtual:qui/register?components=qui-field-label";
+import "virtual:qui/register?components=qui-field-required-indicator";
+import "virtual:qui/register?components=qui-input";
+import "virtual:qui/register?components=qui-option";
+import "virtual:qui/register?components=qui-radio";
+import "virtual:qui/register?components=qui-radio-group";
+import "virtual:qui/register?components=qui-select";
+import "virtual:qui/register?components=qui-textarea";

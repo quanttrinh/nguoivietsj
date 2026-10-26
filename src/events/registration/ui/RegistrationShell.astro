@@ -1,0 +1,127 @@
+---
+import { useDictionary } from "astro-intlayer";
+import { TURNSTILE_SITE_KEY } from "astro:env/client";
+import { locales } from "intlayer";
+
+import engineRegistrationContent from "~/events/content/registration.content";
+import { REGISTRATION_TURNSTILE_ACTION } from "~/events/domain/form-schema/constants";
+import PublicRegistration from "~/events/registration/ui/PublicRegistration";
+import BaseLayout from "~/layouts/BaseLayout.astro";
+
+interface Props {
+  locale: string;
+  preview?: boolean;
+}
+
+const { locale, preview = false }: Props = Astro.props;
+const content = useDictionary(engineRegistrationContent, locale);
+
+const messages = {
+  required: content.errors.required.value,
+  fullName: content.errors.fullName.value,
+  fullNameInvalid: content.errors.fullNameInvalid.value,
+  email: content.errors.email.value,
+  phone: content.errors.phone.value,
+  postalCode: content.errors.postalCode.value,
+  atLeastOneContact: content.errors.atLeastOneContact.value,
+  atLeastOneTicket: content.errors.atLeastOneTicket.value,
+  ticketLimit: content.errors.ticketLimit.value,
+  ticketTypeLimit: content.errors.ticketTypeLimit.value,
+  eventCapacity: content.errors.eventCapacity.value,
+  duplicate: content.errors.duplicate.value,
+  confirmationRequired: content.errors.confirmationRequired.value,
+  confirmationContact: content.errors.confirmationContact.value,
+  confirmationMultiple: content.errors.confirmationMultiple.value,
+  confirmationNotAllowed: content.errors.confirmationNotAllowed.value,
+  duplicateContact: content.errors.duplicateContact.value,
+  invalidValue: content.errors.invalidValue.value,
+  ticketUnavailable: content.errors.ticketUnavailable.value,
+  groupOneOf: content.errors.groupOneOf.value,
+  groupAtLeastOne: content.errors.groupAtLeastOne.value,
+  groupAllOf: content.errors.groupAllOf.value,
+  invalidNumber: content.errors.invalidNumber.value,
+  invalidOption: content.errors.invalidOption.value,
+  submit: content.errors.submit.value,
+  invalidPayload: content.errors.invalidPayload.value,
+  submitting: content.form.submitting.value,
+  successTitle: content.success.title.value,
+  successBody: content.success.body.value,
+  registrationClosed: content.event.registrationClosed.value,
+  eventUnavailable: content.event.unavailable.value,
+  rateLimited: content.errors.rateLimited.value,
+  turnstile: content.errors.turnstile.value,
+};
+
+const config = {
+  locale,
+  languages: locales as string[],
+  eyebrow: content.eyebrow.value,
+  intro: content.intro.value,
+  formTitle: content.form.title.value,
+  formDescription: content.form.description.value,
+  submit: content.form.submit.value,
+  noscript: content.form.noscript.value,
+  successReference: content.success.reference.value,
+  statusLink: content.success.statusLink.value,
+  statusLookup: content.success.statusLookup.value,
+  previewNotice: content.previewNotice.value,
+  infoTitle: content.info.title.value,
+  detailsLabel: content.info.details.value,
+  when: content.event.when.value,
+  location: content.info.location.value,
+  venueTba: content.info.venueTba.value,
+  pricing: content.info.pricing.value,
+  payment: content.info.payment.value,
+  notes: content.info.notes.value,
+  free: content.event.free.value,
+  remainingParts: content.event.remainingParts.map((part) => part.value),
+  soldOut: content.event.soldOut.value,
+  registrationClosed: content.event.registrationClosed.value,
+  registrationClosedBody: content.event.registrationClosedBody.value,
+  unavailable: content.event.unavailable.value,
+  unavailableBody: content.event.unavailableBody.value,
+  etransfer: content.info.etransfer.value,
+  cash: content.info.cash.value,
+  paymentNotConfigured: content.info.paymentNotConfigured.value,
+  fields: {
+    fullNameLabel: content.fields.fullName.label.value,
+    fullNamePlaceholder: content.fields.fullName.placeholder.value,
+    fullNameHelp: content.fields.fullName.help.value,
+    consentLabel: content.fields.consent.label.value,
+    consentHelp: content.fields.consent.help.value,
+    confirmationLabel: content.fields.confirmation.label.value,
+    confirmationHelp: content.fields.confirmation.help.value,
+    confirmationNone: content.fields.confirmation.none.value,
+    mailLabel: content.fields.mail.label.value,
+    mailHelp: content.fields.mail.help.value,
+    mail: {
+      addressLine1: content.mail.addressLine1.value,
+      addressLine2: content.mail.addressLine2.value,
+      city: content.mail.city.value,
+      province: content.mail.province.value,
+      postalCode: content.mail.postalCode.value,
+      country: content.mail.country.value,
+      addressLine1Placeholder: content.mail.addressLine1Placeholder.value,
+      addressLine2Placeholder: content.mail.addressLine2Placeholder.value,
+      cityPlaceholder: content.mail.cityPlaceholder.value,
+      provincePlaceholder: content.mail.provincePlaceholder.value,
+      postalCodePlaceholder: content.mail.postalCodePlaceholder.value,
+      countryPlaceholder: content.mail.countryPlaceholder.value,
+    },
+    groupsNone: content.groups.none.value,
+  },
+  messages,
+  turnstile: {
+    siteKey: TURNSTILE_SITE_KEY.trim(),
+    action: REGISTRATION_TURNSTILE_ACTION,
+  },
+};
+---
+
+<BaseLayout
+  title={content.meta.title.value}
+  description={content.meta.description.value}
+  noindex={preview}
+>
+  <PublicRegistration client:load config={config} preview={preview} />
+</BaseLayout>

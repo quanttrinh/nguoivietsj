@@ -1,0 +1,182 @@
+---
+import { useDictionary } from "astro-intlayer";
+
+import { vstack } from "styled-system/patterns";
+import engineAdminContent from "~/events/content/admin.content";
+import { FORM_VERSION_STATUS } from "~/events/domain/constants";
+import { MAX_FORM_SCHEMA_BYTES } from "~/events/domain/limits";
+import type { EventDetail } from "~/events/domain/types";
+import { stringifyJsonScript } from "~/shared/server/json-script";
+import Notice from "~/shared/ui/Notice.astro";
+import Panel from "~/shared/ui/Panel.astro";
+
+import { adminStyles as styles } from "./styles/admin-styles";
+
+interface Props {
+  locale: string;
+  event: Pick<EventDetail, "id" | "ticketTypes">;
+  schema: unknown;
+  sourceVersion: number | null;
+  nextVersion: number;
+  deferInit?: boolean;
+}
+
+const { locale, event, schema, sourceVersion, nextVersion, deferInit = false }: Props = Astro.props;
+const content = useDictionary(engineAdminContent, locale);
+const activeTicketTypes = event.ticketTypes.filter((ticket) => ticket.active);
+const schemaJson = JSON.stringify(schema, null, 2);
+
+const clientMessages = {
+  formatFailed: content.formatFailed.value,
+  formValidationFailed: content.formValidationFailed.value,
+  saveFailed: content.saveFailed.value,
+  saving: content.saving.value,
+  formSavedDraft: content.formSavedDraft.value,
+  formSavedPublished: content.formSavedPublished.value,
+  loadFailed: content.loadFailed.value,
+};
+
+const builderMessages = {
+  visualBuilder: content.visualBuilder.value,
+  visualBuilderHelp: content.visualBuilderHelp.value,
+  addSection: content.addSection.value,
+  addTextField: content.addTextField.value,
+  fieldLabel: content.fieldLabel.value,
+  fieldRequired: content.fieldRequired.value,
+  fieldWidth: content.fieldWidth.value,
+  widthFull: content.widthFull.value,
+  widthHalf: content.widthHalf.value,
+  moveUp: content.moveUp.value,
+  moveDown: content.moveDown.value,
+  visualBuilderInvalid: content.visualBuilderInvalid.value,
+  advancedBuilder: content.advancedBuilder.value,
+  advancedBuilderHelp: content.advancedBuilderHelp.value,
+  customFields: content.customFields.value,
+  groups: content.groups.value,
+  overrides: content.overrides.value,
+  conditions: content.conditions.value,
+  fieldType: content.fieldType.value,
+  helpText: content.helpText.value,
+  placeholder: content.placeholder.value,
+  optionsHelp: content.optionsHelp.value,
+  membersHelp: content.membersHelp.value,
+  groupMode: content.groupMode.value,
+  groupRenderer: content.groupRenderer.value,
+  conditionField: content.conditionField.value,
+  conditionOperator: content.conditionOperator.value,
+  conditionValue: content.conditionValue.value,
+  conditionType: content.conditionType.value,
+  conditionNodeField: content.conditionNodeField.value,
+  conditionGroupAll: content.conditionGroupAll.value,
+  conditionGroupAny: content.conditionGroupAny.value,
+  conditionGroupNot: content.conditionGroupNot.value,
+  addCondition: content.addCondition.value,
+  addConditionGroup: content.addConditionGroup.value,
+  conditionNodeLimit: content.conditionNodeLimit.value,
+  removeNode: content.removeNode.value,
+  addVisibleWhen: content.addVisibleWhen.value,
+  addRequiredWhen: content.addRequiredWhen.value,
+  minLength: content.minLength.value,
+  maxLength: content.maxLength.value,
+  minValue: content.minValue.value,
+  maxValue: content.maxValue.value,
+  step: content.step.value,
+  rows: content.rows.value,
+  defaultValue: content.defaultValue.value,
+  noCustomFields: content.noCustomFields.value,
+  noGroups: content.noGroups.value,
+};
+
+const json = stringifyJsonScript(clientMessages);
+const builderJson = stringifyJsonScript(builderMessages);
+---
+
+<form
+  id="engine-form-editor"
+  class={styles.form}
+  data-event-id={event.id}
+  data-locale={locale}
+  data-next-version={String(nextVersion)}
+  data-defer-init={deferInit ? "true" : undefined}
+>
+  <Notice id="engine-form-editor-notice" focusable hidden />
+
+  <Panel padding="lg">
+    <div class={vstack({ alignItems: "stretch", gap: "2" })}>
+      <h2 class={styles.sectionTitle}>{content.formSchema}</h2>
+      <p class={styles.sectionDescription}>{content.formEditorCopyNotice}</p>
+      <div class={styles.meta}>
+        <span class={styles.badge}>
+          {content.sourceVersion}:{" "}
+          <span id="engine-form-source-version">
+            {sourceVersion === null ? "—" : sourceVersion}
+          </span>
+        </span>
+        <span class={styles.badge}>
+          {content.newVersion}: <span id="engine-form-next-version">{nextVersion}</span>
+        </span>
+        <span class={styles.badge}>
+          {content.active}: <span id="engine-form-active-tickets">{activeTicketTypes.length}</span>
+        </span>
+      </div>
+      {activeTicketTypes.length === 0 ? (
+        <Notice id="engine-form-no-tickets" tone="error" role="alert">
+          {content.noTicketTypesForForm}
+        </Notice>
+      ) : null}
+    </div>
+
+    <div id="engine-form-builder" class={styles.sectionBody} data-locale={locale}></div>
+
+    <qui-field class={`${styles.field} ${styles.sectionBody}`}>
+      <qui-field-label>{content.formSchema}</qui-field-label>
+      <qui-textarea
+        id="engine-form-schema"
+        default-value={schemaJson}
+        rows={20}
+        resize="vertical"
+        max-length={MAX_FORM_SCHEMA_BYTES}
+        required
+      ></qui-textarea>
+      <qui-field-helper-text>{content.formSchemaHelp}</qui-field-helper-text>
+    </qui-field>
+
+    <div class={styles.actions}>
+      <qui-button id="engine-form-format" variant="outlined">
+        {content.formatJson}
+      </qui-button>
+      <qui-button type="submit" variant="outlined" data-form-status={FORM_VERSION_STATUS.draft}>
+        {content.saveDraft}
+      </qui-button>
+      <qui-button type="submit" variant="filled" data-form-status={FORM_VERSION_STATUS.published}>
+        {content.publishForm}
+      </qui-button>
+      <qui-button
+        id="engine-form-cancel"
+        href={`/${locale}/events/admin/events/${event.id}`}
+        variant="outlined"
+      >
+        {content.cancel}
+      </qui-button>
+    </div>
+  </Panel>
+</form>
+
+<script type="application/json" id="engine-form-editor-messages" set:html={json}></script>
+<script type="application/json" id="engine-form-builder-messages" set:html={builderJson}></script>
+
+<script>
+  import { initEngineFormBuilder } from "~/events/admin/islands/forms/builder";
+  import { initEngineFormEditor } from "~/events/admin/islands/forms/editor";
+
+  const init = (): void => {
+    initEngineFormBuilder();
+    initEngineFormEditor();
+  };
+
+  if (document.querySelector<HTMLElement>("#engine-form-editor")?.dataset.deferInit !== "true") {
+    await customElements.whenDefined("qui-textarea");
+    init();
+    document.addEventListener("astro:page-load", init);
+  }
+</script>

@@ -1,0 +1,117 @@
+---
+import { useIntlayer, useLocale } from "astro-intlayer";
+import { getLocalizedUrl } from "intlayer";
+
+import { css } from "styled-system/css";
+import { circle, flex, grid, hstack, stack, vstack } from "styled-system/patterns";
+import BaseLayout from "~/layouts/BaseLayout.astro";
+import Eyebrow from "~/shared/ui/Eyebrow.astro";
+
+const content = useIntlayer("home");
+const { locale } = useLocale();
+const registrationHref = getLocalizedUrl("/events/", locale);
+
+const styles = {
+  hero: grid({
+    position: "relative",
+    isolation: "isolate",
+    overflow: "hidden",
+    gap: { base: "8", lg: "12" },
+    gridTemplateColumns: { base: "minmax(0, 1fr)", lg: "minmax(0, 1.15fr) minmax(0, 0.85fr)" },
+    alignItems: "center",
+    paddingBlockStart: { base: "6", md: "12" },
+    paddingBlockEnd: { base: "8", md: "16" },
+  }),
+  copy: vstack({
+    alignItems: "flex-start",
+    gap: "5",
+  }),
+  title: css({
+    margin: "0",
+    maxWidth: "2xl",
+    fontFamily: "display",
+    fontSize: { base: "5xl", md: "6xl" },
+    lineHeight: "none",
+    letterSpacing: "tight",
+    fontWeight: "bold",
+    color: "onSurface",
+    textWrap: "balance",
+  }),
+  intro: css({
+    margin: "0",
+    maxWidth: "2xl",
+    fontSize: { base: "lg", md: "xl" },
+    lineHeight: "relaxed",
+    color: "onSurfaceVariant",
+    textWrap: "pretty",
+  }),
+  eventCard: stack({
+    position: "relative",
+    gap: "4",
+    borderRadius: "2xl",
+    backgroundColor: "surfaceContainerLowest",
+    padding: { base: "5", sm: "7" },
+    boxShadow: "lg",
+  }),
+  eventTop: hstack({
+    justify: "space-between",
+    gap: "3",
+  }),
+  eventDot: circle({
+    size: "2.5",
+    backgroundColor: "tertiary",
+    boxShadow: "sm",
+  }),
+  eventTitle: css({
+    margin: "0",
+    fontFamily: "display",
+    fontSize: { base: "2xl", sm: "3xl" },
+    lineHeight: "tight",
+    letterSpacing: "tight",
+    color: "onSurface",
+    textWrap: "balance",
+  }),
+  eventDescription: css({
+    margin: "0",
+    fontSize: "sm",
+    lineHeight: "relaxed",
+    color: "onSurfaceVariant",
+    textWrap: "pretty",
+  }),
+  eventLink: flex({
+    display: "inline-flex",
+    alignSelf: "flex-start",
+    marginBlockStart: "1",
+  }),
+};
+---
+
+<BaseLayout title={content.meta.title} description={content.meta.description}>
+  <section class={styles.hero}>
+    <div class={styles.copy}>
+      <Eyebrow tone="primary">{content.eyebrow}</Eyebrow>
+      <h1 class={styles.title}>{content.heading}</h1>
+      <p class={styles.intro}>{content.intro}</p>
+    </div>
+
+    <div class={styles.eventCard}>
+      <div class={styles.eventTop}>
+        <Eyebrow as="span" tone="tertiary">
+          {content.event.eyebrow}
+        </Eyebrow>
+        <span class={styles.eventDot} aria-hidden="true"></span>
+      </div>
+      <h2 class={styles.eventTitle}>{content.event.title}</h2>
+      <p class={styles.eventDescription}>{content.event.description}</p>
+      <div class={styles.eventLink}>
+        <qui-button href={registrationHref} variant="filled">
+          {content.event.cta}
+        </qui-button>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    import "virtual:qui/register?components=qui-button";
+  </script>
+</BaseLayout>

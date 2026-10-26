@@ -1,0 +1,38 @@
+---
+import { useDictionary } from "astro-intlayer";
+import { locales } from "intlayer";
+
+import AdminCatalog from "~/events/admin/ui/AdminCatalog";
+import engineAdminContent from "~/events/content/admin.content";
+import BaseLayout from "~/layouts/BaseLayout.astro";
+import { DEFAULT_LOCALE } from "~/shared/constants/locales";
+
+export function getStaticPaths(): { params: { locale: string } }[] {
+  return locales.map((locale) => ({ params: { locale } }));
+}
+
+export const prerender = true;
+
+const locale = Astro.params.locale ?? DEFAULT_LOCALE;
+const content = useDictionary(engineAdminContent, locale);
+
+const config = {
+  locale,
+  title: content.title.value,
+  intro: content.intro.value,
+  eyebrow: content.event.value,
+  staffTitle: content.staffTitle.value,
+  staffIntro: content.staffIntro.value,
+  newEvent: content.newEvent.value,
+  noEvents: content.noEvents.value,
+  registrationCount: content.registrationCount.value,
+  ticketsTotal: content.ticketsTotal.value,
+  loading: content.loading.value,
+  loadFailed: content.loadFailed.value,
+  forbidden: content.forbidden.value,
+};
+---
+
+<BaseLayout title={content.title.value} description={content.intro.value} noindex>
+  <AdminCatalog client:load config={config} />
+</BaseLayout>

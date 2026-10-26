@@ -1,0 +1,91 @@
+---
+import { useDictionary } from "astro-intlayer";
+
+import { vstack } from "styled-system/patterns";
+import engineAdminContent from "~/events/content/admin.content";
+import type { TicketTypeRecord } from "~/events/domain/types";
+import { stringifyJsonScript } from "~/shared/server/json-script";
+import Notice from "~/shared/ui/Notice.astro";
+import Panel from "~/shared/ui/Panel.astro";
+
+import { adminStyles as styles } from "./styles/admin-styles";
+import TicketTypeFields from "./TicketTypeFields.astro";
+
+interface Props {
+  locale: string;
+  event: { id: string };
+  ticket?: TicketTypeRecord;
+  mode: "create" | "edit";
+}
+
+const { locale, event, ticket, mode }: Props = Astro.props;
+const content = useDictionary(engineAdminContent, locale);
+
+const clientMessages = {
+  saving: content.saving.value,
+  saveFailed: content.ticketSaveFailed.value,
+  invalidPayload: content.invalidPayload.value,
+  ticketTypeExists: content.ticketTypeExists.value,
+  archiveConfirm: content.archiveTicketConfirm.value,
+  archiveFailed: content.saveFailed.value,
+  loadFailed: content.loadFailed.value,
+};
+
+const json = stringifyJsonScript(clientMessages);
+---
+
+<form
+  id="engine-ticket-type-form"
+  class={styles.form}
+  data-mode={mode}
+  data-locale={locale}
+  data-event-id={event.id}
+  data-ticket-key={ticket?.key ?? ""}
+  novalidate
+>
+  <Notice id="engine-ticket-type-notice" focusable hidden />
+
+  <Panel padding="lg">
+    <div class={vstack({ alignItems: "stretch", gap: "2" })}>
+      <h2 class={styles.sectionTitle}>
+        {mode === "create" ? content.newTicketType : content.editTicketType}
+      </h2>
+      <p class={styles.sectionDescription}>{content.ticketTypeIntro}</p>
+    </div>
+
+    <div class={styles.sectionBody}>
+      <TicketTypeFields locale={locale} ticket={ticket} keyReadOnly={mode === "edit"} />
+    </div>
+  </Panel>
+
+  <div class={styles.actions}>
+    <qui-button id="engine-ticket-type-submit" type="submit" variant="filled">
+      {mode === "create" ? content.addTicketType : content.save}
+    </qui-button>
+    {mode === "edit" ? (
+      <qui-button
+        id="engine-ticket-type-archive"
+        variant="outlined"
+        hidden={ticket?.active !== true}
+      >
+        {content.archiveTicketType}
+      </qui-button>
+    ) : null}
+    <qui-button
+      id="engine-ticket-type-cancel"
+      href={`/${locale}/events/admin/events/${event.id}`}
+      variant="outlined"
+    >
+      {content.cancel}
+    </qui-button>
+  </div>
+</form>
+
+<script type="application/json" id="engine-ticket-type-messages" set:html={json}></script>
+
+<script>
+  import { initEngineTicketTypeForm } from "~/events/admin/islands/forms/ticket-type";
+
+  initEngineTicketTypeForm();
+  document.addEventListener("astro:page-load", initEngineTicketTypeForm);
+</script>

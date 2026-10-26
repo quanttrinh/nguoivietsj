@@ -1,0 +1,512 @@
+---
+import { useDictionary } from "astro-intlayer";
+import { locales } from "intlayer";
+
+import { vstack } from "styled-system/patterns";
+import engineAdminContent from "~/events/content/admin.content";
+import { DEFAULT_CURRENCY, DEFAULT_TIMEZONE, EVENT_STATUS } from "~/events/domain/constants";
+import {
+  MAX_EVENT_ALIASES_TEXT_LENGTH,
+  MAX_EVENT_CASH_ADDRESS_LENGTH,
+  MAX_EVENT_LOCATION_ADDRESS_LENGTH,
+  MAX_EVENT_SUMMARY_LENGTH,
+} from "~/events/domain/limits";
+import type { EventDetail, EventNoteBlock } from "~/events/domain/types";
+import { DEFAULT_LOCALE } from "~/shared/constants/locales";
+import { stringifyJsonScript } from "~/shared/server/json-script";
+import Notice from "~/shared/ui/Notice.astro";
+import Panel from "~/shared/ui/Panel.astro";
+
+import NoteBlockFields from "./NoteBlockFields.astro";
+import { adminStyles as styles } from "./styles/admin-styles";
+import TicketTypeFields from "./TicketTypeFields.astro";
+
+interface Props {
+  locale: string;
+  mode: "create" | "edit" | "clone";
+  event?: EventDetail;
+}
+
+const { locale, mode, event }: Props = Astro.props;
+const content = useDictionary(engineAdminContent, locale);
+const languages = locales as readonly string[];
+const eventStatuses = Object.values(EVENT_STATUS);
+const isEdit = mode === "edit";
+const isClone = mode === "clone";
+const initialTickets = isClone ? (event?.ticketTypes ?? []) : [];
+
+const clientMessages = {
+  saving: content.saving.value,
+  saved: content.saved.value,
+  saveFailed: content.saveFailed.value,
+  invalidPayload: content.invalidPayload.value,
+  eventExists: content.eventExists.value,
+  loadFailed: content.loadFailed.value,
+};
+
+const json = stringifyJsonScript(clientMessages);
+const title = (language: string): string => event?.title[language] ?? "";
+const summary = (language: string): string => event?.summary[language] ?? "";
+const defaultEventLocale = event?.defaultLocale ?? DEFAULT_LOCALE;
+const defaultAliases = isClone ? "" : (event?.aliases.join("\n") ?? "");
+const defaultStatus = isClone ? EVENT_STATUS.draft : (event?.status ?? EVENT_STATUS.draft);
+const defaultEnabled = isClone ? false : (event?.enabled ?? false);
+const defaultRegistrationOpen = isClone ? false : (event?.registrationOpen ?? false);
+const defaultSlug = isClone ? `${event?.slug ?? ""}-copy` : "";
+const defaultEventType = event?.eventType ?? "";
+const defaultEditionYear = isClone
+  ? (event?.editionYear ?? new Date().getFullYear()) + 1
+  : (event?.editionYear ?? 2027);
+const defaultCurrency = event?.limits.currency ?? DEFAULT_CURRENCY;
+const defaultMaxTickets = event?.limits.maxTicketsPerRegistration ?? null;
+const defaultMaxTotal = event?.limits.maxTotalTickets ?? null;
+const defaultLocation = event?.location ?? {
+  name: "",
+  address: "",
+  mapUrl: null,
+  mapEmbedUrl: null,
+};
+const defaultPayments = event?.payments ?? {
+  etransfer: { enabled: false, email: null },
+  cash: { enabled: false, address: null, mapUrl: null, mapEmbedUrl: null },
+};
+const notes = event?.notes ?? {};
+const emptyParagraph: EventNoteBlock = { type: "paragraph", text: "" };
+const emptyBullets: EventNoteBlock = { type: "bullets", items: [""] };
+const emptyLink: EventNoteBlock = { type: "link", label: "", href: "" };
+let intro = content.editEventIntro;
+let submitLabel = content.saveEvent;
+
+if (mode === "create") {
+  intro = content.createEventIntro;
+  submitLabel = content.createEvent;
+} else if (mode === "clone") {
+  intro = content.cloneEventIntro;
+  submitLabel = content.cloneEvent;
+}
+---
+
+<form
+  id="engine-event-form"
+  class={styles.form}
+  data-mode={mode}
+  data-event-id={event?.id ?? ""}
+  data-locale={locale}
+  data-default-locale={defaultEventLocale}
+  novalidate
+>
+  <Notice id="engine-event-notice" focusable hidden />
+
+  <Panel padding="lg">
+    <div class={vstack({ alignItems: "stretch", gap: "2" })}>
+      <h2 class={styles.sectionTitle}>{content.eventIdentity}</h2>
+      <p class={styles.sectionDescription}>{intro}</p>
+    </div>
+
+    <div class={`${styles.fieldGrid} ${styles.sectionBody}`}>
+      {!isEdit ? (
+        <>
+          <qui-field class={styles.field}>
+            <qui-field-label>{content.slug}</qui-field-label>
+            <qui-input
+              name="slug"
+              input-pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
+              max-length={80}
+              default-value={defaultSlug}
+              required
+            ></qui-input>
+            <qui-field-helper-text>lowercase-with-hyphens</qui-field-helper-text>
+          </qui-field>
+
+          <qui-field class={styles.field}>
+            <qui-field-label>{content.eventType}</qui-field-label>
+            <qui-input
+              name="eventType"
+              input-pattern="[a-z][a-z0-9-]*"
+              max-length={40}
+              default-value={defaultEventType}
+              required
+            ></qui-input>
+            <qui-field-helper-text>lowercase-with-hyphens</qui-field-helper-text>
+          </qui-field>
+
+          <qui-field class={styles.field}>
+            <qui-field-label>{content.editionYear}</qui-field-label>
+            <qui-input
+              name="editionYear"
+              input-type="number"
+              input-mode-hint="numeric"
+              min={2000}
+              max={2100}
+              step={1}
+              default-value={String(defaultEditionYear)}
+              required
+            ></qui-input>
+          </qui-field>
+        </>
+      ) : (
+        <div class={styles.fieldWide}>
+          <p class={styles.readOnly}>
+            {content.slug}: <strong id="engine-event-slug">{event?.slug}</strong> ·{" "}
+            {content.eventType}: <strong id="engine-event-type">{event?.eventType}</strong> ·{" "}
+            {content.editionYear}: <strong id="engine-event-year">{event?.editionYear}</strong>
+          </p>
+        </div>
+      )}
+
+      <qui-field class={styles.field}>
+        <qui-field-label>{content.status}</qui-field-label>
+        <qui-select name="status" default-value={JSON.stringify([defaultStatus])}>
+          {eventStatuses.map((status) => (
+            <qui-option value={status}>{status}</qui-option>
+          ))}
+        </qui-select>
+      </qui-field>
+
+      <qui-field class={styles.field}>
+        <qui-field-label>{content.defaultLocale}</qui-field-label>
+        <qui-select name="defaultLocale" default-value={JSON.stringify([defaultEventLocale])}>
+          {languages.map((language) => (
+            <qui-option value={language}>{language.toUpperCase()}</qui-option>
+          ))}
+        </qui-select>
+        <qui-field-helper-text>{content.defaultLocaleHelp}</qui-field-helper-text>
+      </qui-field>
+
+      <qui-field class={styles.field}>
+        <qui-field-label>{content.aliases}</qui-field-label>
+        <qui-textarea
+          name="aliases"
+          rows={3}
+          max-length={MAX_EVENT_ALIASES_TEXT_LENGTH}
+          default-value={defaultAliases}
+        ></qui-textarea>
+        <qui-field-helper-text>{content.aliasesHelp}</qui-field-helper-text>
+      </qui-field>
+
+      <qui-field class={styles.field}>
+        <qui-field-label>{content.timezone}</qui-field-label>
+        <qui-input
+          name="timezone"
+          default-value={event?.timezone ?? DEFAULT_TIMEZONE}
+          required
+        ></qui-input>
+      </qui-field>
+
+      <div class={styles.fieldWide}>
+        <qui-checkbox name="enabled" default-checked={defaultEnabled || undefined}>
+          {content.enabled}
+        </qui-checkbox>
+      </div>
+
+      <div class={styles.fieldWide}>
+        <qui-checkbox
+          name="registrationOpen"
+          default-checked={defaultRegistrationOpen || undefined}
+        >
+          {content.registrationOpen}
+        </qui-checkbox>
+      </div>
+    </div>
+  </Panel>
+
+  <Panel padding="lg">
+    <h2 class={styles.sectionTitle}>{content.localizedContent}</h2>
+
+    <div class={`${styles.fieldGrid} ${styles.sectionBody}`}>
+      {languages.map((language) => (
+        <qui-field class={styles.field}>
+          <qui-field-label>
+            {content.eventTitle} · {language.toUpperCase()}
+          </qui-field-label>
+          <qui-input
+            name={`title-${language}`}
+            data-locale-title={language}
+            default-value={title(language)}
+          ></qui-input>
+          {language === defaultEventLocale ? null : (
+            <qui-field-helper-text>{content.optionalTranslation}</qui-field-helper-text>
+          )}
+        </qui-field>
+      ))}
+
+      {languages.map((language) => (
+        <qui-field class={styles.field}>
+          <qui-field-label>
+            {content.summary} · {language.toUpperCase()}
+          </qui-field-label>
+          <qui-textarea
+            name={`summary-${language}`}
+            data-locale-summary={language}
+            default-value={summary(language)}
+            rows={3}
+            max-length={MAX_EVENT_SUMMARY_LENGTH}
+          ></qui-textarea>
+          {language === defaultEventLocale ? null : (
+            <qui-field-helper-text>{content.optionalTranslation}</qui-field-helper-text>
+          )}
+        </qui-field>
+      ))}
+
+      <qui-field class={styles.field}>
+        <qui-field-label>{content.startsAt}</qui-field-label>
+        <qui-input
+          name="startsAt"
+          data-iso-value={event?.startsAt ?? ""}
+          placeholder="YYYY-MM-DDTHH:mm"
+        ></qui-input>
+      </qui-field>
+
+      <qui-field class={styles.field}>
+        <qui-field-label>{content.endsAt}</qui-field-label>
+        <qui-input
+          name="endsAt"
+          data-iso-value={event?.endsAt ?? ""}
+          placeholder="YYYY-MM-DDTHH:mm"
+        ></qui-input>
+      </qui-field>
+    </div>
+  </Panel>
+
+  <Panel padding="lg">
+    <h2 class={styles.sectionTitle}>{content.eventLocation}</h2>
+    <p class={styles.sectionDescription}>{content.optionalUrl}</p>
+
+    <div class={`${styles.fieldGrid} ${styles.sectionBody}`}>
+      <qui-field class={styles.field}>
+        <qui-field-label>{content.locationName}</qui-field-label>
+        <qui-input name="locationName" default-value={defaultLocation.name}></qui-input>
+      </qui-field>
+
+      <qui-field class={styles.field}>
+        <qui-field-label>{content.locationMapUrl}</qui-field-label>
+        <qui-input
+          name="locationMapUrl"
+          input-mode-hint="url"
+          default-value={defaultLocation.mapUrl ?? ""}
+        ></qui-input>
+        <qui-field-helper-text>{content.optionalUrl}</qui-field-helper-text>
+      </qui-field>
+
+      <qui-field class={`${styles.field} ${styles.fieldWide}`}>
+        <qui-field-label>{content.locationAddress}</qui-field-label>
+        <qui-textarea
+          name="locationAddress"
+          rows={3}
+          max-length={MAX_EVENT_LOCATION_ADDRESS_LENGTH}
+          default-value={defaultLocation.address}
+        ></qui-textarea>
+      </qui-field>
+
+      <qui-field class={`${styles.field} ${styles.fieldWide}`}>
+        <qui-field-label>{content.locationMapEmbedUrl}</qui-field-label>
+        <qui-input
+          name="locationMapEmbedUrl"
+          input-mode-hint="url"
+          default-value={defaultLocation.mapEmbedUrl ?? ""}
+        ></qui-input>
+        <qui-field-helper-text>{content.optionalUrl}</qui-field-helper-text>
+      </qui-field>
+    </div>
+  </Panel>
+
+  <Panel padding="lg">
+    <h2 class={styles.sectionTitle}>{content.eventLimits}</h2>
+
+    <div class={`${styles.fieldGrid} ${styles.sectionBody}`}>
+      <qui-field class={styles.field}>
+        <qui-field-label>{content.currency}</qui-field-label>
+        <qui-input
+          name="currency"
+          max-length={3}
+          input-pattern="[A-Z]{3}"
+          default-value={defaultCurrency}
+          required
+        ></qui-input>
+      </qui-field>
+
+      <qui-field class={styles.field}>
+        <qui-field-label>{content.maxTicketsPerRegistration}</qui-field-label>
+        <qui-input
+          name="maxTicketsPerRegistration"
+          input-type="number"
+          input-mode-hint="numeric"
+          min={0}
+          step={1}
+          default-value={defaultMaxTickets === null ? "" : String(defaultMaxTickets)}
+        ></qui-input>
+        <qui-field-helper-text>{content.noLimit}</qui-field-helper-text>
+      </qui-field>
+
+      <qui-field class={styles.field}>
+        <qui-field-label>{content.maxTotalTickets}</qui-field-label>
+        <qui-input
+          name="maxTotalTickets"
+          input-type="number"
+          input-mode-hint="numeric"
+          min={0}
+          step={1}
+          default-value={defaultMaxTotal === null ? "" : String(defaultMaxTotal)}
+        ></qui-input>
+        <qui-field-helper-text>{content.noLimit}</qui-field-helper-text>
+      </qui-field>
+    </div>
+  </Panel>
+
+  <Panel padding="lg">
+    <h2 class={styles.sectionTitle}>{content.paymentMethods}</h2>
+
+    <div class={`${styles.fieldGrid} ${styles.sectionBody}`}>
+      <div class={styles.fieldWide}>
+        <qui-checkbox
+          name="etransferEnabled"
+          default-checked={defaultPayments.etransfer.enabled || undefined}
+        >
+          {content.etransferPayment}
+        </qui-checkbox>
+      </div>
+
+      <qui-field class={styles.field}>
+        <qui-field-label>{content.etransferEmail}</qui-field-label>
+        <qui-input
+          name="etransferEmail"
+          input-type="email"
+          input-mode-hint="email"
+          autocomplete="email"
+          default-value={defaultPayments.etransfer.email ?? ""}
+        ></qui-input>
+      </qui-field>
+
+      <div class={styles.fieldWide}>
+        <qui-checkbox
+          name="cashEnabled"
+          default-checked={defaultPayments.cash.enabled || undefined}
+        >
+          {content.cashPayment}
+        </qui-checkbox>
+      </div>
+
+      <qui-field class={`${styles.field} ${styles.fieldWide}`}>
+        <qui-field-label>{content.cashAddress}</qui-field-label>
+        <qui-textarea
+          name="cashAddress"
+          rows={3}
+          max-length={MAX_EVENT_CASH_ADDRESS_LENGTH}
+          default-value={defaultPayments.cash.address ?? ""}
+        ></qui-textarea>
+      </qui-field>
+
+      <qui-field class={styles.field}>
+        <qui-field-label>{content.cashMapUrl}</qui-field-label>
+        <qui-input
+          name="cashMapUrl"
+          input-mode-hint="url"
+          default-value={defaultPayments.cash.mapUrl ?? ""}
+        ></qui-input>
+        <qui-field-helper-text>{content.optionalUrl}</qui-field-helper-text>
+      </qui-field>
+
+      <qui-field class={styles.field}>
+        <qui-field-label>{content.cashMapEmbedUrl}</qui-field-label>
+        <qui-input
+          name="cashMapEmbedUrl"
+          input-mode-hint="url"
+          default-value={defaultPayments.cash.mapEmbedUrl ?? ""}
+        ></qui-input>
+        <qui-field-helper-text>{content.optionalUrl}</qui-field-helper-text>
+      </qui-field>
+    </div>
+  </Panel>
+
+  <Panel padding="lg">
+    <h2 class={styles.sectionTitle}>{content.notesSection}</h2>
+    <p class={styles.sectionDescription}>{content.notesHelp}</p>
+
+    <div class={`${vstack({ alignItems: "stretch", gap: "3" })} ${styles.sectionBody}`}>
+      {languages.map((language) => (
+        <details class={styles.noteDetails}>
+          <summary class={styles.noteSummary}>
+            {content.notesSection} · {language.toUpperCase()}
+          </summary>
+          <div class={styles.noteEditor} data-note-editor data-note-locale={language}>
+            <div class={styles.noteEditor} data-note-blocks>
+              {(notes[language] ?? []).map((block) => (
+                <NoteBlockFields locale={locale} block={block} />
+              ))}
+            </div>
+            <div class={styles.actions}>
+              <qui-button variant="outlined" size="sm" data-add-note-block="paragraph">
+                {content.addParagraph}
+              </qui-button>
+              <qui-button variant="outlined" size="sm" data-add-note-block="bullets">
+                {content.addBulletList}
+              </qui-button>
+              <qui-button variant="outlined" size="sm" data-add-note-block="link">
+                {content.addLink}
+              </qui-button>
+            </div>
+          </div>
+        </details>
+      ))}
+    </div>
+
+    <template id="note-template-paragraph">
+      <NoteBlockFields locale={locale} block={emptyParagraph} />
+    </template>
+    <template id="note-template-bullets">
+      <NoteBlockFields locale={locale} block={emptyBullets} />
+    </template>
+    <template id="note-template-link">
+      <NoteBlockFields locale={locale} block={emptyLink} />
+    </template>
+  </Panel>
+
+  {!isEdit ? (
+    <Panel padding="lg">
+      <h2 class={styles.sectionTitle}>{content.initialTicketTypes}</h2>
+      <div
+        id="ticket-types"
+        class={`${vstack({ alignItems: "stretch", gap: "4" })} ${styles.sectionBody}`}
+      >
+        {initialTickets.length > 0 ? (
+          initialTickets.map((ticket) => (
+            <TicketTypeFields locale={locale} ticket={ticket} removable />
+          ))
+        ) : (
+          <TicketTypeFields locale={locale} removable />
+        )}
+      </div>
+      <template id="ticket-type-template">
+        <TicketTypeFields locale={locale} removable />
+      </template>
+      <div class={styles.actions}>
+        <qui-button id="add-ticket-type" variant="outlined" size="sm">
+          {content.addTicketType}
+        </qui-button>
+      </div>
+    </Panel>
+  ) : null}
+
+  <div class={styles.actions}>
+    <qui-button id="engine-event-submit" type="submit" variant="filled">
+      {submitLabel}
+    </qui-button>
+    <qui-button
+      id="engine-event-cancel"
+      href={!isEdit ? `/${locale}/events/admin` : `/${locale}/events/admin/events/${event?.id}`}
+      variant="outlined"
+    >
+      {content.cancel}
+    </qui-button>
+  </div>
+</form>
+
+<script type="application/json" id="engine-event-messages" set:html={json}></script>
+
+<script>
+  import { initEngineEventForm } from "~/events/admin/islands/forms/event";
+
+  await customElements.whenDefined("qui-input");
+  initEngineEventForm();
+  document.addEventListener("astro:page-load", initEngineEventForm);
+</script>

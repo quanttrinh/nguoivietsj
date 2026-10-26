@@ -1,0 +1,50 @@
+---
+import { useDictionary } from "astro-intlayer";
+import { locales } from "intlayer";
+
+import { center } from "styled-system/patterns";
+import AdminQr from "~/events/admin/ui/AdminQr";
+import engineAdminContent from "~/events/content/admin.content";
+import engineCheckinContent from "~/events/content/checkin.content";
+import BaseLayout from "~/layouts/BaseLayout.astro";
+import { DEFAULT_LOCALE } from "~/shared/constants/locales";
+import Panel from "~/shared/ui/Panel.astro";
+
+export function getStaticPaths(): { params: { locale: string } }[] {
+  return locales.map((locale) => ({ params: { locale } }));
+}
+
+export const prerender = true;
+
+const locale = Astro.params.locale ?? DEFAULT_LOCALE;
+const content = useDictionary(engineCheckinContent, locale);
+const adminContent = useDictionary(engineAdminContent, locale);
+
+const styles = {
+  section: center({ paddingBlockStart: { base: "2", md: "3" } }),
+};
+
+const config = {
+  locale,
+  qrTitle: content.qrTitle.value,
+  qrHelp: content.qrHelp.value,
+  printQr: content.printQr.value,
+  openScanner: content.openScanner.value,
+  openPayments: content.openPayments.value,
+  paymentPendingQr: content.paymentPendingQr.value,
+  backToEvent: content.backToEvent.value,
+  loadFailed: adminContent.loadFailed.value,
+  forbidden: adminContent.forbidden.value,
+  eventNotFound: adminContent.eventNotFound.value,
+  registrationNotFound: content.registrationNotFound.value,
+  loading: adminContent.loading.value,
+};
+---
+
+<BaseLayout title={content.qrTitle.value} description={content.qrHelp.value} noindex>
+  <section class={styles.section}>
+    <Panel padding="lg">
+      <AdminQr client:load config={config} />
+    </Panel>
+  </section>
+</BaseLayout>

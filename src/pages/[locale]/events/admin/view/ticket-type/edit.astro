@@ -1,0 +1,46 @@
+---
+import { useDictionary } from "astro-intlayer";
+import { locales } from "intlayer";
+
+import AdminPageHeader from "~/events/admin/ui/AdminPageHeader.astro";
+import { adminPageStyles } from "~/events/admin/ui/styles/admin-styles";
+import TicketTypeForm from "~/events/admin/ui/TicketTypeForm.astro";
+import engineAdminContent from "~/events/content/admin.content";
+import BaseLayout from "~/layouts/BaseLayout.astro";
+import { DEFAULT_LOCALE } from "~/shared/constants/locales";
+
+export function getStaticPaths(): { params: { locale: string } }[] {
+  return locales.map((locale) => ({ params: { locale } }));
+}
+
+export const prerender = true;
+
+const locale = Astro.params.locale ?? DEFAULT_LOCALE;
+const content = useDictionary(engineAdminContent, locale);
+---
+
+<BaseLayout
+  title={content.editTicketType.value}
+  description={content.ticketTypeIntro.value}
+  noindex
+>
+  <section class={adminPageStyles.section}>
+    <AdminPageHeader
+      backHref={`/${locale}/events/admin`}
+      backId="engine-ticket-type-back"
+      backLabel={content.backToEvent}
+      eyebrow={content.ticketTypes}
+      title={content.editTicketType}
+    />
+
+    <TicketTypeForm locale={locale} event={{ id: "" }} mode="edit" />
+  </section>
+
+  <script>
+    import { initTicketTypeLoader } from "~/events/admin/islands/forms/ticket-type-load";
+
+    await customElements.whenDefined("qui-select");
+    initTicketTypeLoader();
+    document.addEventListener("astro:page-load", initTicketTypeLoader);
+  </script>
+</BaseLayout>

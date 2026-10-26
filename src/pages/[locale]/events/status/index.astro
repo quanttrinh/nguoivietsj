@@ -1,0 +1,75 @@
+---
+import { useDictionary } from "astro-intlayer";
+import { locales } from "intlayer";
+
+import { css } from "styled-system/css";
+import { vstack } from "styled-system/patterns";
+import engineRegistrationStatusContent from "~/events/content/status.content";
+import StatusRequest from "~/events/status/ui/StatusRequest";
+import BaseLayout from "~/layouts/BaseLayout.astro";
+import { DEFAULT_LOCALE } from "~/shared/constants/locales";
+import Eyebrow from "~/shared/ui/Eyebrow.astro";
+import Panel from "~/shared/ui/Panel.astro";
+import QuiFormRuntime from "~/shared/ui/QuiFormRuntime.astro";
+
+export function getStaticPaths(): { params: { locale: string } }[] {
+  return locales.map((locale) => ({ params: { locale } }));
+}
+
+export const prerender = true;
+
+const locale = Astro.params.locale ?? DEFAULT_LOCALE;
+const content = useDictionary(engineRegistrationStatusContent, locale);
+
+const styles = {
+  section: vstack({ alignItems: "stretch", gap: "6", paddingBlockStart: { base: "2", md: "3" } }),
+  title: css({
+    margin: "0",
+    fontFamily: "display",
+    fontSize: { base: "4xl", md: "5xl" },
+    lineHeight: "none",
+    letterSpacing: "tight",
+    fontWeight: "bold",
+  }),
+  intro: css({ margin: "0", maxWidth: "2xl", fontSize: "md", color: "onSurfaceVariant" }),
+  link: css({
+    fontSize: "sm",
+    fontWeight: "semibold",
+    color: "primary",
+    textDecoration: "underline",
+    textUnderlineOffset: "0.5",
+  }),
+};
+
+const config = {
+  locale,
+  registrationId: content.registrationId.value,
+  emailLabel: content.emailLabel.value,
+  requestCode: content.requestCode.value,
+  codeLabel: content.codeLabel.value,
+  verifyCode: content.verifyCode.value,
+  codeSent: content.codeSent.value,
+  rateLimited: content.codeRateLimited.value,
+  codeUnavailable: content.codeUnavailable.value,
+  codeInvalid: content.codeInvalid.value,
+  codeLocked: content.codeLocked.value,
+  emailMismatch: content.emailMismatch.value,
+};
+---
+
+<BaseLayout title={content.metaTitle.value} description={content.metaDescription.value} noindex>
+  <section id="engine-status-request" class={styles.section}>
+    <Eyebrow>{content.eyebrow}</Eyebrow>
+    <h1 class={styles.title}>{content.accessTitle}</h1>
+    <p class={styles.intro}>{content.accessIntro}</p>
+    <a class={styles.link} href={`/${locale}/events`}>
+      {content.backToEvents}
+    </a>
+
+    <Panel padding="lg" maxWidth="2xl">
+      <StatusRequest client:load config={config} />
+    </Panel>
+  </section>
+
+  <QuiFormRuntime />
+</BaseLayout>

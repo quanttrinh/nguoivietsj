@@ -1,0 +1,16 @@
+---
+import { locales } from "intlayer";
+
+import RegistrationShell from "~/events/registration/ui/RegistrationShell.astro";
+import { DEFAULT_LOCALE } from "~/shared/constants/locales";
+
+export function getStaticPaths(): { params: { locale: string } }[] {
+  return locales.map((locale) => ({ params: { locale } }));
+}
+
+export const prerender = true;
+
+const locale = Astro.params.locale ?? DEFAULT_LOCALE;
+---
+
+<RegistrationShell locale={locale} />

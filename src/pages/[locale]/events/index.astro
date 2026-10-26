@@ -1,0 +1,168 @@
+---
+import { useDictionary } from "astro-intlayer";
+import { env } from "cloudflare:workers";
+
+import { css } from "styled-system/css";
+import { grid, vstack, wrap } from "styled-system/patterns";
+import { createEngineDb } from "~/db/events";
+import engineEventsContent from "~/events/content/events.content";
+import { localized } from "~/events/domain/localized";
+import type { PublicEventSummary } from "~/events/domain/types";
+import { EVENT_LIST_CACHE_TAG } from "~/events/server/cache";
+import BaseLayout from "~/layouts/BaseLayout.astro";
+import { DEFAULT_LOCALE, SUPPORTED_LOCALES } from "~/shared/constants/locales";
+import Eyebrow from "~/shared/ui/Eyebrow.astro";
+import Panel from "~/shared/ui/Panel.astro";
+import { dateTimeFormatter } from "~/shared/utils/format";
+
+export const prerender = false;
+
+const { locale } = Astro.params;
+
+if (locale === undefined || !SUPPORTED_LOCALES.has(locale)) {
+  return new Response("Not found", { status: 404 });
+}
+
+const content = useDictionary(engineEventsContent, locale ?? DEFAULT_LOCALE);
+const events = await createEngineDb(env.EVENT_ENGINE_DB).events.listPublicSummaries(
+  new Date().toISOString(),
+);
+
+if (Astro.cache.enabled) {
+  Astro.cache.set({
+    tags: [EVENT_LIST_CACHE_TAG],
+  });
+}
+
+const dateFormatters = new Map<string, Intl.DateTimeFormat>();
+
+function formatDate(event: PublicEventSummary): string | null {
+  if (event.startsAt === null) {
+    return null;
+  }
+
+  let formatter = dateFormatters.get(event.timezone);
+
+  if (formatter === undefined) {
+    formatter = dateTimeFormatter(locale ?? DEFAULT_LOCALE, event.timezone);
+    dateFormatters.set(event.timezone, formatter);
+  }
+
+  try {
+    return formatter.format(new Date(event.startsAt));
+  } catch {
+    return event.startsAt;
+  }
+}
+
+const styles = {
+  section: vstack({ alignItems: "stretch", gap: "7", paddingBlockStart: { base: "2", md: "3" } }),
+  heading: vstack({ alignItems: "stretch", gap: "2" }),
+  title: css({
+    margin: "0",
+    fontFamily: "display",
+    fontSize: { base: "4xl", md: "5xl" },
+    lineHeight: "none",
+    letterSpacing: "tight",
+    fontWeight: "bold",
+  }),
+  intro: css({ margin: "0", maxWidth: "2xl", fontSize: "md", color: "onSurfaceVariant" }),
+  list: grid({ gap: "4", gridTemplateColumns: { base: "1fr", md: "1fr 1fr" } }),
+  card: css({
+    display: "block",
+    borderRadius: "xl",
+    borderWidth: "thin",
+    borderStyle: "solid",
+    borderColor: "outlineVariant",
+    backgroundColor: "surfaceContainerLowest",
+    padding: "5",
+    color: "inherit",
+    textDecoration: "none",
+    _hover: { borderColor: "primary", backgroundColor: "surfaceContainerLow" },
+    _focusVisible: {
+      outlineWidth: "thick",
+      outlineStyle: "solid",
+      outlineColor: "primary",
+      outlineOffset: "1",
+    },
+  }),
+  cardTitle: css({
+    margin: "0",
+    fontFamily: "display",
+    fontSize: "2xl",
+    fontWeight: "bold",
+    letterSpacing: "tight",
+  }),
+  summary: css({
+    margin: "0",
+    marginBlockStart: "2",
+    fontSize: "sm",
+    lineHeight: "relaxed",
+    color: "onSurfaceVariant",
+  }),
+  meta: wrap({ gap: "2", marginBlockStart: "4", fontSize: "sm", color: "onSurfaceVariant" }),
+  badge: css({
+    borderRadius: "full",
+    backgroundColor: "surfaceContainerHigh",
+    paddingInline: "2.5",
+    paddingBlock: "0.5",
+    fontSize: "xs",
+    fontWeight: "semibold",
+  }),
+  cta: css({
+    display: "inline-block",
+    marginBlockStart: "4",
+    color: "primary",
+    fontSize: "sm",
+    fontWeight: "semibold",
+    textDecoration: "underline",
+    textUnderlineOffset: "0.5",
+  }),
+  empty: css({ margin: "0", fontSize: "sm", color: "onSurfaceVariant" }),
+  actions: wrap({ align: "center", gap: "3", marginBlockStart: "4" }),
+};
+---
+
+<BaseLayout title={content.meta.title} description={content.meta.description}>
+  <section class={styles.section}>
+    <div class={styles.heading}>
+      <Eyebrow>{content.eyebrow}</Eyebrow>
+      <h1 class={styles.title}>{content.title}</h1>
+      <p class={styles.intro}>{content.intro}</p>
+    </div>
+
+    {events.length === 0 ? (
+      <Panel padding="lg">
+        <p class={styles.empty}>{content.noEvents}</p>
+      </Panel>
+    ) : (
+      <div class={styles.list}>
+        {events.map((event) => {
+          const when = formatDate(event);
+          const summary = localized(
+            event.summary,
+            locale ?? DEFAULT_LOCALE,
+            "",
+            event.defaultLocale,
+          );
+
+          return (
+            <a class={styles.card} href={`/${locale}/events/registration?slug=${event.slug}`}>
+              <h2 class={styles.cardTitle}>
+                {localized(event.title, locale ?? DEFAULT_LOCALE, event.slug, event.defaultLocale)}
+              </h2>
+              {summary.length > 0 ? <p class={styles.summary}>{summary}</p> : null}
+              <div class={styles.meta}>
+                {when !== null ? <span>{when}</span> : null}
+                <span class={styles.badge}>
+                  {event.registrationOpen ? content.register : content.registrationClosed}
+                </span>
+              </div>
+              <span class={styles.cta}>{content.viewEvent}</span>
+            </a>
+          );
+        })}
+      </div>
+    )}
+  </section>
+</BaseLayout>

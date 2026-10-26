@@ -1,0 +1,75 @@
+---
+import { useDictionary } from "astro-intlayer";
+import { locales } from "intlayer";
+
+import AdminPageHeader from "~/events/admin/ui/AdminPageHeader.astro";
+import AdminPayments from "~/events/admin/ui/AdminPayments";
+import { adminPageStyles } from "~/events/admin/ui/styles/admin-styles";
+import engineAdminContent from "~/events/content/admin.content";
+import BaseLayout from "~/layouts/BaseLayout.astro";
+import { DEFAULT_LOCALE } from "~/shared/constants/locales";
+import Panel from "~/shared/ui/Panel.astro";
+
+export function getStaticPaths(): { params: { locale: string } }[] {
+  return locales.map((locale) => ({ params: { locale } }));
+}
+
+export const prerender = true;
+
+const locale = Astro.params.locale ?? DEFAULT_LOCALE;
+const content = useDictionary(engineAdminContent, locale);
+
+const styles = {
+  ...adminPageStyles,
+};
+
+const config = {
+  locale,
+  payments: content.payments.value,
+  fullName: content.fullName.value,
+  ticketsTotal: content.ticketsTotal.value,
+  amountDue: content.amountDue.value,
+  paymentStatus: content.paymentStatus.value,
+  paymentMethod: content.paymentMethod.value,
+  cashPayment: content.cashPayment.value,
+  etransferPayment: content.etransferPayment.value,
+  amountPaid: content.amountPaid.value,
+  paymentNote: content.paymentNote.value,
+  confirmPayment: content.confirmPayment.value,
+  updatePayment: content.updatePayment.value,
+  removePayment: content.removePayment.value,
+  paymentConfirmedAt: content.paymentConfirmedAt.value,
+  paid: content.paid.value,
+  unpaid: content.unpaid.value,
+  noPaymentRequired: content.noPaymentRequired.value,
+  noRegistrations: content.noRegistrations.value,
+  loadFailed: content.loadFailed.value,
+  forbidden: content.forbidden.value,
+  eventNotFound: content.eventNotFound.value,
+  paymentSaved: content.paymentSaved.value,
+  paymentRemoved: content.paymentRemoved.value,
+  paymentEmailFailed: content.paymentEmailFailed.value,
+  paymentFailed: content.paymentFailed.value,
+  removePaymentConfirm: content.removePaymentConfirm.value,
+  savingPayment: content.savingPayment.value,
+};
+---
+
+<BaseLayout title={content.payments.value} description={content.paymentsIntro.value} noindex>
+  <section class={styles.section} id="engine-admin-payments">
+    <AdminPageHeader
+      backHref={`/${locale}/events/admin`}
+      backId="engine-payments-back"
+      backLabel={content.backToEvent}
+      eyebrow={content.payments}
+      title=""
+      titleId="engine-payments-title"
+      preserveTitle
+      intro={content.paymentsIntro}
+    />
+
+    <Panel padding="lg">
+      <AdminPayments client:load config={config} />
+    </Panel>
+  </section>
+</BaseLayout>

@@ -1,0 +1,44 @@
+---
+import { useDictionary } from "astro-intlayer";
+import { locales } from "intlayer";
+
+import AdminPageHeader from "~/events/admin/ui/AdminPageHeader.astro";
+import EventForm from "~/events/admin/ui/EventForm.astro";
+import { adminPageStyles } from "~/events/admin/ui/styles/admin-styles";
+import engineAdminContent from "~/events/content/admin.content";
+import BaseLayout from "~/layouts/BaseLayout.astro";
+import { DEFAULT_LOCALE } from "~/shared/constants/locales";
+
+export function getStaticPaths(): { params: { locale: string } }[] {
+  return locales.map((locale) => ({ params: { locale } }));
+}
+
+export const prerender = true;
+
+const locale = Astro.params.locale ?? DEFAULT_LOCALE;
+const content = useDictionary(engineAdminContent, locale);
+---
+
+<BaseLayout title={content.cloneEvent.value} description={content.cloneEventIntro.value} noindex>
+  <section class={adminPageStyles.section}>
+    <AdminPageHeader
+      backHref={`/${locale}/events/admin`}
+      backId="engine-event-back"
+      backLabel={content.backToEvent}
+      eyebrow={content.cloneEvent}
+      title=""
+      titleId="engine-clone-title"
+      preserveTitle
+    />
+
+    <EventForm locale={locale} mode="clone" />
+  </section>
+
+  <script>
+    import { initEventFormLoader } from "~/events/admin/islands/forms/event-load";
+
+    await customElements.whenDefined("qui-select");
+    initEventFormLoader();
+    document.addEventListener("astro:page-load", initEventFormLoader);
+  </script>
+</BaseLayout>

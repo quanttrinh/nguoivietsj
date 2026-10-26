@@ -1,0 +1,32 @@
+{
+  "extends": "astro/tsconfigs/strictest",
+  "compilerOptions": {
+    "composite": true,
+    "noEmit": false,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "outDir": "./.astro/tsconfig/client",
+    "tsBuildInfoFile": "./.astro/tsconfig/client.tsbuildinfo",
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "jsx": "preserve",
+    "jsxImportSource": "preact",
+    "types": [],
+    "paths": {
+      "~/*": ["./src/*"],
+      "styled-system/*": ["./styled-system/*"]
+    }
+  },
+  "include": [
+    ".astro/types.d.ts",
+    "src/events/domain/**/*.ts",
+    "src/events/**/islands/**/*.ts",
+    "src/events/**/ui/**/*.ts",
+    "src/events/**/ui/**/*.tsx",
+    "src/shared/client/**/*.ts",
+    "src/shared/constants/**/*.ts",
+    "src/shared/utils/**/*.ts",
+    "src/types/qui.d.ts",
+    "src/types/virtual.d.ts"
+  ],
+  "exclude": ["dist", "node_modules", "styled-system"]
+}

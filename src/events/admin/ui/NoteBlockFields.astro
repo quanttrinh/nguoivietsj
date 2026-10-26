@@ -1,0 +1,80 @@
+---
+import { useDictionary } from "astro-intlayer";
+
+import engineAdminContent from "~/events/content/admin.content";
+import { MAX_NOTE_BULLETS_TEXT_LENGTH, MAX_NOTE_PARAGRAPH_LENGTH } from "~/events/domain/limits";
+import type { EventNoteBlock } from "~/events/domain/types";
+import { DEFAULT_LOCALE } from "~/shared/constants/locales";
+
+import { adminStyles as styles } from "./styles/admin-styles";
+
+interface Props {
+  locale: string;
+  block: EventNoteBlock;
+}
+
+const { locale, block }: Props = Astro.props;
+const content = useDictionary(engineAdminContent, locale ?? DEFAULT_LOCALE);
+let typeLabel = content.noteLink;
+
+if (block.type === "paragraph") {
+  typeLabel = content.noteParagraph;
+} else if (block.type === "bullets") {
+  typeLabel = content.noteBullets;
+}
+---
+
+<div class={styles.ticketCard} data-note-block data-note-type={block.type}>
+  <div class={styles.noteBlockHeader}>
+    <h3 class={styles.ticketTitle}>{typeLabel}</h3>
+    <div class={styles.noteBlockActions}>
+      <qui-button variant="text" size="sm" data-note-action="up">
+        {content.moveUp}
+      </qui-button>
+      <qui-button variant="text" size="sm" data-note-action="down">
+        {content.moveDown}
+      </qui-button>
+      <qui-button variant="text" size="sm" data-note-action="remove">
+        {content.removeNoteBlock}
+      </qui-button>
+    </div>
+  </div>
+
+  {block.type === "paragraph" ? (
+    <qui-field class={styles.field}>
+      <qui-field-label>{content.noteText}</qui-field-label>
+      <qui-textarea
+        data-note-field="paragraph"
+        default-value={block.text}
+        rows={3}
+        max-length={MAX_NOTE_PARAGRAPH_LENGTH}
+      ></qui-textarea>
+    </qui-field>
+  ) : block.type === "bullets" ? (
+    <qui-field class={styles.field}>
+      <qui-field-label>{content.noteText}</qui-field-label>
+      <qui-textarea
+        data-note-field="bullets"
+        default-value={block.items.join("\n")}
+        rows={3}
+        max-length={MAX_NOTE_BULLETS_TEXT_LENGTH}
+      ></qui-textarea>
+      <qui-field-helper-text>{content.noteBulletsHelp}</qui-field-helper-text>
+    </qui-field>
+  ) : (
+    <div class={styles.fieldGrid}>
+      <qui-field class={styles.field}>
+        <qui-field-label>{content.noteLabel}</qui-field-label>
+        <qui-input data-note-field="label" default-value={block.label}></qui-input>
+      </qui-field>
+      <qui-field class={styles.field}>
+        <qui-field-label>{content.noteUrl}</qui-field-label>
+        <qui-input
+          data-note-field="href"
+          input-mode-hint="url"
+          default-value={block.href}
+        ></qui-input>
+      </qui-field>
+    </div>
+  )}
+</div>

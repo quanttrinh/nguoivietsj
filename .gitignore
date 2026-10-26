@@ -1,0 +1,29 @@
+node_modules/
+dist/
+.astro/
+styled-system/
+.intlayer/
+.wrangler/
+worker-configuration.d.ts
+
+.dev.vars*
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+
+*.tsbuildinfo
+__pycache__/
+*.pyc
+
+# OpenTofu / Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+*.tfvars
+!*.tfvars.example
+
+# Local project backups
+/backups/

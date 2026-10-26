@@ -1,0 +1,71 @@
+@import "@quanttrinh/qui/styles.css";
+
+@layer reset, base, tokens, recipes, utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+
+    /* Retune the qui Material 3 roles to the warm community palette. The qui theme
+       declares these inside `:where(:root, :host)`, so a plain `:root` wins. */
+    --md-sys-color-primary: #b63817;
+    --md-sys-color-on-primary: #ffffff;
+    --md-sys-color-primary-container: #ffe3d8;
+    --md-sys-color-on-primary-container: #5c1d10;
+    --md-sys-color-secondary: #9a741f;
+    --md-sys-color-on-secondary: #ffffff;
+    --md-sys-color-secondary-container: #fbf0d4;
+    --md-sys-color-on-secondary-container: #5c1d10;
+    --md-sys-color-tertiary: #3f7d5a;
+    --md-sys-color-on-tertiary: #ffffff;
+    --md-sys-color-tertiary-container: #d8ecdf;
+    --md-sys-color-on-tertiary-container: #1c3a29;
+    --md-sys-color-surface: #fffaf3;
+    --md-sys-color-on-surface: #1c1917;
+    --md-sys-color-surface-variant: #f5eee6;
+    --md-sys-color-on-surface-variant: #57534e;
+    --md-sys-color-outline: #a8a29e;
+    --md-sys-color-outline-variant: #e7e5e4;
+    --md-sys-color-surface-container-lowest: #ffffff;
+    --md-sys-color-surface-container-low: #fff8f0;
+    --md-sys-color-surface-container: #fdf3e9;
+    --md-sys-color-surface-container-high: #f8ece0;
+    --md-sys-color-surface-container-highest: #f3e5d8;
+    --md-sys-color-surface-tint: #b63817;
+    --md-sys-color-error: #ba1a1a;
+    --md-sys-color-on-error: #ffffff;
+    --md-sys-color-error-container: #ffdad6;
+    --md-sys-color-on-error-container: #93000a;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    min-height: var(--sizes-screen);
+    background:
+      radial-gradient(
+        circle at 14% -12%,
+        color-mix(in oklab, var(--md-sys-color-primary) 14%, transparent),
+        transparent var(--sizes-2xl)
+      ),
+      radial-gradient(
+        circle at 92% 0%,
+        color-mix(in oklab, var(--md-sys-color-secondary) 12%, transparent),
+        transparent var(--sizes-xl)
+      ),
+      var(--md-sys-color-surface);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--md-sys-color-primary) 20%, transparent);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+}

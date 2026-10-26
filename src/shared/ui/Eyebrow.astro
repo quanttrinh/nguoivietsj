@@ -1,0 +1,31 @@
+---
+import { css } from "styled-system/css";
+
+interface Props {
+  as?: "p" | "span";
+  tone?: "default" | "tertiary" | "primary";
+  class?: string;
+}
+
+const { as: Tag = "p", tone = "default", class: className }: Props = Astro.props;
+
+const styles = {
+  eyebrow: css({
+    display: "block",
+    margin: "0",
+    fontSize: "xs",
+    fontWeight: "bold",
+    letterSpacing: "widest",
+    textTransform: "uppercase",
+  }),
+  tone: {
+    default: css({ color: "onSurfaceVariant" }),
+    tertiary: css({ color: "onTertiaryContainer" }),
+    primary: css({ color: "primary" }),
+  },
+};
+---
+
+<Tag class:list={[styles.eyebrow, styles.tone[tone], className]}>
+  <slot />
+</Tag>

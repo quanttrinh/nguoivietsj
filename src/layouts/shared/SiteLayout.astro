@@ -1,0 +1,231 @@
+---
+import { useLocale } from "astro-intlayer";
+import { getHTMLTextDir, getLocaleName, getLocalizedUrl, getPathWithoutLocale } from "intlayer";
+
+import { ClientRouter } from "astro:transitions";
+
+import { css } from "styled-system/css";
+import { container, hstack, vstack, visuallyHidden, wrap } from "styled-system/patterns";
+import Eyebrow from "~/shared/ui/Eyebrow.astro";
+
+import packageJson from "../../../package.json";
+
+import appStylesUrl from "../../styles/app.css?url";
+import themeStylesUrl from "../../styles/theme.css?url";
+
+interface Props {
+  title: string;
+  description: string;
+  brand: string;
+  brandSubtitle: string;
+  homeHref: string;
+  skipHref: string;
+  skipLabel: string;
+  languageLabel: string;
+  repositoryUrl: string;
+  noindex?: boolean;
+}
+
+const {
+  title,
+  description,
+  brand,
+  brandSubtitle,
+  homeHref,
+  skipHref,
+  skipLabel,
+  languageLabel,
+  repositoryUrl,
+  noindex = false,
+}: Props = Astro.props;
+const { locale, availableLocales } = useLocale();
+const capitalize = (value: string): string =>
+  value.charAt(0).toLocaleUpperCase(locale) + value.slice(1);
+const pathWithoutLocale = getPathWithoutLocale(Astro.url.pathname);
+const currentSearch = Astro.url.search;
+const copyrightYear = new Date().getUTCFullYear();
+
+const styles = {
+  page: vstack({ minHeight: "screen", gap: "0", alignItems: "stretch" }),
+  skip: css({
+    position: "absolute",
+    insetInlineStart: "4",
+    top: "-20",
+    zIndex: 100,
+    borderRadius: "lg",
+    backgroundColor: "primary",
+    color: "onPrimary",
+    paddingInline: "4",
+    paddingBlock: "2",
+    fontWeight: "semibold",
+    textDecoration: "none",
+    transition: "top 150ms ease",
+    _focusVisible: { top: "4" },
+  }),
+  header: wrap({
+    width: "full",
+    maxWidth: "8xl",
+    marginInline: "auto",
+    paddingInline: { base: "5", md: "10" },
+    paddingBlock: { base: "5", md: "7" },
+    align: "center",
+    justify: "space-between",
+    gap: "4",
+  }),
+  brand: hstack({
+    gap: "3",
+    color: "onSurface",
+    textDecoration: "none",
+  }),
+  brandText: vstack({ alignItems: "flex-start", gap: "0.5" }),
+  brandName: css({
+    fontFamily: "display",
+    fontSize: "xl",
+    fontWeight: "bold",
+    lineHeight: "none",
+    letterSpacing: "tight",
+  }),
+  languageNav: hstack({
+    gap: "1",
+    borderRadius: "full",
+    borderWidth: "thin",
+    borderStyle: "solid",
+    borderColor: "outlineVariant",
+    backgroundColor: "surfaceContainerLowest",
+    padding: "1",
+    boxShadow: "xs",
+  }),
+  languageLabel: visuallyHidden(),
+  languageLink: css({
+    borderRadius: "full",
+    paddingInline: "3",
+    paddingBlock: "1.5",
+    fontSize: "xs",
+    fontWeight: "semibold",
+    color: "onSurfaceVariant",
+    textDecoration: "none",
+    _hover: { backgroundColor: "surfaceContainerHigh", color: "onSurface" },
+    _focusVisible: {
+      outlineWidth: "thick",
+      outlineStyle: "solid",
+      outlineColor: "primary",
+      outlineOffset: "0.5",
+    },
+    '&[aria-current="page"]': {
+      backgroundColor: "primary",
+      color: "onPrimary",
+      _hover: { backgroundColor: "primaryContainer", color: "onPrimaryContainer" },
+    },
+  }),
+  main: container({
+    flex: "1",
+    width: "full",
+    maxWidth: "8xl",
+    paddingInline: { base: "5", md: "10" },
+    paddingBlockEnd: { base: "10", md: "16" },
+  }),
+  footer: wrap({
+    width: "full",
+    maxWidth: "8xl",
+    marginInline: "auto",
+    paddingInline: { base: "5", md: "10" },
+    paddingBlock: "6",
+    align: "center",
+    justify: "space-between",
+    gap: "3",
+    borderTopWidth: "thin",
+    borderTopStyle: "solid",
+    borderColor: "outlineVariant",
+    color: "onSurfaceVariant",
+    fontSize: "xs",
+  }),
+  footerLink: css({
+    color: "inherit",
+    textDecoration: "underline",
+    textUnderlineOffset: "0.5",
+    _hover: { color: "onSurface" },
+    _focusVisible: {
+      outlineWidth: "thick",
+      outlineStyle: "solid",
+      outlineColor: "primary",
+      outlineOffset: "0.5",
+    },
+  }),
+};
+---
+
+<!doctype html>
+<html lang={locale} dir={getHTMLTextDir(locale)}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+    <link rel="stylesheet" href={themeStylesUrl} data-astro-transition-persist="theme-stylesheet" />
+    <link
+      rel="stylesheet"
+      href={appStylesUrl}
+      data-qui-styles
+      data-astro-transition-persist="app-stylesheet"
+    />
+    <ClientRouter />
+  </head>
+  <body>
+    <div class={styles.page}>
+      <a class={styles.skip} href={skipHref}>
+        {skipLabel}
+      </a>
+
+      <header class={styles.header}>
+        <a class={styles.brand} href={homeHref}>
+          <span class={styles.brandText}>
+            <span class={styles.brandName}>{brand}</span>
+            <Eyebrow as="span">{brandSubtitle}</Eyebrow>
+          </span>
+        </a>
+
+        <nav class={styles.languageNav} aria-label={languageLabel}>
+          <span class={styles.languageLabel}>{languageLabel}</span>
+          {availableLocales.map((item) => (
+            <a
+              class={styles.languageLink}
+              href={`${getLocalizedUrl(pathWithoutLocale, item)}${currentSearch}`}
+              data-language-link
+              hreflang={item}
+              lang={item}
+              aria-current={item === locale ? "page" : undefined}
+            >
+              {capitalize(getLocaleName(item))}
+            </a>
+          ))}
+        </nav>
+      </header>
+
+      <main id="main" class={styles.main}>
+        <slot />
+      </main>
+
+      <footer class={styles.footer}>
+        <span>v{packageJson.version}</span>
+        <span>
+          <a class={styles.footerLink} href={repositoryUrl} target="_blank" rel="noreferrer">
+            GitHub
+          </a>
+          <span aria-hidden="true"> · </span>© {copyrightYear}
+        </span>
+      </footer>
+    </div>
+
+    <script>
+      import { initLanguageLinks } from "~/shared/client/language-links";
+      import { initRouterLinks } from "~/shared/client/router-links";
+      import { initTitlePreserve } from "~/shared/client/title-preserve";
+
+      initLanguageLinks();
+      initRouterLinks();
+      initTitlePreserve();
+    </script>
+  </body>
+</html>
