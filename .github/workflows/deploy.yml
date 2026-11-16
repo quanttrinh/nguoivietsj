@@ -73,7 +73,7 @@ jobs:
           echo "ref=$sha" >> "$GITHUB_OUTPUT"
           echo "Deploying PR #$PR_NUMBER ($sha) to staging."
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ steps.ref.outputs.ref }}
 
