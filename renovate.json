@@ -5,12 +5,16 @@
   "schedule": ["before 6am on monday"],
   "dependencyDashboard": true,
   "minimumReleaseAge": "3 days",
-  "rangeStrategy": "pin",
   "lockFileMaintenance": {
     "enabled": true,
     "schedule": ["before 6am on the first day of the month"]
   },
   "packageRules": [
+    {
+      "description": "Pin npm dependency versions.",
+      "matchDatasources": ["npm"],
+      "rangeStrategy": "pin"
+    },
     {
       "description": "Group one-time range-to-pin updates.",
       "groupName": "Pin dependencies",
