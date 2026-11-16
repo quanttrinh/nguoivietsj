@@ -35,8 +35,8 @@
     "db:check": "bun manage.ts check"
   },
   "dependencies": {
-    "@astrojs/cloudflare": "^14.4.8",
-    "@astrojs/preact": "6.1.1",
+    "@astrojs/cloudflare": "14.4.8",
+    "@astrojs/preact": "6.1.5",
     "@better-auth/drizzle-adapter": "^1.7.25",
     "@hono/standard-validator": "^0.4.1",
     "@intlayer/core": "^9.8.0",
@@ -45,8 +45,8 @@
     "@quanttrinh/qui": "0.9.3",
     "@zxing/browser": "^0.2.1",
     "arktype": "^2.2.9",
-    "astro": "^7.4.12",
-    "astro-intlayer": "^9.8.0",
+    "astro": "7.4.12",
+    "astro-intlayer": "9.8.1",
     "auth": "^1.7.25",
     "better-auth": "^1.7.25",
     "drizzle-orm": "1.0.0-rc.5",
@@ -61,8 +61,8 @@
     "uuid": "^14.0.3"
   },
   "devDependencies": {
-    "@astrojs/check": "^0.9.12",
-    "@astrojs/compiler-rs": "^0.5.3",
+    "@astrojs/check": "0.9.12",
+    "@astrojs/compiler-rs": "0.5.3",
     "@pandacss/dev": "2.5.0",
     "@pandacss/eslint-plugin": "2.5.0",
     "@pandacss/preset-base": "2.5.0",
