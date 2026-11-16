@@ -3,7 +3,7 @@
 
 provider "registry.opentofu.org/mailtrap/mailtrap" {
   version     = "0.1.3"
-  constraints = "~> 0.1.3"
+  constraints = "0.1.3"
   hashes = [
     "h1:/oeOe+CG5dk+Yhb8sUAgvtrszK3jQAaigQDwdpvPIxI=",
     "h1:3LpwNXPko4yI/ufUz7b3+CWoeFYGgSuvzYn0ZnXl1Cc=",
@@ -31,6 +31,5 @@ provider "registry.opentofu.org/mailtrap/mailtrap" {
     "zh:c96d840009b5ddaeab04fcd44467100cd4cde3aed000a0d8ec6e53567077236f",
     "zh:eb54d235b4693e4d57674a7bf463e5a2b1e53d2f52d85b008911e4d02545df16",
     "zh:f6da68a586c997c264524b22ed587643751c8a563229f375f1a8c7a3aaa409a4",
-    "zh:f809ab383cca0a5f83072981c64208cbd7fa67e986a86ee02dd2c82333221e32",
   ]
 }

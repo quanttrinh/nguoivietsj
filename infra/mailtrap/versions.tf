@@ -4,7 +4,7 @@ terraform {
   required_providers {
     mailtrap = {
       source  = "mailtrap/mailtrap"
-      version = "~> 0.1.3"
+      version = "0.1.3"
     }
   }
 }
