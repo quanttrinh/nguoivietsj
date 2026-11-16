@@ -5,7 +5,7 @@ runs:
   using: composite
   steps:
     - name: Restore aqua cache
-      uses: actions/cache@v6
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
       with:
         path: ~/.local/share/aquaproj-aqua
         key: aqua-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('aqua/aqua.yaml', 'aqua/registry.yaml', 'aqua/aqua-policy.yaml', 'aqua/aqua-checksums.json') }}
@@ -13,7 +13,7 @@ runs:
           aqua-${{ runner.os }}-${{ runner.arch }}-
 
     - name: Install aqua-managed tools
-      uses: aquaproj/aqua-installer@v4.1.1
+      uses: aquaproj/aqua-installer@611554c6f0137ba41c8dd15aca8bee82504ea461 # v4.1.1
       with:
         aqua_version: v2.66.1
         working_directory: aqua
@@ -21,7 +21,7 @@ runs:
         aqua_opts: ""
 
     - name: Restore Bun package cache
-      uses: actions/cache@v6
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
       with:
         path: ~/.bun/install/cache
         key: bun-packages-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('bun.lock') }}

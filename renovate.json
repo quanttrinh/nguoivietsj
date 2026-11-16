@@ -53,6 +53,11 @@
       "automerge": true
     },
     {
+      "description": "Pin GitHub Actions to commit SHAs.",
+      "matchManagers": ["github-actions"],
+      "pinDigests": true
+    },
+    {
       "description": "Auto-merge minor and patch updates to GitHub Actions.",
       "matchManagers": ["github-actions"],
       "matchUpdateTypes": ["minor", "patch"],
