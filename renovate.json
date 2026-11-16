@@ -11,9 +11,10 @@
   },
   "packageRules": [
     {
-      "description": "Pin npm dependency versions.",
-      "matchDatasources": ["npm"],
-      "rangeStrategy": "pin"
+      "description": "Keep the Terraform required version unpinned.",
+      "matchManagers": ["terraform"],
+      "matchDepNames": ["hashicorp/terraform"],
+      "enabled": false
     },
     {
       "description": "Group one-time range-to-pin updates.",
@@ -59,7 +60,8 @@
     {
       "description": "Pin GitHub Actions to commit SHAs.",
       "matchManagers": ["github-actions"],
-      "pinDigests": true
+      "pinDigests": true,
+      "rangeStrategy": "replace"
     },
     {
       "description": "Auto-merge minor and patch updates to GitHub Actions.",
@@ -83,5 +85,6 @@
       "token": "{{ secrets.QUI_PACKAGES_TOKEN }}"
     }
   ],
-  "npmrc": "@quanttrinh:registry=https://npm.pkg.github.com/"
+  "npmrc": "@quanttrinh:registry=https://npm.pkg.github.com/",
+  "rangeStrategy": "pin"
 }
