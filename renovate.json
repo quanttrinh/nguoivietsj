@@ -66,5 +66,13 @@
   ],
   "semanticCommits": "enabled",
   "semanticCommitType": "chore",
-  "semanticCommitScope": "deps"
+  "semanticCommitScope": "deps",
+  "hostRules": [
+    {
+      "matchHost": "https://npm.pkg.github.com/",
+      "hostType": "npm",
+      "token": "{{ secrets.QUI_PACKAGES_TOKEN }}"
+    }
+  ],
+  "npmrc": "@quanttrinh:registry=https://npm.pkg.github.com/"
 }
