@@ -1,6 +1,6 @@
 // @boundary server
-import { getEmailDeliveryRepository } from "~/db/events";
 import { EmailError, isEmailConfigured, sendEmail } from "~/server/services/email";
+import { getEmailDeliveryLedger } from "~/server/services/email/deliveries";
 import {
   emailFailureReason,
   enqueueEmail,
@@ -66,7 +66,7 @@ export async function handleTwoFactorCodeEmail(
   job: TwoFactorCodeEmailJob,
   env: Env,
 ): Promise<void> {
-  const deliveries = getEmailDeliveryRepository(env.EVENT_ENGINE_DB);
+  const deliveries = getEmailDeliveryLedger(env.APP_DB);
   const claimed = await deliveries.claim(job.idempotencyKey, job.type);
 
   if (!claimed) {

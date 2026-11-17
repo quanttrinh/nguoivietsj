@@ -1,16 +1,12 @@
 // @boundary server
-import {
-  getEmailDeliveryRepository,
-  getEventRepository,
-  getPaymentRepository,
-  getRegistrationRepository,
-} from "~/db/events";
+import { getEventRepository, getPaymentRepository, getRegistrationRepository } from "~/db/events";
 import {
   sendPaymentConfirmedEmail,
   sendRegistrationReceivedEmail,
   sendStatusOtpEmail,
 } from "~/events/services/email";
 import { EmailError, isEmailConfigured } from "~/server/services/email";
+import { getEmailDeliveryLedger } from "~/server/services/email/deliveries";
 import {
   emailFailureReason,
   enqueueEmail,
@@ -106,8 +102,8 @@ async function deliverEventEmail(env: Env, job: EventEmailJob): Promise<void> {
 }
 
 async function deliverClaimedEmail(env: Env, job: EventEmailJob): Promise<void> {
-  const engineDb = env.EVENT_ENGINE_DB;
-  const claimed = await getEmailDeliveryRepository(engineDb).claim(job.idempotencyKey, job.type);
+  const ledger = getEmailDeliveryLedger(env.APP_DB);
+  const claimed = await ledger.claim(job.idempotencyKey, job.type);
 
   if (!claimed) {
     return;
@@ -116,7 +112,7 @@ async function deliverClaimedEmail(env: Env, job: EventEmailJob): Promise<void> 
   try {
     await deliverEventEmail(env, job);
   } catch (error) {
-    await getEmailDeliveryRepository(engineDb)
+    await ledger
       .markFailed(job.idempotencyKey, emailFailureReason(error))
       .catch((markError: unknown) => {
         serverLogger.error(
@@ -132,14 +128,12 @@ async function deliverClaimedEmail(env: Env, job: EventEmailJob): Promise<void> 
     throw error;
   }
 
-  await getEmailDeliveryRepository(engineDb)
-    .markSent(job.idempotencyKey)
-    .catch((error: unknown) => {
-      serverLogger.error(
-        { name: error instanceof Error ? error.name : typeof error },
-        "Failed to mark email as delivered",
-      );
-    });
+  await ledger.markSent(job.idempotencyKey).catch((error: unknown) => {
+    serverLogger.error(
+      { name: error instanceof Error ? error.name : typeof error },
+      "Failed to mark email as delivered",
+    );
+  });
 }
 
 async function enqueueEventEmail(env: Env, job: EventEmailJob): Promise<boolean> {

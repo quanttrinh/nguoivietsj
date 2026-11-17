@@ -1,10 +1,10 @@
 // @boundary server
 import type { SQLiteTable } from "drizzle-orm/sqlite-core";
 
+import { emailDeliveries as appEmailDeliveries } from "../../db/app/schemas/email-deliveries";
 import {
   auditEvents,
   checkins,
-  emailDeliveries,
   eventAliases,
   eventFormVersions,
   eventSlugClaims,
@@ -23,8 +23,8 @@ import {
   ticketTypeStats,
 } from "../../db/events/schemas";
 
-/** Better-auth owns the app DB schema (`drizzle/app`); column drift is checked by drizzle-kit. */
-export const APP_TABLES: SQLiteTable[] = [];
+/** Auth tables are owned by Better Auth; custom app tables are checked here. */
+export const APP_TABLES: SQLiteTable[] = [appEmailDeliveries];
 
 export const EVENT_TABLES: SQLiteTable[] = [
   events,
@@ -45,5 +45,4 @@ export const EVENT_TABLES: SQLiteTable[] = [
   registrationStatusOtps,
   registrationStatusSessions,
   auditEvents,
-  emailDeliveries,
 ];

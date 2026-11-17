@@ -6,7 +6,6 @@ import { getEngineOrm } from "~/db/events/orm";
 import {
   auditEvents,
   checkins,
-  emailDeliveries,
   events,
   payments,
   registrationContacts,
@@ -21,7 +20,6 @@ import {
 } from "~/db/events/schemas";
 
 const OTP_RETENTION_DAYS = 30;
-const EMAIL_DELIVERY_RETENTION_DAYS = 90;
 
 /** Registration data is retained for three calendar months after the event ends. */
 export const REGISTRATION_RETENTION_MONTHS = 3;
@@ -53,22 +51,20 @@ export function registrationRetentionCutoff(now: Date = new Date()): string {
 }
 
 /**
- * Prune expired/old status and delivery records.
+ * Prune expired/old status records.
  *
- * Sessions are deleted as soon as they expire; OTP rows and delivery records
- * are kept for a short debugging window and then removed. Registration data is
- * handled separately by `purgeExpiredRegistrationData`.
+ * Sessions are deleted as soon as they expire; OTP rows are kept for a short
+ * debugging window and then removed. Registration data is handled separately
+ * by `purgeExpiredRegistrationData`.
  */
 async function pruneOperationalData(db: D1Database, now: Date = new Date()): Promise<void> {
   const orm = getEngineOrm(db);
   const nowIso = now.toISOString();
   const otpCutoff = daysAgo(OTP_RETENTION_DAYS, now);
-  const deliveryCutoff = daysAgo(EMAIL_DELIVERY_RETENTION_DAYS, now);
 
   await orm.batch([
     orm.delete(registrationStatusSessions).where(lte(registrationStatusSessions.expiresAt, nowIso)),
     orm.delete(registrationStatusOtps).where(lte(registrationStatusOtps.createdAt, otpCutoff)),
-    orm.delete(emailDeliveries).where(lte(emailDeliveries.updatedAt, deliveryCutoff)),
   ]);
 }
 
