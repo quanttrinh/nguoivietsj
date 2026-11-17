@@ -32,8 +32,7 @@ const showLogin = loginLabel !== undefined && loginUrl !== undefined;
   import "virtual:qui/register?components=qui-button";
   import { navigate } from "astro:transitions/client";
 
-  import { authClient } from "~/auth/client/client";
-  import { clearSharedSession, getSharedSession } from "~/auth/client/session";
+  import { getSharedSession, signOut } from "~/auth/client/session";
 
   import { clientLogger } from "../client/logger";
 
@@ -41,13 +40,12 @@ const showLogin = loginLabel !== undefined && loginUrl !== undefined;
     button.disabled = true;
 
     try {
-      const { error } = await authClient.signOut();
+      const error = await signOut();
 
-      if (error) {
-        throw new Error(error.message ?? "Unable to sign out");
+      if (error !== null) {
+        throw new Error(error);
       }
 
-      clearSharedSession();
       await navigate(button.dataset.fallbackUrl ?? "/");
     } catch (error) {
       button.disabled = false;

@@ -1,8 +1,7 @@
 // @boundary client
+import { BETTER_AUTH_BASE_PATH } from "~/auth/constants";
 import { setUnauthorizedHandler } from "~/shared/client/api/client";
 import { isRecord } from "~/shared/utils/records";
-
-import { authClient } from "./client";
 
 export interface SharedSessionUser {
   role?: string | null;
@@ -76,7 +75,10 @@ function normalizeSession(raw: unknown): SharedSessionResult {
     return { data: null, error: null };
   }
 
-  const user = isRecord(raw.data) && isRecord(raw.data.user) ? raw.data.user : null;
+  // Better Auth's HTTP endpoint returns `{ session, user }`; its JS client
+  // wraps the same body in `{ data: ... }`.
+  const data = isRecord(raw.data) ? raw.data : raw;
+  const user = isRecord(data.user) ? data.user : null;
 
   let error: SharedSessionResult["error"] = null;
 
@@ -114,7 +116,21 @@ export async function getSharedSession(): Promise<SharedSessionResult> {
   }
 
   const request = (async (): Promise<SharedSessionResult> => {
-    const raw: unknown = await authClient.getSession();
+    let raw: unknown = null;
+
+    try {
+      const response = await fetch(`${BETTER_AUTH_BASE_PATH}/get-session`, {
+        credentials: "same-origin",
+        headers: { accept: "application/json" },
+      });
+
+      if (response.ok) {
+        raw = await response.json();
+      }
+    } catch {
+      return { data: null, error: { message: "Unable to get session" } };
+    }
+
     const result = normalizeSession(raw);
 
     cached = result.error ? null : { result, at: Date.now() };
@@ -144,6 +160,23 @@ export function clearSharedSession(): void {
   cached = null;
   pending = null;
   clearSessionHint();
+}
+
+/** Revoke the current Better Auth session. */
+export async function signOut(): Promise<string | null> {
+  const response = await fetch(`${BETTER_AUTH_BASE_PATH}/sign-out`, {
+    method: "POST",
+    credentials: "same-origin",
+    headers: { "content-type": "application/json" },
+    body: "{}",
+  });
+
+  if (!response.ok) {
+    return "Unable to sign out";
+  }
+
+  clearSharedSession();
+  return null;
 }
 
 setUnauthorizedHandler(clearSharedSession);
