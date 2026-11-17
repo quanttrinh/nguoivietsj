@@ -5,30 +5,13 @@ import type { TypedResponse } from "hono/types";
 import type { ContentfulStatusCode } from "hono/utils/http-status";
 import type { JSONParsed } from "hono/utils/types";
 
-import type { ApiError, ApiIssue, ApiMeta } from "~/shared/api/response";
+import type { ApiError, ApiIssue, ApiMeta, ApiResponse } from "~/shared/api/response";
 
 const NO_STORE = { "cache-control": "no-store" };
 
-export interface SuccessBody<TData> {
-  status: "success";
-  data: TData;
-  error: null;
-  meta: ApiMeta;
-}
-
-export interface PartialBody<TData> {
-  status: "partial";
-  data: TData;
-  error: ApiError;
-  meta: ApiMeta;
-}
-
-export interface ErrorBody {
-  status: "error";
-  data: null;
-  error: ApiError;
-  meta: ApiMeta;
-}
+export type SuccessBody<TData> = Extract<ApiResponse<TData>, { status: "success" }>;
+export type PartialBody<TData> = Extract<ApiResponse<TData>, { status: "partial" }>;
+export type ErrorBody = Extract<ApiResponse<never>, { status: "error" }>;
 
 type JsonResponse<TBody, TStatus extends ContentfulStatusCode> = Response &
   TypedResponse<JSONParsed<TBody>, TStatus, "json">;

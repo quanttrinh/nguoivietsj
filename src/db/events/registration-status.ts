@@ -193,13 +193,10 @@ function createRegistrationStatusRepository(orm: EngineOrm): RegistrationStatusR
         .select({
           registrationId: registrationStatusSessions.registrationId,
           expiresAt: registrationStatusSessions.expiresAt,
-          eventId: sql<string>`(
-            select ${registrations.eventId}
-            from ${registrations}
-            where ${registrations.id} = ${registrationStatusSessions.registrationId}
-          )`.as("event_id"),
+          eventId: registrations.eventId,
         })
         .from(registrationStatusSessions)
+        .innerJoin(registrations, eq(registrations.id, registrationStatusSessions.registrationId))
         .where(
           and(
             eq(registrationStatusSessions.tokenHash, tokenHash),

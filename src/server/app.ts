@@ -9,7 +9,7 @@ import { CSP_HEADER_DIRECTIVES } from "~/shared/constants/csp";
 import { serverLogger } from "~/shared/server/logger";
 
 import { notFound as apiNotFound } from "./common-responses";
-import { appBodyLimit } from "./middleware/body-limit";
+import { apiBodyLimit } from "./middleware/body-limit";
 import { localizeApiErrors } from "./middleware/localize-api-errors";
 import { root } from "./root";
 
@@ -19,7 +19,7 @@ const isDev = import.meta.env.DEV;
 export const api = new Hono<HonoEnv>();
 
 api.use(localizeApiErrors());
-api.use(appBodyLimit());
+api.use(apiBodyLimit());
 api.use(csrf({ secFetchSite: ["same-origin", "none"] }));
 if (isDev) {
   api.use(
