@@ -3,6 +3,8 @@
 
 import { serverLogger } from "~/shared/server/logger";
 
+import { EmailError } from "./types";
+
 /** App-wide email queue infrastructure. */
 
 const EMAIL_QUEUE_SUFFIX = "-emails";
@@ -24,6 +26,15 @@ export interface EmailQueueHandler<TJob extends EmailJob> {
   /** Stable key used to drop duplicate jobs inside one batch. */
   dedupeKey: (job: TJob) => string;
   handle: (job: TJob, env: Env) => Promise<void>;
+}
+
+/** Persist only non-PII diagnostic information for a failed delivery. */
+export function emailFailureReason(error: unknown): string {
+  if (error instanceof EmailError) {
+    return error.status === 0 ? error.message : `${error.provider}_status_${error.status}`;
+  }
+
+  return error instanceof Error ? error.name : "email_delivery_failed";
 }
 
 /** Match production and staging email queues without hardcoding each env name. */

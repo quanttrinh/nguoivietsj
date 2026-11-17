@@ -12,6 +12,7 @@ import {
 } from "~/events/services/email";
 import { EmailError, isEmailConfigured } from "~/server/services/email";
 import {
+  emailFailureReason,
   enqueueEmail,
   NonRetryableEmailError,
   type EmailQueueHandler,
@@ -50,15 +51,6 @@ export type EventEmailJob =
       otpId: string;
       expiresMinutes: number;
     };
-
-/** Persist/log only non-PII diagnostic information for a failed delivery. */
-function emailFailureReason(error: unknown): string {
-  if (error instanceof EmailError) {
-    return error.status === 0 ? error.message : `${error.provider}_status_${error.status}`;
-  }
-
-  return error instanceof Error ? error.name : "email_delivery_failed";
-}
 
 async function deliverEventEmail(env: Env, job: EventEmailJob): Promise<void> {
   const engineDb = env.EVENT_ENGINE_DB;

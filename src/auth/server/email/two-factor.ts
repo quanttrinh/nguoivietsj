@@ -1,6 +1,11 @@
 // @boundary server
-import { isEmailConfigured, sendEmail } from "~/server/services/email";
-import { enqueueEmail } from "~/server/services/email/queue";
+import { getEmailDeliveryRepository } from "~/db/events";
+import { EmailError, isEmailConfigured, sendEmail } from "~/server/services/email";
+import {
+  emailFailureReason,
+  enqueueEmail,
+  NonRetryableEmailError,
+} from "~/server/services/email/queue";
 import {
   emailTemplateSubject,
   renderEmailTemplate,
@@ -51,12 +56,51 @@ export function isTwoFactorCodeEmailJob(job: { type: string }): job is TwoFactor
   return job.type === TWO_FACTOR_EMAIL_JOB;
 }
 
-/** Deliver a queued two-factor sign-in code. */
-export function handleTwoFactorCodeEmail(job: TwoFactorCodeEmailJob, env: Env): Promise<void> {
-  return sendTwoFactorCodeEmail(env, {
-    to: job.email,
-    code: job.code,
-    expiresMinutes: job.expiresMinutes,
+/**
+ * Deliver a queued two-factor sign-in code.
+ *
+ * Uses the shared email delivery ledger so a queue retry after a successful
+ * send does not email the same code again.
+ */
+export async function handleTwoFactorCodeEmail(
+  job: TwoFactorCodeEmailJob,
+  env: Env,
+): Promise<void> {
+  const deliveries = getEmailDeliveryRepository(env.EVENT_ENGINE_DB);
+  const claimed = await deliveries.claim(job.idempotencyKey, job.type);
+
+  if (!claimed) {
+    return;
+  }
+
+  try {
+    await sendTwoFactorCodeEmail(env, {
+      to: job.email,
+      code: job.code,
+      expiresMinutes: job.expiresMinutes,
+    });
+  } catch (error: unknown) {
+    await deliveries
+      .markFailed(job.idempotencyKey, emailFailureReason(error))
+      .catch((markError: unknown) => {
+        serverLogger.error(
+          { name: markError instanceof Error ? markError.name : typeof markError },
+          "Failed to record two-factor email delivery failure",
+        );
+      });
+
+    if (error instanceof EmailError && !error.retryable) {
+      throw new NonRetryableEmailError(error.message);
+    }
+
+    throw error;
+  }
+
+  await deliveries.markSent(job.idempotencyKey).catch((error: unknown) => {
+    serverLogger.error(
+      { name: error instanceof Error ? error.name : typeof error },
+      "Failed to mark two-factor email as delivered",
+    );
   });
 }
 
