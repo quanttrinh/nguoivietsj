@@ -1,6 +1,6 @@
 // @boundary shared
 import { FORM_ISSUE_SEVERITY } from "~/events/domain/form-schema/constants";
-import { type FormSchemaIssue } from "~/events/domain/form-schema/types";
+import type { FormSchemaIssue } from "~/events/domain/form-schema/types";
 
 export class FormSchemaIssues {
   readonly errors: FormSchemaIssue[] = [];

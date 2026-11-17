@@ -1,16 +1,16 @@
 // @boundary client
-import { type JSX } from "preact";
+import type { JSX } from "preact";
 
 import { ticketFieldName } from "~/events/domain/form-schema/constants";
-import {
-  type ResolvedTicketField,
-  type ResolvedTicketType,
+import type {
+  ResolvedTicketField,
+  ResolvedTicketType,
 } from "~/events/domain/form-schema/resolve/resolve";
 import { MAX_TICKETS_PER_REGISTRATION } from "~/events/domain/limits";
 import { formatMoney } from "~/shared/utils/format";
 
-import { type PublicRegistrationConfig } from "../../shared/registration-types";
-import { type FieldProps } from "./field-types";
+import type { PublicRegistrationConfig } from "../../shared/registration-types";
+import type { FieldProps } from "./field-types";
 import { TextField } from "./FieldPrimitives";
 
 export type TicketFieldProps = FieldProps<ResolvedTicketField>;

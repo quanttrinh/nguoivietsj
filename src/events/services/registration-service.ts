@@ -1,5 +1,4 @@
 // @boundary server
-/* oxlint-disable eslint/max-lines-per-function, eslint/max-params -- Registration creation is one atomic workflow. */
 
 import { type as ark } from "arktype";
 

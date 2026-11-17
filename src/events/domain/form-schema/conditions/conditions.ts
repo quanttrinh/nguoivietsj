@@ -18,19 +18,19 @@ import {
   isTicketConditionRef,
   refKey,
 } from "~/events/domain/form-schema/constants";
-import { type FormSchemaIssues } from "~/events/domain/form-schema/issues";
+import type { FormSchemaIssues } from "~/events/domain/form-schema/issues";
 import {
   MAX_FORM_SCHEMA_CONDITIONS,
   MAX_FORM_SCHEMA_CONDITIONS_PER_FIELD,
   MAX_FORM_SCHEMA_CONDITION_DEPTH,
 } from "~/events/domain/form-schema/limits";
-import {
-  type FormCondition,
-  type FormContactKind,
-  type FormCustomField,
-  type FormGroup,
-  type FormSchema,
-  type FormSchemaValidationOptions,
+import type {
+  FormCondition,
+  FormContactKind,
+  FormCustomField,
+  FormGroup,
+  FormSchema,
+  FormSchemaValidationOptions,
 } from "~/events/domain/form-schema/types";
 
 type ConditionTarget =

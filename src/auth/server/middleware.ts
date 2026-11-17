@@ -1,5 +1,5 @@
 // @boundary server
-/* oxlint-disable eslint/require-await, node/callback-return -- Hono middleware returns next(). */
+/* oxlint-disable eslint/require-await -- Hono middleware returns next(). */
 import type { MiddlewareHandler } from "hono";
 import { createMiddleware } from "hono/factory";
 

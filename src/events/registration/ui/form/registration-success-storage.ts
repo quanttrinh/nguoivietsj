@@ -1,8 +1,8 @@
 // @boundary client
-import { type ApiIssue } from "~/shared/api/response";
+import type { ApiIssue } from "~/shared/api/response";
 import { isRecord } from "~/shared/utils/records";
 
-import { type RegistrationSuccess } from "./registration-submit";
+import type { RegistrationSuccess } from "./registration-submit";
 
 const STORAGE_PREFIX = "engine-registration-success";
 

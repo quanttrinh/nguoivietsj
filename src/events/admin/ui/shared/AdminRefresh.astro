@@ -12,6 +12,7 @@ const { label }: Props = Astro.props;
 </qui-button>
 
 <script>
+  import "virtual:qui/register?components=qui-button";
   import { revalidateKeys } from "~/shared/client/query/client";
 
   function initAdminRefresh(): void {

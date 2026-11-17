@@ -1,7 +1,7 @@
 // @boundary shared
 /* oxlint-disable eslint/max-params -- Localized resolution keeps explicit locale/fallback context. */
 
-import { type LocalizedText } from "~/events/domain/types";
+import type { LocalizedText } from "~/events/domain/types";
 import { DEFAULT_LOCALE } from "~/shared/constants/locales";
 
 /** Resolve localized text with event-default, default-locale, then first-value fallback. */

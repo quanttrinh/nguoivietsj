@@ -1,14 +1,14 @@
 // @boundary client
-import { type JSX } from "preact";
+import type { JSX } from "preact";
 
 import { adminEventUrl } from "~/events/admin/ui/shared/routes";
 
 import { styles } from "./admin-detail-styles";
-import {
-  type AdminEventDetailMessages,
-  type Checkin,
-  type EventDetail,
-  type Registration,
+import type {
+  AdminEventDetailMessages,
+  Checkin,
+  EventDetail,
+  Registration,
 } from "./admin-detail-types";
 import { contactText, formatDateTime } from "./admin-detail-utils";
 

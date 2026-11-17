@@ -1,5 +1,6 @@
 // @boundary client
-import { type JSX } from "preact";
+import { navigate } from "astro:transitions/client";
+import type { JSX } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 
 import { css, cx } from "styled-system/css";
@@ -122,7 +123,7 @@ export default function StatusRequest(props: { config: StatusRequestConfig }): J
         }),
       );
 
-      globalThis.location.assign(
+      await navigate(
         `/${props.config.locale}/events/status/view?token=${encodeURIComponent(payload.data.token)}`,
       );
     } catch (error) {

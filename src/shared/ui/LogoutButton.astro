@@ -32,8 +32,9 @@ const showLogin = loginLabel !== undefined && loginUrl !== undefined;
   import "virtual:qui/register?components=qui-button";
   import { navigate } from "astro:transitions/client";
 
-  import { authClient } from "../client/auth/client";
-  import { clearSharedSession, getSharedSession } from "../client/auth/session";
+  import { authClient } from "~/auth/client/client";
+  import { clearSharedSession, getSharedSession } from "~/auth/client/session";
+
   import { clientLogger } from "../client/logger";
 
   async function logout(button: HTMLQuiButtonElement): Promise<void> {

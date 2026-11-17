@@ -1,5 +1,5 @@
 // @boundary client
-import { type JSX } from "preact";
+import type { JSX } from "preact";
 
 import { can } from "~/auth/permissions";
 import { adminEventUrl } from "~/events/admin/ui/shared/routes";
@@ -7,7 +7,7 @@ import { localized } from "~/events/domain/localized";
 
 import EventTitle from "../shared/EventTitle";
 import { styles } from "./admin-detail-styles";
-import { type AdminEventDetailMessages, type EventDetail } from "./admin-detail-types";
+import type { AdminEventDetailMessages, EventDetail } from "./admin-detail-types";
 import { formatDateTime } from "./admin-detail-utils";
 
 export function EventDetailHeader(props: {

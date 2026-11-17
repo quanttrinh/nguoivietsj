@@ -7,11 +7,11 @@ import {
   FORM_REF,
   contactRef,
 } from "~/events/domain/form-schema/constants";
-import {
-  type FormConfirmationMode,
-  type FormContactKind,
-  type FormContactsConfig,
-  type FormFieldWidth,
+import type {
+  FormConfirmationMode,
+  FormContactKind,
+  FormContactsConfig,
+  FormFieldWidth,
 } from "~/events/domain/form-schema/types";
 import { localized, nullableLocalized } from "~/events/domain/localized";
 

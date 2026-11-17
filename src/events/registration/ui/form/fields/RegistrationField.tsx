@@ -1,18 +1,18 @@
 // @boundary client
-import { type JSX } from "preact";
+import type { JSX } from "preact";
 
 import { FORM_FIELD_KIND, ticketFieldName } from "~/events/domain/form-schema/constants";
-import { type ResolvedField } from "~/events/domain/form-schema/resolve/resolve";
-import { type FormStateVisibility } from "~/events/domain/form-schema/state";
-import { type EngineClientConfig } from "~/events/domain/form-schema/types";
+import type { ResolvedField } from "~/events/domain/form-schema/resolve/resolve";
+import type { FormStateVisibility } from "~/events/domain/form-schema/state";
+import type { EngineClientConfig } from "~/events/domain/form-schema/types";
 
-import { type PublicRegistrationConfig } from "../../shared/registration-types";
-import { type RegistrationValues } from "../registration-form-state";
+import type { PublicRegistrationConfig } from "../../shared/registration-types";
+import type { RegistrationValues } from "../registration-form-state";
 import { ConfirmationField } from "./ConfirmationField";
 import { ConsentField } from "./ConsentField";
 import { ContactField } from "./ContactField";
 import { CustomField } from "./CustomField";
-import { type FieldErrors } from "./field-types";
+import type { FieldErrors } from "./field-types";
 import { FieldShell } from "./FieldPrimitives";
 import { FullNameField } from "./FullNameField";
 import { GroupField } from "./GroupField";

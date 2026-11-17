@@ -1,7 +1,7 @@
 // @boundary shared
 import { CONTACT_KIND } from "~/events/domain/constants";
 import { isRegistrationPaid } from "~/events/domain/payment";
-import { type RegistrationContactRecord, type RegistrationRecord } from "~/events/domain/types";
+import type { RegistrationContactRecord, RegistrationRecord } from "~/events/domain/types";
 
 /** Convert a schema default value to the text used by form controls. */
 export function defaultValueText(value: unknown): string {

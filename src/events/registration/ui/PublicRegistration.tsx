@@ -1,20 +1,57 @@
 // @boundary client
-import { type JSX } from "preact";
+import type { JSX } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
-import { type ResolvedRegistrationForm } from "~/events/domain/form-schema/resolve/resolve";
+import type { ResolvedRegistrationForm } from "~/events/domain/form-schema";
 import { apiClient, apiErrorMessage, readApiJson } from "~/shared/client/api/client";
 import { clientLogger } from "~/shared/client/logger";
 
 import { Page } from "./page/RegistrationPage";
 import { registrationRequest } from "./shared/registration-endpoints";
 import { styles } from "./shared/registration-styles";
-import { type Props } from "./shared/registration-types";
+import type { Props } from "./shared/registration-types";
 
 const getPublicEvent = apiClient.api.events[":slug"].$get;
 const getPreview = apiClient.api.admin.events[":eventId"].preview.$get;
-interface FormResponse {
-  data: { form: ResolvedRegistrationForm | null };
+
+type RegistrationRequest = NonNullable<ReturnType<typeof registrationRequest>>;
+
+/**
+ * Hono serializes responses through `JSONParsed<T>`, which TypeScript treats as
+ * a distinct type from the server's `ResolvedRegistrationForm`. Keep the one
+ * unavoidable assertion at this API boundary instead of spreading it into UI.
+ */
+function asResolvedRegistrationForm(value: unknown): ResolvedRegistrationForm | null {
+  // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- Hono's JSONParsed transport type is structurally equivalent but not identical.
+  return value as ResolvedRegistrationForm | null;
+}
+
+/** Load the same resolved form shape from either the public or preview endpoint. */
+async function loadRegistrationForm(
+  request: RegistrationRequest,
+): Promise<ResolvedRegistrationForm | null> {
+  if (request.kind === "public") {
+    const payload = await readApiJson(
+      await getPublicEvent({
+        param: { slug: request.slug },
+        query: { locale: request.locale },
+      }),
+    );
+
+    return asResolvedRegistrationForm(payload.data.form);
+  }
+
+  const payload = await readApiJson(
+    await getPreview({
+      param: { eventId: request.eventId },
+      query: {
+        locale: request.locale,
+        ...(request.version === null ? {} : { version: request.version }),
+      },
+    }),
+  );
+
+  return asResolvedRegistrationForm(payload.data.form);
 }
 
 export default function PublicRegistration(props: Props): JSX.Element | null {
@@ -30,26 +67,10 @@ export default function PublicRegistration(props: Props): JSX.Element | null {
     }
     void (async (): Promise<void> => {
       try {
-        const payload: FormResponse =
-          request.kind === "public"
-            ? await readApiJson(
-                await getPublicEvent({
-                  param: { slug: request.slug },
-                  query: { locale: request.locale },
-                }),
-              )
-            : await readApiJson(
-                await getPreview({
-                  param: { eventId: request.eventId },
-                  query: {
-                    locale: request.locale,
-                    ...(request.version === null ? {} : { version: request.version }),
-                  },
-                }),
-              );
-        setForm(payload.data.form ?? null);
-        if (payload.data.form != null) {
-          document.title = `${payload.data.form.event.title} · ${props.config.formTitle}`;
+        const resolvedForm = await loadRegistrationForm(request);
+        setForm(resolvedForm);
+        if (resolvedForm !== null) {
+          document.title = `${resolvedForm.event.title} · ${props.config.formTitle}`;
         }
       } catch (error) {
         clientLogger.error(error);

@@ -1,6 +1,6 @@
 // @boundary client
 import { useStore } from "@nanostores/preact";
-import { type FetcherStore } from "@nanostores/query";
+import type { FetcherStore } from "@nanostores/query";
 import { atom } from "nanostores";
 
 export interface QueryState<TData> {

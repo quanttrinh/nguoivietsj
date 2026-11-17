@@ -5,10 +5,10 @@ import { validateConditions } from "~/events/domain/form-schema/conditions/condi
 import { FormSchemaIssues } from "~/events/domain/form-schema/issues";
 import { validatePlacement } from "~/events/domain/form-schema/resolve/placement";
 import { formSchemaSchema } from "~/events/domain/form-schema/schema/schema";
-import {
-  type FormSchema,
-  type FormSchemaValidationOptions,
-  type FormSchemaValidationResult,
+import type {
+  FormSchema,
+  FormSchemaValidationOptions,
+  FormSchemaValidationResult,
 } from "~/events/domain/form-schema/types";
 import {
   validateContacts,

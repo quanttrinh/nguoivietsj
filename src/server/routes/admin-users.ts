@@ -1,5 +1,5 @@
 // @boundary server
-/* oxlint-disable typescript/explicit-function-return-type, typescript/explicit-module-boundary-types -- responses stay inferred for Hono RPC. */
+/* oxlint-disable typescript/explicit-function-return-type -- responses stay inferred for Hono RPC. */
 import { sValidator } from "@hono/standard-validator";
 import { type } from "arktype";
 import { APIError } from "better-auth/api";

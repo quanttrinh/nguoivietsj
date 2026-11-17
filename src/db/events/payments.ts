@@ -1,5 +1,4 @@
 // @boundary server
-/* oxlint-disable unicorn/max-nested-calls -- Drizzle query builders are nested by design. */
 import { and, eq, inArray, min, sql, sum } from "drizzle-orm";
 
 import { AUDIT_ACTION } from "~/events/domain/constants";

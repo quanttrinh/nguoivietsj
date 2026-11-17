@@ -1,6 +1,6 @@
 // @boundary client
-import { type InputMode, type InputType } from "@quanttrinh/qui";
-import { type ComponentChildren, type JSX } from "preact";
+import type { InputMode, InputType } from "@quanttrinh/qui";
+import type { ComponentChildren, JSX } from "preact";
 
 import { FORM_FIELD_KIND, FORM_FIELD_WIDTH } from "~/events/domain/form-schema/constants";
 import { stripNulishProps } from "~/shared/client/strip-props";

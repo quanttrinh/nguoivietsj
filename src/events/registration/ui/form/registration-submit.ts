@@ -1,16 +1,16 @@
 // @boundary client
 import { REGISTRATION_VALIDATION_CODE } from "~/events/domain/form-schema/constants";
-import {
-  type RegistrationFormIssue,
-  type RegistrationValidationCode,
+import type {
+  RegistrationFormIssue,
+  RegistrationValidationCode,
 } from "~/events/domain/form-schema/types";
-import { type ApiIssue } from "~/shared/api/response";
+import type { ApiIssue } from "~/shared/api/response";
 import { apiClient, apiResponseMessage } from "~/shared/client/api/client";
 import { clientLogger } from "~/shared/client/logger";
 import { isRecord } from "~/shared/utils/records";
 
-import { type PublicRegistrationMessages } from "../shared/registration-types";
-import { type RegistrationPayload } from "./registration-form-state";
+import type { PublicRegistrationMessages } from "../shared/registration-types";
+import type { RegistrationPayload } from "./registration-form-state";
 
 export interface RegistrationSuccess {
   id: string;

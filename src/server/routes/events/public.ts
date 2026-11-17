@@ -1,5 +1,5 @@
 // @boundary server
-/* oxlint-disable import/max-dependencies, eslint/no-underscore-dangle -- Public router wiring is explicit. */
+/* oxlint-disable import/max-dependencies -- Public router wiring is explicit. */
 import { sValidator } from "@hono/standard-validator";
 import { type } from "arktype";
 import { type Context, Hono } from "hono";

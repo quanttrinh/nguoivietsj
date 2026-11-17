@@ -1,7 +1,7 @@
 // @boundary client
 import { navigate } from "astro:transitions/client";
 /* oxlint-disable eslint/max-lines-per-function, typescript/prefer-nullish-coalescing, unicorn/max-nested-calls -- The editor keeps loading, schema, save, and JSON editing state in one component. */
-import { type JSX } from "preact";
+import type { JSX } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 
 import { adminQueries, adminRefresh } from "~/events/admin/ui/shared/queries";

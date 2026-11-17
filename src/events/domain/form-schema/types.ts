@@ -1,33 +1,33 @@
 // @boundary shared
 /** Form-schema types derived from the ArkType schema, plus client DTOs. */
 
-import { type CONTACT_KIND } from "~/events/domain/constants";
-import {
-  type FORM_CONFIRMATION_MODE,
-  type FORM_CONDITION_OPERATOR,
-  type FORM_CUSTOM_FIELD_TYPE,
-  type FORM_FIELD_WIDTH,
-  type FORM_GROUP_MODE,
-  type FORM_GROUP_RENDERER,
-  type FORM_ISSUE_SEVERITY,
-  type FORM_VALIDATION_MODE,
-  type REGISTRATION_VALIDATION_CODE,
+import type { CONTACT_KIND } from "~/events/domain/constants";
+import type {
+  FORM_CONFIRMATION_MODE,
+  FORM_CONDITION_OPERATOR,
+  FORM_CUSTOM_FIELD_TYPE,
+  FORM_FIELD_WIDTH,
+  FORM_GROUP_MODE,
+  FORM_GROUP_RENDERER,
+  FORM_ISSUE_SEVERITY,
+  FORM_VALIDATION_MODE,
+  REGISTRATION_VALIDATION_CODE,
 } from "~/events/domain/form-schema/constants";
-import {
-  type FormCondition as FormConditionSchema,
-  type FormContactFieldConfig as FormContactFieldConfigSchema,
-  type FormContactsConfig as FormContactsConfigSchema,
-  type FormCustomField as FormCustomFieldSchema,
-  type FormCustomOption as FormCustomOptionSchema,
-  type FormFieldPlacement as FormFieldPlacementSchema,
-  type FormGroup as FormGroupSchema,
-  type FormGroupOption as FormGroupOptionSchema,
-  type FormOverrides as FormOverridesSchema,
-  type FormPresentationOverride as FormPresentationOverrideSchema,
-  type FormSchema as FormSchemaSchema,
-  type FormSection as FormSectionSchema,
+import type {
+  FormCondition as FormConditionSchema,
+  FormContactFieldConfig as FormContactFieldConfigSchema,
+  FormContactsConfig as FormContactsConfigSchema,
+  FormCustomField as FormCustomFieldSchema,
+  FormCustomOption as FormCustomOptionSchema,
+  FormFieldPlacement as FormFieldPlacementSchema,
+  FormGroup as FormGroupSchema,
+  FormGroupOption as FormGroupOptionSchema,
+  FormOverrides as FormOverridesSchema,
+  FormPresentationOverride as FormPresentationOverrideSchema,
+  FormSchema as FormSchemaSchema,
+  FormSection as FormSectionSchema,
 } from "~/events/domain/form-schema/schema/schema";
-import { type LocalizedText as SharedLocalizedText } from "~/events/domain/schemas/common";
+import type { LocalizedText as SharedLocalizedText } from "~/events/domain/schemas/common";
 
 export type LocalizedText = SharedLocalizedText;
 export type FormFieldWidth = (typeof FORM_FIELD_WIDTH)[keyof typeof FORM_FIELD_WIDTH];

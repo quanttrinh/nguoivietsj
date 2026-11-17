@@ -25,15 +25,15 @@ import {
   type FormStateConditions,
   type FormStateVisibility,
 } from "~/events/domain/form-schema/state";
-import {
-  type FormCustomField,
-  type FormGroup,
-  type FormSchema,
-  type RegistrationFormIssue,
-  type RegistrationFormValidationResult,
+import type {
+  FormCustomField,
+  FormGroup,
+  FormSchema,
+  RegistrationFormIssue,
+  RegistrationFormValidationResult,
 } from "~/events/domain/form-schema/types";
 import { POSTAL_CODE_REGEX } from "~/events/domain/patterns";
-import { type ContactInput, type RegistrationInput } from "~/events/domain/types";
+import type { ContactInput, RegistrationInput } from "~/events/domain/types";
 
 type FormValue = string | number | boolean | null | undefined;
 

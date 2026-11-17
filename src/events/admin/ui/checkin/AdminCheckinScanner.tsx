@@ -1,6 +1,6 @@
 // @boundary client
 /* oxlint-disable eslint/max-lines-per-function -- Scanner keeps camera, manual entry, and result flow together. */
-import { type JSX } from "preact";
+import type { JSX } from "preact";
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 
 import { css } from "styled-system/css";

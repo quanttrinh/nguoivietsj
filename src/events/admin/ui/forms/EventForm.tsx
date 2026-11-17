@@ -1,9 +1,9 @@
 // @boundary client
 import { navigate } from "astro:transitions/client";
-/* oxlint-disable eslint/complexity, import/max-dependencies, eslint/max-lines, eslint/max-lines-per-function, eslint/no-negated-condition, eslint/no-nested-ternary, eslint/no-plusplus, oxc/no-map-spread, react/no-array-index-key, react/purity, typescript/non-nullable-type-assertion-style, unicorn/no-negated-condition, unicorn/no-nested-ternary -- Admin forms keep related editable sections together and copy nested note blocks before mutating state. */
-import { type InferRequestType } from "hono/client";
+/* oxlint-disable eslint/complexity, import/max-dependencies, eslint/max-lines, eslint/max-lines-per-function, eslint/no-negated-condition, eslint/no-nested-ternary, eslint/no-plusplus, oxc/no-map-spread, react/no-array-index-key, react/purity, unicorn/no-negated-condition, unicorn/no-nested-ternary -- Admin forms keep related editable sections together and copy nested note blocks before mutating state. */
+import type { InferRequestType } from "hono/client";
 import { locales } from "intlayer";
-import { type JSX } from "preact";
+import type { JSX } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 
 import { rememberEventTitle } from "~/events/admin/ui/shared/event-titles";
@@ -22,12 +22,12 @@ import {
   MAX_EVENT_TYPE_LENGTH,
 } from "~/events/domain/limits";
 import { EMAIL_PATTERN } from "~/events/domain/patterns";
-import {
-  type EventDetail,
-  type EventNoteBlock,
-  type EventNotes,
-  type EventStatus,
-  type TicketTypeInput,
+import type {
+  EventDetail,
+  EventNoteBlock,
+  EventNotes,
+  EventStatus,
+  TicketTypeInput,
 } from "~/events/domain/types";
 import { apiClient, apiResponseMessage } from "~/shared/client/api/client";
 import { readFormChecked, readFormValue } from "~/shared/client/form-controls";

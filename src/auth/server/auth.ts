@@ -22,7 +22,7 @@ const authSchema = { account, rateLimit, session, twoFactor, user, verification 
 
 const authInstances = new WeakMap<Env, ReturnType<typeof createAuth>>();
 
-// oxlint-disable-next-line typescript/explicit-function-return-type, typescript/explicit-module-boundary-types -- infer the concrete Better Auth instance.
+// oxlint-disable-next-line typescript/explicit-function-return-type -- infer the concrete Better Auth instance.
 function createAuth(env: Env) {
   const db = drizzle(env.APP_DB, { relations: authRelations, logger: drizzleLogger });
   const authKV = env.AUTH_SESSION_KV;

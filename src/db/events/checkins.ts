@@ -1,5 +1,4 @@
 // @boundary server
-/* oxlint-disable unicorn/max-nested-calls -- Drizzle query builders are nested by design. */
 import { and, desc, eq, inArray } from "drizzle-orm";
 
 import type { CheckinListItem, CheckinRecord } from "~/events/domain/types";
@@ -111,7 +110,6 @@ function createCheckinRepository(orm: EngineOrm): CheckinRepository {
           })
           .get();
 
-        // oxlint-disable-next-line typescript/no-unnecessary-condition -- onConflictDoNothing yields no row on conflict.
         if (row !== undefined) {
           return {
             id: row.id,

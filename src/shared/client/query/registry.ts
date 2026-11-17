@@ -1,5 +1,5 @@
 // @boundary client
-import { type CommonSettings, type FetcherStore } from "@nanostores/query";
+import type { CommonSettings, FetcherStore } from "@nanostores/query";
 
 import { createFetcherStore, invalidateKeys } from "./client";
 

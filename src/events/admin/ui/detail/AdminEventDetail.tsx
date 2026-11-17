@@ -1,6 +1,6 @@
 // @boundary client
 import { navigate } from "astro:transitions/client";
-import { type JSX } from "preact";
+import type { JSX } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
 import { can } from "~/auth/permissions";
@@ -11,7 +11,7 @@ import { apiClient, apiErrorMessage, readApiJson } from "~/shared/client/api/cli
 import { useQuery } from "~/shared/client/query/use-query";
 
 import { styles } from "./admin-detail-styles";
-import { type Props } from "./admin-detail-types";
+import type { Props } from "./admin-detail-types";
 import { EventDetailHeader } from "./EventDetailHeader";
 import { FormVersionsPanel } from "./FormVersionsPanel";
 import { RegistrationsPanel } from "./RegistrationsPanel";

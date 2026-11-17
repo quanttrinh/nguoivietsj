@@ -1,13 +1,13 @@
 // @boundary client
-import { type InputTextCase } from "@quanttrinh/qui";
-import { type JSX } from "preact";
+import type { InputTextCase } from "@quanttrinh/qui";
+import type { JSX } from "preact";
 
 import {
   FORM_DEFAULT_MAIL_COUNTRY,
   FORM_MAIL_SUBFIELD,
   mailFieldName,
 } from "~/events/domain/form-schema/constants";
-import { type ResolvedMailField } from "~/events/domain/form-schema/resolve/resolve";
+import type { ResolvedMailField } from "~/events/domain/form-schema/resolve/resolve";
 import {
   MAX_ADDRESS_LINE_LENGTH,
   MAX_CITY_LENGTH,
@@ -16,8 +16,8 @@ import {
 import { stripNulishProps } from "~/shared/client/strip-props";
 
 import { styles } from "../../shared/registration-styles";
-import { type PublicRegistrationConfig } from "../../shared/registration-types";
-import { type FieldErrors, type FieldProps } from "./field-types";
+import type { PublicRegistrationConfig } from "../../shared/registration-types";
+import type { FieldErrors, FieldProps } from "./field-types";
 import { FieldFrame } from "./FieldPrimitives";
 
 export interface MailFieldProps extends Omit<FieldProps<ResolvedMailField>, "error"> {

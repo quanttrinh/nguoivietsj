@@ -2,7 +2,7 @@
 /* oxlint-disable eslint/max-params -- Resolver helpers take explicit locale/schema context. */
 
 import { localized, nullableLocalized } from "~/events/domain/localized";
-import { type EventDetail, type TicketTypeRecord } from "~/events/domain/types";
+import type { EventDetail, TicketTypeRecord } from "~/events/domain/types";
 
 export interface ResolvedTicketType {
   key: string;

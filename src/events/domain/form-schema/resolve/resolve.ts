@@ -29,24 +29,24 @@ import {
   resolveTicket,
   type ResolvedTicketType,
 } from "~/events/domain/form-schema/resolve/resolve-ticket";
-import {
-  type EngineClientConfig,
-  type FormCondition,
-  type FormContactsConfig,
-  type FormCustomField,
-  type FormFieldWidth,
-  type FormGroup,
-  type FormGroupMode,
-  type FormGroupRenderer,
-  type FormSchema,
+import type {
+  EngineClientConfig,
+  FormCondition,
+  FormContactsConfig,
+  FormCustomField,
+  FormFieldWidth,
+  FormGroup,
+  FormGroupMode,
+  FormGroupRenderer,
+  FormSchema,
 } from "~/events/domain/form-schema/types";
 import { localized, nullableLocalized } from "~/events/domain/localized";
-import {
-  type EventDetail,
-  type EventLocation,
-  type EventNotes,
-  type EventPayments,
-  type EventStatus,
+import type {
+  EventDetail,
+  EventLocation,
+  EventNotes,
+  EventPayments,
+  EventStatus,
 } from "~/events/domain/types";
 import { DEFAULT_LOCALE } from "~/shared/constants/locales";
 

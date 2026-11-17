@@ -1,5 +1,4 @@
 // @boundary server
-/* oxlint-disable import/no-default-export -- exported as the API Hono app. */
 import { Hono } from "hono";
 import { csrf } from "hono/csrf";
 import { logger } from "hono/logger";

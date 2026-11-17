@@ -1,11 +1,11 @@
 // @boundary client
-import { type JSX } from "preact";
+import type { JSX } from "preact";
 
 import { FORM_OVERRIDE_KEY } from "~/events/domain/form-schema/constants";
-import { type ResolvedFullNameField } from "~/events/domain/form-schema/resolve/resolve";
+import type { ResolvedFullNameField } from "~/events/domain/form-schema/resolve/resolve";
 import { MAX_FULL_NAME_LENGTH } from "~/events/domain/limits";
 
-import { type PublicRegistrationConfig } from "../../shared/registration-types";
+import type { PublicRegistrationConfig } from "../../shared/registration-types";
 import { TextField } from "./FieldPrimitives";
 
 export interface FullNameFieldProps {

@@ -1,5 +1,5 @@
 // @boundary client
-import { type InferResponseType } from "hono/client";
+import type { InferResponseType } from "hono/client";
 
 import { apiClient } from "~/shared/client/api/client";
 

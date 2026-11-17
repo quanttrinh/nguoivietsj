@@ -1,11 +1,11 @@
 // @boundary client
-import { type JSX } from "preact";
+import type { JSX } from "preact";
 
 import { adminEventUrl } from "~/events/admin/ui/shared/routes";
 import { formatMoney } from "~/shared/utils/format";
 
 import { styles } from "./admin-detail-styles";
-import { type AdminEventDetailMessages, type EventDetail } from "./admin-detail-types";
+import type { AdminEventDetailMessages, EventDetail } from "./admin-detail-types";
 
 export function TicketTypesPanel(props: {
   locale: string;

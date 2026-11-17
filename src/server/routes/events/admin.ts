@@ -1,5 +1,5 @@
 // @boundary server
-/* oxlint-disable eslint/max-lines, eslint/max-lines-per-function, import/max-dependencies, typescript/explicit-function-return-type, typescript/explicit-module-boundary-types -- Admin routes share repository wiring; response types stay inferred for Hono RPC. */
+/* oxlint-disable eslint/max-lines, import/max-dependencies, typescript/explicit-function-return-type -- Admin routes share repository wiring; response types stay inferred for Hono RPC. */
 
 import { sValidator } from "@hono/standard-validator";
 import { type } from "arktype";

@@ -1,7 +1,7 @@
 // @boundary client
 import { dateTimeFormatter } from "~/shared/utils/format";
 
-import { type Contact } from "./admin-detail-types";
+import type { Contact } from "./admin-detail-types";
 
 export function formatDateTime(value: string, locale: string, timezone: string): string {
   return dateTimeFormatter(locale, timezone).format(new Date(value));

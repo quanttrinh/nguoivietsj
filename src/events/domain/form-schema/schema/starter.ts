@@ -7,7 +7,7 @@ import {
   FORM_SCHEMA_VERSION,
   ticketRef,
 } from "~/events/domain/form-schema/constants";
-import { type FormSchema, type LocalizedText } from "~/events/domain/form-schema/types";
+import type { FormSchema, LocalizedText } from "~/events/domain/form-schema/types";
 
 function text(en: string, fr: string, vi: string): LocalizedText {
   return { en, fr, vi };
