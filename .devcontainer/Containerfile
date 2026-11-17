@@ -22,6 +22,7 @@ RUN apt-get update \
       ncurses-base \
       ncurses-bin \
       ncurses-term \
+      libatomic1 \
     && rm -rf /var/lib/apt/lists/*
 
 RUN groupadd --gid $USER_GID $USERNAME \

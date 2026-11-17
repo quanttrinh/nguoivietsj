@@ -382,6 +382,29 @@ the edge; production is not.
 Staff accounts are provisioned with `bun manage.ts backfill create-user -- <email>`; public sign-up is
 disabled. Local development can use the seeded accounts.
 
+### Two-factor authentication
+
+Better Auth's `twoFactor` plugin adds a second sign-in step: an authenticator
+app (TOTP), an emailed code, or a one-time backup code. Admin, `event_staff`,
+and `event_checkin` accounts must enroll; until they do, `requireAuth` returns
+`403 two_factor_required` and the admin pages send them to
+`/{locale}/login/two-factor/`, which renders the QR code locally and shows the
+backup codes once. Emailed codes go through `EMAIL_QUEUE`, are stored hashed,
+expire after 3 minutes, and `/two-factor/send-otp` is limited to 3 requests per
+minute. "Trust this device" skips the second step for 30 days.
+
+To recover a staff member who lost their device and backup codes, an operator
+with Wrangler access resets enrollment, then the user enrolls again at their
+next sign-in:
+
+```sh
+bunx wrangler d1 execute nguoivietsj-db --remote --command \
+  "DELETE FROM two_factor WHERE user_id = (SELECT id FROM user WHERE email = 'person@example.com'); \
+   UPDATE user SET two_factor_enabled = 0 WHERE email = 'person@example.com';"
+```
+
+Use `--env staging` with `nguoivietsj-staging-db` for staging.
+
 ## Registration
 
 Registration is schema-driven and copy-on-write by form version. Published
@@ -436,24 +459,17 @@ environment's dead-letter queue.
 
 The payment template embeds the QR through the `checkin-qr` content ID.
 
-## Caching
+## Caching and routing
 
-Public event pages and public read APIs use `cacheCloudflare()` through Astro
-route rules:
+Every page is prerendered and served from static assets. The Worker runs only
+for `/api/*` (`assets.run_worker_first` in `wrangler.jsonc`), so page views do
+not count against the Workers request or CPU limits.
 
-- fresh for 60 seconds
-- stale-while-revalidate for 300 seconds
+The public event list is a static shell that loads `/api/events` in the
+browser. Hashed files under `/_astro/*` are served with an immutable
+`Cache-Control` header.
 
-Cache tags:
-
-- `event-list`
-- `event:{eventId}`
-
-Event, ticket-type, and published-form changes invalidate the relevant tags.
-Registration counts and remaining ticket quantities may be up to 60 seconds
-stale. The registration service remains authoritative.
-
-Admin, preview, mutation, and registration POST responses are never cached.
+Admin, preview, mutation, and registration responses are never cached.
 
 ## Cloudflare infrastructure
 

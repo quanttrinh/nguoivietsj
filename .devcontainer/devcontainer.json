@@ -10,6 +10,8 @@
     }
   },
   "remoteUser": "dev",
+  "initializeCommand": "sh .devcontainer/initialize-doppler.sh",
+  "runArgs": ["--env-file", "${localEnv:HOME}/.doppler/devcontainer.env"],
   "remoteEnv": {
     "PATH": "/home/dev/.local/share/aquaproj-aqua/bin:${containerEnv:PATH}",
     "EDITOR": "code --wait",
@@ -17,14 +19,11 @@
     "GIT_SEQUENCE_EDITOR": "code --wait"
   },
   "secrets": {
-    "NODE_AUTH_TOKEN": {
-      "description": "GitHub token with read:packages, used to install @quanttrinh/qui from GitHub Packages."
-    },
     "DOPPLER_TOKEN": {
-      "description": "Doppler service token for the web dev_personal config. Optional if you run `doppler login`."
+      "description": "Optional Doppler service token for web/dev_personal. The host Doppler login is used when this is not set."
     }
   },
-  "postCreateCommand": "export PATH=\"$HOME/.local/share/aquaproj-aqua/bin:$PATH\" && (cd aqua && aqua policy allow aqua-policy.yaml && aqua i) && bun install --frozen-lockfile && bun manage.ts migrate --target local && bun manage.ts seed",
+  "postCreateCommand": "export PATH=\"$HOME/.local/share/aquaproj-aqua/bin:$PATH\" && (cd aqua && aqua policy allow aqua-policy.yaml && aqua i) && doppler run -- bun install --frozen-lockfile && bun manage.ts migrate --target local && bun manage.ts seed",
   "forwardPorts": [4321],
   "portsAttributes": {
     "4321": {
