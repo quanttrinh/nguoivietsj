@@ -1,12 +1,12 @@
 // @boundary server
 import { handle } from "@astrojs/cloudflare/handler";
 
-import { runMaintenance as runAppMaintenance } from "~/auth/server/maintenance";
-import { runMaintenance as runEventMaintenance } from "~/events/services/maintenance";
+import { runAppMaintenance } from "~/auth/server/maintenance";
+import { runEventMaintenance } from "~/events/services/maintenance";
 import { api } from "~/server/app";
+import { runMaintenance, type MaintenanceTask } from "~/server/maintenance";
 import { appEmailQueue } from "~/server/services/email/app-queue";
 import { isEmailQueue, processEmailBatch } from "~/server/services/email/queue";
-import { serverLogger } from "~/shared/server/logger";
 
 export default {
   fetch(request: Request, env: Env, ctx: ExecutionContext): Response | Promise<Response> {
@@ -32,23 +32,17 @@ export default {
   },
 
   scheduled(_controller: ScheduledController, env: Env, ctx: ExecutionContext): void {
-    const maintenance = async (): Promise<void> => {
-      const results = await Promise.allSettled([
-        runEventMaintenance(env.EVENT_ENGINE_DB),
-        runAppMaintenance(env.APP_DB),
-      ]);
+    const tasks: MaintenanceTask[] = [
+      {
+        name: "event-engine",
+        run: (now) => runEventMaintenance(env.EVENT_ENGINE_DB, now),
+      },
+      {
+        name: "app-auth",
+        run: (now) => runAppMaintenance(env.APP_DB, now),
+      },
+    ];
 
-      for (const result of results) {
-        if (result.status === "rejected") {
-          const error: unknown = result.reason;
-          serverLogger.error(
-            { name: error instanceof Error ? error.name : "unknown" },
-            "Failed to run scheduled maintenance",
-          );
-        }
-      }
-    };
-
-    ctx.waitUntil(maintenance());
+    ctx.waitUntil(runMaintenance(tasks));
   },
 } satisfies ExportedHandler<Env>;

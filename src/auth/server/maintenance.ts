@@ -14,7 +14,7 @@ const RATE_LIMIT_RETENTION_MS = 60 * 60 * 1000;
  * trusted-device records) are deleted once expired. Rate-limit counters
  * are keyed by IP and route and would otherwise accumulate forever.
  */
-export async function runMaintenance(db: D1Database, now: Date = new Date()): Promise<void> {
+export async function runAppMaintenance(db: D1Database, now: Date = new Date()): Promise<void> {
   const orm = drizzle(db);
   const nowMs = now.getTime();
 

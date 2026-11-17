@@ -142,7 +142,7 @@ async function purgeExpiredRegistrationData(db: D1Database, now: Date = new Date
 }
 
 /** Run all daily cleanup and retention work for one event-engine database. */
-export async function runMaintenance(db: D1Database, now: Date = new Date()): Promise<void> {
+export async function runEventMaintenance(db: D1Database, now: Date = new Date()): Promise<void> {
   await pruneOperationalData(db, now);
   await purgeExpiredRegistrationData(db, now);
 }
