@@ -3,11 +3,7 @@
 import { and, desc, eq } from "drizzle-orm";
 
 import { FORM_VERSION_STATUS } from "~/events/domain/constants";
-import {
-  type FormVersionInput,
-  type FormVersionRecord,
-  type FormVersionStatus,
-} from "~/events/domain/types";
+import type { FormVersionInput, FormVersionRecord, FormVersionStatus } from "~/events/domain/types";
 
 import { databaseSingleton, type EngineOrm } from "./orm";
 import { eventFormVersions } from "./schemas";
@@ -103,29 +99,25 @@ function createFormVersionRepository(orm: EngineOrm): FormVersionRepository {
         createdBy,
         publishedAt,
       });
+      let row: typeof eventFormVersions.$inferSelect | undefined;
 
-      await (input.status === FORM_VERSION_STATUS.published
-        ? orm.batch([
-            orm
-              .update(eventFormVersions)
-              .set({ status: FORM_VERSION_STATUS.archived })
-              .where(
-                and(
-                  eq(eventFormVersions.eventId, eventId),
-                  eq(eventFormVersions.status, FORM_VERSION_STATUS.published),
-                ),
+      if (input.status === FORM_VERSION_STATUS.published) {
+        const [, rows] = await orm.batch([
+          orm
+            .update(eventFormVersions)
+            .set({ status: FORM_VERSION_STATUS.archived })
+            .where(
+              and(
+                eq(eventFormVersions.eventId, eventId),
+                eq(eventFormVersions.status, FORM_VERSION_STATUS.published),
               ),
-            insert,
-          ])
-        : orm.batch([insert]));
-
-      const row = await orm
-        .select()
-        .from(eventFormVersions)
-        .where(
-          and(eq(eventFormVersions.eventId, eventId), eq(eventFormVersions.version, input.version)),
-        )
-        .get();
+            ),
+          insert.returning(),
+        ]);
+        row = rows[0];
+      } else {
+        [row] = await insert.returning();
+      }
 
       if (row === undefined) {
         throw new Error("form_version_insert_failed");

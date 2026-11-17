@@ -1,5 +1,5 @@
 // @boundary server
-import { and, desc, eq, gt, isNull, lt, notExists, sql } from "drizzle-orm";
+import { and, count, desc, eq, gt, isNull, lt, notExists, sql } from "drizzle-orm";
 
 import { newId } from "~/shared/utils/uuid";
 
@@ -37,6 +37,8 @@ export interface CreateOtpInput {
   codeHash: string;
   expiresAt: string;
   resendSince: string;
+  dailySince: string;
+  maxPerDay: number;
 }
 
 export interface ConsumeOtpInput {
@@ -48,7 +50,7 @@ export interface ConsumeOtpInput {
 
 export interface RegistrationStatusRepository {
   createSession: (registrationId: string, tokenHash: string, expiresAt: string) => Promise<void>;
-  consumeByTokenHash: (tokenHash: string, now: string) => Promise<RegistrationStatusAccess | null>;
+  findByTokenHash: (tokenHash: string, now: string) => Promise<RegistrationStatusAccess | null>;
   findRegistrationEmail: (registrationId: string) => Promise<StatusRegistrationEmail | null>;
   createOtp: (input: CreateOtpInput) => Promise<boolean>;
   findLatestOtp: (registrationId: string) => Promise<StatusOtp | null>;
@@ -106,6 +108,15 @@ function createRegistrationStatusRepository(orm: EngineOrm): RegistrationStatusR
             gt(registrationStatusOtps.createdAt, input.resendSince),
           ),
         );
+      const dailyCount = orm
+        .select({ value: count() })
+        .from(registrationStatusOtps)
+        .where(
+          and(
+            eq(registrationStatusOtps.registrationId, input.registrationId),
+            gt(registrationStatusOtps.createdAt, input.dailySince),
+          ),
+        );
       const selection = orm
         .select({
           id: sql<string>`${input.id}`.as("id"),
@@ -114,7 +125,13 @@ function createRegistrationStatusRepository(orm: EngineOrm): RegistrationStatusR
           expiresAt: sql<string>`${input.expiresAt}`.as("expires_at"),
         })
         .from(registrations)
-        .where(and(eq(registrations.id, input.registrationId), notExists(recentOtp)));
+        .where(
+          and(
+            eq(registrations.id, input.registrationId),
+            notExists(recentOtp),
+            lt(dailyCount, input.maxPerDay),
+          ),
+        );
       const inserted = await orm
         .insert(registrationStatusOtps)
         .select(selection)
@@ -169,32 +186,32 @@ function createRegistrationStatusRepository(orm: EngineOrm): RegistrationStatusR
       return consumed.length > 0;
     },
 
-    async consumeByTokenHash(tokenHash, now) {
-      const deleted = await orm
-        .delete(registrationStatusSessions)
+    async findByTokenHash(tokenHash, now) {
+      // Do not delete the token on read. The success page and the email share a
+      // link, and link scanners or reloads would otherwise consume it.
+      const row = await orm
+        .select({
+          registrationId: registrationStatusSessions.registrationId,
+          expiresAt: registrationStatusSessions.expiresAt,
+          eventId: registrations.eventId,
+        })
+        .from(registrationStatusSessions)
+        .innerJoin(registrations, eq(registrations.id, registrationStatusSessions.registrationId))
         .where(
           and(
             eq(registrationStatusSessions.tokenHash, tokenHash),
             gt(registrationStatusSessions.expiresAt, now),
           ),
         )
-        .returning({
-          registrationId: registrationStatusSessions.registrationId,
-          expiresAt: registrationStatusSessions.expiresAt,
-          eventId: sql<string>`(
-            select ${registrations.eventId}
-            from ${registrations}
-            where ${registrations.id} = ${registrationStatusSessions.registrationId}
-          )`.as("event_id"),
-        });
-      const access = deleted[0];
+        .limit(1)
+        .get();
 
-      return access === undefined
+      return row === undefined
         ? null
         : {
-            registrationId: access.registrationId,
-            eventId: access.eventId,
-            expiresAt: access.expiresAt,
+            registrationId: row.registrationId,
+            eventId: row.eventId,
+            expiresAt: row.expiresAt,
           };
     },
   };

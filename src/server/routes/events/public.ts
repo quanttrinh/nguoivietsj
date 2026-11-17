@@ -1,8 +1,8 @@
 // @boundary server
-/* oxlint-disable import/max-dependencies, eslint/no-underscore-dangle -- Public router wiring is explicit. */
+/* oxlint-disable import/max-dependencies -- Public router wiring is explicit. */
 import { sValidator } from "@hono/standard-validator";
 import { type } from "arktype";
-import { Hono } from "hono";
+import { type Context, Hono } from "hono";
 import { cache } from "hono/cache";
 
 import {
@@ -24,6 +24,7 @@ import {
 import { statusPageUrl } from "~/events/services/status-url";
 import { apiSuccess } from "~/server/api-response";
 import { notFound, rateLimited } from "~/server/common-responses";
+import { apiBodyLimit } from "~/server/middleware/body-limit";
 import {
   checkRateLimit,
   clientKey,
@@ -40,8 +41,11 @@ const eventsParamSchema = type({
   slug: eventSlugSchema,
 });
 
+const MAX_PUBLIC_REGISTRATION_BODY_BYTES = 64 * 1024;
+
 const eventsQuerySchema = type({
   "locale?": "string",
+  "+": "reject",
 });
 
 const registrationParamSchema = type({
@@ -70,12 +74,31 @@ function metadataLocale(metadata: Record<string, unknown>, fallback: string): st
   return typeof locale === "string" && SUPPORTED_LOCALES.has(locale) ? locale : fallback;
 }
 
+/**
+ * Cache on path plus a validated locale only.
+ *
+ * Hono's default key is the full URL, so `?x=<random>` always missed the cache
+ * and reached D1. Unknown query keys are rejected by the validator above.
+ */
+function eventCacheKey(ctx: Context, path: string): string {
+  const requestUrl = new URL(ctx.req.url);
+  const key = new URL(path, requestUrl.origin);
+  const locale = requestUrl.searchParams.get("locale");
+
+  if (locale !== null && SUPPORTED_LOCALES.has(locale)) {
+    key.searchParams.set("locale", locale);
+  }
+
+  return key.href;
+}
+
 export const publicEvents = new Hono<HonoEnv>()
   .get(
     "/",
     cache({
       cacheName: "event-list",
       cacheControl: "public, max-age=60, s-maxage=300",
+      keyGenerator: (ctx) => eventCacheKey(ctx, "/api/events"),
       wait: true,
     }),
     async (context) => {
@@ -94,13 +117,16 @@ export const publicEvents = new Hono<HonoEnv>()
   )
   .get(
     "/:slug",
+    // Validate first so unknown query keys get a 400 instead of a cached 200.
+    sValidator("param", eventsParamSchema, defaultValidationHandler),
+    sValidator("query", eventsQuerySchema, defaultValidationHandler),
     cache({
       cacheName: "event-detail",
       cacheControl: "public, max-age=60, s-maxage=300",
+      keyGenerator: (ctx) =>
+        eventCacheKey(ctx, `/api/events/${encodeURIComponent(ctx.req.param("slug") ?? "")}`),
       wait: true,
     }),
-    sValidator("param", eventsParamSchema, defaultValidationHandler),
-    sValidator("query", eventsQuerySchema, defaultValidationHandler),
     async (ctx) => {
       const { slug } = ctx.req.valid("param");
 
@@ -188,10 +214,11 @@ export const publicEvents = new Hono<HonoEnv>()
   )
   .post(
     "/:slug/registrations",
-    sValidator("json", registrationSchema, defaultValidationHandler),
-    sValidator("param", registrationParamSchema, defaultValidationHandler),
     rateLimit(registrationIpRateLimit),
     requireTurnstile(REGISTRATION_TURNSTILE_ACTION),
+    apiBodyLimit(MAX_PUBLIC_REGISTRATION_BODY_BYTES),
+    sValidator("param", registrationParamSchema, defaultValidationHandler),
+    sValidator("json", registrationSchema, defaultValidationHandler),
     async (ctx) => {
       const { slug } = ctx.req.valid("param");
       const body = ctx.req.valid("json");

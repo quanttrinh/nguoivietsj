@@ -1,12 +1,12 @@
 // @boundary client
-import { type ComponentChildren, type JSX } from "preact";
+import type { ComponentChildren, JSX } from "preact";
 
-import { type ResolvedRegistrationForm } from "~/events/domain/form-schema/resolve/resolve";
+import type { ResolvedRegistrationForm } from "~/events/domain/form-schema/resolve/resolve";
 import { dateTimeFormatter, formatMoney } from "~/shared/utils/format";
 import { safeExternalUrl } from "~/shared/utils/url";
 
 import { styles } from "../shared/registration-styles";
-import { type PublicRegistrationConfig } from "../shared/registration-types";
+import type { PublicRegistrationConfig } from "../shared/registration-types";
 
 export function InfoRow(props: { term: string; children: ComponentChildren }): JSX.Element {
   return (

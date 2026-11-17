@@ -2,21 +2,16 @@
 /* oxlint-disable unicorn/prefer-export-from -- schema types are also used by record interfaces in this module. */
 /** Shared event-engine record types plus schema-derived input types. */
 
-import { type LocalizedText } from "~/events/domain/schemas/common";
-import {
-  type EventPayments,
-  type EventTicketLimits,
-  type EventLocation,
+import type { LocalizedText } from "~/events/domain/schemas/common";
+import type {
+  EventPayments,
+  EventTicketLimits,
+  EventLocation,
 } from "~/events/domain/schemas/event";
-import { type EventNotes } from "~/events/domain/schemas/notes";
-import { type TicketTypeInput } from "~/events/domain/schemas/tickets";
+import type { EventNotes } from "~/events/domain/schemas/notes";
+import type { TicketTypeInput } from "~/events/domain/schemas/tickets";
 
-import {
-  type CONTACT_KIND,
-  type EventStatus,
-  type FormVersionStatus,
-  type PaymentMethod,
-} from "./constants";
+import type { CONTACT_KIND, EventStatus, FormVersionStatus, PaymentMethod } from "./constants";
 
 export type {
   ContactKind,

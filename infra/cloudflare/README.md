@@ -33,9 +33,9 @@ databases and Workers KV namespaces so `bun scripts/infra.ts sync` can keep
 - A Turnstile widget for the production and staging hostnames, with managed
   challenge clearance.
 - A zone WAF custom rule that issues a **Managed Challenge** for public event
-  registration requests matching `public_registration_path_regex`.
+  registration requests matching `public_registration_path_pattern`.
 - A zone rate-limiting rule that blocks bursts above 10 requests per 10 seconds
-  per IP on the same paths.
+  per IP on registration, status and sign-in paths.
 - Optional additional DNS records not owned by Wrangler custom domains.
 - A self-hosted Cloudflare Access application for the entire
   `staging.nguoivietsj.ca` hostname.
@@ -44,10 +44,10 @@ databases and Workers KV namespaces so `bun scripts/infra.ts sync` can keep
 - Read-only discovery of the existing D1 databases and Workers KV namespaces,
   exported for `wrangler.jsonc` synchronization.
 
-`public_registration_path_regex` defaults to:
+`public_registration_path_pattern` defaults to:
 
 ```hcl
-"^/api/events/[^/]+/registrations$"
+"/api/events/*/registrations"
 ```
 
 Production event pages remain public. Staging is always protected.
@@ -571,7 +571,7 @@ listed by ID in `access_service_token_ids`. Supplying only the request headers
 is not enough, even if the same token has access to another application.
 
 The WAF challenge applies to public event registration requests matching
-`public_registration_path_regex`; automated tests that submit registrations must
+`public_registration_path_pattern`; automated tests that submit registrations must
 use Turnstile pre-clearance or endpoints that are not protected by the challenge.
 
 Keep OpenTofu state out of git. For shared environments, use the remote backend

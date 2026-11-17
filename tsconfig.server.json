@@ -26,14 +26,12 @@
     "src/db/**/*.ts",
     "src/events/content/**/*.ts",
     "src/events/domain/**/*.ts",
-    "src/events/permissions.ts",
     "src/events/services/**/*.ts",
     "src/server/**/*.ts",
     "src/shared/api/**/*.ts",
     "src/shared/constants/**/*.ts",
     "src/shared/server/**/*.ts",
-    "src/shared/utils/**/*.ts",
-    "src/users/**/*.ts"
+    "src/shared/utils/**/*.ts"
   ],
-  "exclude": ["dist", "src/**/ui/**", "src/shared/client/**"]
+  "exclude": ["dist", "src/**/ui/**", "src/shared/client/**", "src/auth/client/**"]
 }

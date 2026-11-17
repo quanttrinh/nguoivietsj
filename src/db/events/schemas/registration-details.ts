@@ -10,7 +10,7 @@ import {
   uniqueIndex,
 } from "drizzle-orm/sqlite-core";
 
-import { type PaymentMethod } from "~/events/domain/types";
+import type { PaymentMethod } from "~/events/domain/types";
 
 import { events } from "./events";
 import { registrations } from "./registrations";

@@ -1,6 +1,6 @@
 // @boundary client
 import { useStore } from "@nanostores/preact";
-import { type JSX } from "preact";
+import type { JSX } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 
 import { localized } from "~/events/domain/localized";

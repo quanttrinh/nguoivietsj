@@ -1,20 +1,20 @@
 // @boundary client
-import { type JSX } from "preact";
+import type { JSX } from "preact";
 
 import {
   FORM_GROUP_MODE,
   FORM_GROUP_RENDERER,
   groupRef,
 } from "~/events/domain/form-schema/constants";
-import {
-  type ResolvedGroup,
-  type ResolvedGroupField,
+import type {
+  ResolvedGroup,
+  ResolvedGroupField,
 } from "~/events/domain/form-schema/resolve/resolve";
-import { type FormStateVisibility } from "~/events/domain/form-schema/state";
-import { type EngineClientConfig } from "~/events/domain/form-schema/types";
+import type { FormStateVisibility } from "~/events/domain/form-schema/state";
+import type { EngineClientConfig } from "~/events/domain/form-schema/types";
 
 import { styles } from "../../shared/registration-styles";
-import { type PublicRegistrationConfig } from "../../shared/registration-types";
+import type { PublicRegistrationConfig } from "../../shared/registration-types";
 import {
   fieldRequired,
   fieldVisible,
@@ -22,7 +22,7 @@ import {
   type RegistrationFieldContext,
   type RegistrationValues,
 } from "../registration-form-state";
-import { type FieldErrors } from "./field-types";
+import type { FieldErrors } from "./field-types";
 import { GroupMember } from "./GroupMember";
 
 export interface GroupFieldProps {

@@ -20,6 +20,7 @@ export const user = sqliteTable("user", {
   banned: integer("banned", { mode: "boolean" }).default(false),
   banReason: text("ban_reason"),
   banExpires: integer("ban_expires", { mode: "timestamp_ms" }),
+  twoFactorEnabled: integer("two_factor_enabled", { mode: "boolean" }).default(false),
 });
 
 export const session = sqliteTable(
@@ -92,6 +93,25 @@ export const verification = sqliteTable(
   (table) => [index("verification_identifier_idx").on(table.identifier)],
 );
 
+export const twoFactor = sqliteTable(
+  "two_factor",
+  {
+    id: text("id").primaryKey(),
+    secret: text("secret").notNull(),
+    backupCodes: text("backup_codes").notNull(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    verified: integer("verified", { mode: "boolean" }).default(true),
+    failedVerificationCount: integer("failed_verification_count").default(0),
+    lockedUntil: integer("locked_until", { mode: "timestamp_ms" }),
+  },
+  (table) => [
+    index("twoFactor_secret_idx").on(table.secret),
+    index("twoFactor_userId_idx").on(table.userId),
+  ],
+);
+
 export const rateLimit = sqliteTable("rate_limit", {
   id: text("id").primaryKey(),
   key: text("key").notNull().unique(),
@@ -100,17 +120,21 @@ export const rateLimit = sqliteTable("rate_limit", {
 });
 
 export const authRelations = defineRelationsPart(
-  { user, session, account, verification },
+  { user, session, account, verification, twoFactor },
   (rel) => ({
     user: {
       sessions: rel.many.session({ from: rel.user.id, to: rel.session.userId }),
       accounts: rel.many.account({ from: rel.user.id, to: rel.account.userId }),
+      twoFactors: rel.many.twoFactor({ from: rel.user.id, to: rel.twoFactor.userId }),
     },
     session: {
       user: rel.one.user({ from: rel.session.userId, to: rel.user.id }),
     },
     account: {
       user: rel.one.user({ from: rel.account.userId, to: rel.user.id }),
+    },
+    twoFactor: {
+      user: rel.one.user({ from: rel.twoFactor.userId, to: rel.user.id }),
     },
   }),
 );

@@ -1,8 +1,7 @@
 // @boundary server
-/* oxlint-disable unicorn/max-nested-calls -- Drizzle query builders are nested by design. */
 import { and, desc, eq, inArray } from "drizzle-orm";
 
-import { type CheckinListItem, type CheckinRecord } from "~/events/domain/types";
+import type { CheckinListItem, CheckinRecord } from "~/events/domain/types";
 import { chunk } from "~/shared/utils/chunk";
 import { newId } from "~/shared/utils/uuid";
 
@@ -72,22 +71,30 @@ function createCheckinRepository(orm: EngineOrm): CheckinRepository {
 
     async findByRegistrationIds(eventId, registrationIds) {
       const ids = [...new Set(registrationIds)];
-      const results = await Promise.all(
-        chunk(ids, 90).map(async (group) => {
-          const rows = await selectRows()
-            .where(and(eq(checkins.eventId, eventId), inArray(checkins.registrationId, group)))
-            .all();
 
-          return rows.map((row) => ({
-            id: row.id,
-            eventId: row.eventId,
-            registrationId: row.registrationId,
-            checkedInAt: row.checkedInAt,
-          }));
-        }),
+      if (ids.length === 0) {
+        return [];
+      }
+
+      const queries = chunk(ids, 90).map((group) =>
+        selectRows().where(
+          and(eq(checkins.eventId, eventId), inArray(checkins.registrationId, group)),
+        ),
       );
+      const [first, ...rest] = queries;
 
-      return results.flat();
+      if (first === undefined) {
+        return [];
+      }
+
+      const results = await orm.batch([first, ...rest]);
+
+      return results.flat().map((row) => ({
+        id: row.id,
+        eventId: row.eventId,
+        registrationId: row.registrationId,
+        checkedInAt: row.checkedInAt,
+      }));
     },
 
     async create(eventId, registrationId) {
@@ -103,7 +110,6 @@ function createCheckinRepository(orm: EngineOrm): CheckinRepository {
           })
           .get();
 
-        // oxlint-disable-next-line typescript/no-unnecessary-condition -- onConflictDoNothing yields no row on conflict.
         if (row !== undefined) {
           return {
             id: row.id,

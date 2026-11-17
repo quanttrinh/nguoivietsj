@@ -2,7 +2,7 @@
 import { sql } from "drizzle-orm";
 import { check, foreignKey, index, integer, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
-import { type EventNotes, type EventStatus } from "~/events/domain/types";
+import type { EventNotes, EventStatus } from "~/events/domain/types";
 
 import { defineTable, localizedText, timestamp, updatedTimestamp } from "./shared";
 

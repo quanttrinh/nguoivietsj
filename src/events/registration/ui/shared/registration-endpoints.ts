@@ -1,5 +1,5 @@
 // @boundary client
-import { type Props } from "./registration-types";
+import type { Props } from "./registration-types";
 
 export type RegistrationRequest =
   | { kind: "public"; slug: string; locale: string }

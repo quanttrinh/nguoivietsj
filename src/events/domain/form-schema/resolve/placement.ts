@@ -19,11 +19,11 @@ import {
   requiresFullWidthRef,
   ticketRef,
 } from "~/events/domain/form-schema/constants";
-import { type FormSchemaIssues } from "~/events/domain/form-schema/issues";
-import {
-  type FormGroup,
-  type FormSchema,
-  type FormSchemaValidationOptions,
+import type { FormSchemaIssues } from "~/events/domain/form-schema/issues";
+import type {
+  FormGroup,
+  FormSchema,
+  FormSchemaValidationOptions,
 } from "~/events/domain/form-schema/types";
 
 function missingIssue(

@@ -1,7 +1,7 @@
 // @boundary server
 import { defineRelations } from "drizzle-orm";
 
-import { auditEvents, emailDeliveries } from "./audit";
+import { auditEvents } from "./audit";
 import { eventAliases, eventSlugClaims, events, registrationStats } from "./events";
 import { eventFormVersions } from "./forms";
 import {
@@ -33,7 +33,6 @@ const relationsSchema = {
   registrationStatusOtps,
   registrationStatusSessions,
   auditEvents,
-  emailDeliveries,
 };
 
 export const relations = defineRelations(relationsSchema, (rel) => ({

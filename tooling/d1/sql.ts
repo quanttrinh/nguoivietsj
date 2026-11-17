@@ -1,5 +1,5 @@
 // @boundary server
-import { type SQL } from "drizzle-orm";
+import type { SQL } from "drizzle-orm";
 import { SQLiteDialect } from "drizzle-orm/sqlite-core";
 
 const dialect = new SQLiteDialect();

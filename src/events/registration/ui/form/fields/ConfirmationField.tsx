@@ -1,10 +1,10 @@
 // @boundary client
-import { type JSX } from "preact";
+import type { JSX } from "preact";
 
 import { FORM_CONFIRMATION_FIELD_NAME } from "~/events/domain/form-schema/constants";
-import { type ResolvedConfirmationField } from "~/events/domain/form-schema/resolve/resolve";
+import type { ResolvedConfirmationField } from "~/events/domain/form-schema/resolve/resolve";
 
-import { type PublicRegistrationConfig } from "../../shared/registration-types";
+import type { PublicRegistrationConfig } from "../../shared/registration-types";
 import { FieldFrame } from "./FieldPrimitives";
 
 export interface ConfirmationFieldProps {

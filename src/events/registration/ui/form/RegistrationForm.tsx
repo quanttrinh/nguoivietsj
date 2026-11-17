@@ -1,13 +1,13 @@
 // @boundary client
 /* oxlint-disable eslint/max-lines-per-function -- registration form owns hydration, validation, submission, and success state. */
-import { type JSX } from "preact";
+import type { JSX } from "preact";
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 
-import { type ResolvedRegistrationForm } from "~/events/domain/form-schema/resolve/resolve";
-import { type ApiIssue } from "~/shared/api/response";
+import type { ResolvedRegistrationForm } from "~/events/domain/form-schema/resolve/resolve";
+import type { ApiIssue } from "~/shared/api/response";
 
 import { styles } from "../shared/registration-styles";
-import { type PublicRegistrationConfig } from "../shared/registration-types";
+import type { PublicRegistrationConfig } from "../shared/registration-types";
 import { Section } from "./fields/Section";
 import {
   buildPayload,

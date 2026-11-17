@@ -1,5 +1,5 @@
 // @boundary server
-import { type Logger } from "drizzle-orm";
+import type { Logger } from "drizzle-orm";
 
 import { serverLogger } from "~/shared/server/logger";
 
@@ -13,11 +13,12 @@ const isDev = import.meta.env.DEV;
  */
 export const drizzleLogger: Logger = {
   logQuery(query, params) {
-    if (isDev) {
-      serverLogger.debug("[drizzle]", { query, params });
+    // Production logging is handled by Workers Observability. Logging every
+    // D1 query here burned the daily log-event quota and could include PII.
+    if (!isDev) {
       return;
     }
 
-    serverLogger.debug("[drizzle]", { query });
+    serverLogger.debug("[drizzle]", { query, params });
   },
 };

@@ -1,10 +1,10 @@
 // @boundary client
 /* oxlint-disable unicorn/no-useless-fallback-in-spread -- Ticket descriptions are optional and spread into a fresh object. */
 import { locales } from "intlayer";
-import { type JSX } from "preact";
+import type { JSX } from "preact";
 
 import { adminStyles as styles } from "~/events/admin/ui/shared/styles/admin-styles";
-import { type TicketTypeInput, type TicketTypeRecord } from "~/events/domain/types";
+import type { TicketTypeInput, TicketTypeRecord } from "~/events/domain/types";
 
 const LANGUAGES = locales as readonly string[];
 const DEFAULT_LANGUAGE = "en";

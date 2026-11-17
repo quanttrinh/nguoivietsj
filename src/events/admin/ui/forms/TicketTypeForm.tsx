@@ -1,6 +1,6 @@
 // @boundary client
 import { navigate } from "astro:transitions/client";
-import { type JSX } from "preact";
+import type { JSX } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 
 import { adminQueries, adminRefresh } from "~/events/admin/ui/shared/queries";

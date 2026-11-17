@@ -1,12 +1,11 @@
 // @boundary server
-import { and, inArray, isNotNull, lte } from "drizzle-orm";
-import { type BatchItem } from "drizzle-orm/batch";
+import { and, eq, exists, inArray, isNotNull, lte } from "drizzle-orm";
+import type { BatchItem } from "drizzle-orm/batch";
 
 import { getEngineOrm } from "~/db/events/orm";
 import {
   auditEvents,
   checkins,
-  emailDeliveries,
   events,
   payments,
   registrationContacts,
@@ -21,7 +20,6 @@ import {
 } from "~/db/events/schemas";
 
 const OTP_RETENTION_DAYS = 30;
-const EMAIL_DELIVERY_RETENTION_DAYS = 90;
 
 /** Registration data is retained for three calendar months after the event ends. */
 export const REGISTRATION_RETENTION_MONTHS = 3;
@@ -53,22 +51,20 @@ export function registrationRetentionCutoff(now: Date = new Date()): string {
 }
 
 /**
- * Prune expired/old status and delivery records.
+ * Prune expired/old status records.
  *
- * Sessions are deleted as soon as they expire; OTP rows and delivery records
- * are kept for a short debugging window and then removed. Registration data is
- * handled separately by `purgeExpiredRegistrationData`.
+ * Sessions are deleted as soon as they expire; OTP rows are kept for a short
+ * debugging window and then removed. Registration data is handled separately
+ * by `purgeExpiredRegistrationData`.
  */
 async function pruneOperationalData(db: D1Database, now: Date = new Date()): Promise<void> {
   const orm = getEngineOrm(db);
   const nowIso = now.toISOString();
   const otpCutoff = daysAgo(OTP_RETENTION_DAYS, now);
-  const deliveryCutoff = daysAgo(EMAIL_DELIVERY_RETENTION_DAYS, now);
 
   await orm.batch([
     orm.delete(registrationStatusSessions).where(lte(registrationStatusSessions.expiresAt, nowIso)),
     orm.delete(registrationStatusOtps).where(lte(registrationStatusOtps.createdAt, otpCutoff)),
-    orm.delete(emailDeliveries).where(lte(emailDeliveries.updatedAt, deliveryCutoff)),
   ]);
 }
 
@@ -84,10 +80,16 @@ async function pruneOperationalData(db: D1Database, now: Date = new Date()): Pro
 async function purgeExpiredRegistrationData(db: D1Database, now: Date = new Date()): Promise<void> {
   const orm = getEngineOrm(db);
   const cutoff = registrationRetentionCutoff(now);
+  const hasRegistrations = exists(
+    orm
+      .select({ id: registrations.id })
+      .from(registrations)
+      .where(eq(registrations.eventId, events.id)),
+  );
   const expiredEvents = await orm
     .select({ id: events.id })
     .from(events)
-    .where(and(isNotNull(events.endsAt), lte(events.endsAt, cutoff)))
+    .where(and(isNotNull(events.endsAt), lte(events.endsAt, cutoff), hasRegistrations))
     .all();
 
   if (expiredEvents.length === 0) {
@@ -101,7 +103,14 @@ async function purgeExpiredRegistrationData(db: D1Database, now: Date = new Date
     .where(inArray(registrations.eventId, eventIds));
 
   const statements: [BatchItem<"sqlite">, ...BatchItem<"sqlite">[]] = [
-    orm.delete(auditEvents).where(inArray(auditEvents.targetId, expiredRegistrationIds)),
+    orm
+      .delete(auditEvents)
+      .where(
+        and(
+          inArray(auditEvents.eventId, eventIds),
+          inArray(auditEvents.targetId, expiredRegistrationIds),
+        ),
+      ),
     orm
       .delete(registrationStatusSessions)
       .where(inArray(registrationStatusSessions.registrationId, expiredRegistrationIds)),
@@ -129,10 +138,7 @@ async function purgeExpiredRegistrationData(db: D1Database, now: Date = new Date
 }
 
 /** Run all daily cleanup and retention work for one event-engine database. */
-export async function runScheduledMaintenance(
-  db: D1Database,
-  now: Date = new Date(),
-): Promise<void> {
+export async function runEventMaintenance(db: D1Database, now: Date = new Date()): Promise<void> {
   await pruneOperationalData(db, now);
   await purgeExpiredRegistrationData(db, now);
 }

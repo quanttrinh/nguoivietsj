@@ -1,5 +1,5 @@
 // @boundary server
-export { auditEvents, emailDeliveries } from "./audit";
+export { auditEvents } from "./audit";
 export { eventAliases, eventSlugClaims, events, registrationStats } from "./events";
 export { eventFormVersions } from "./forms";
 export {

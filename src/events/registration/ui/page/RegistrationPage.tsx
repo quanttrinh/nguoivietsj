@@ -1,13 +1,13 @@
 // @boundary client
-import { type JSX } from "preact";
+import type { JSX } from "preact";
 import { useState } from "preact/hooks";
 
-import { type ResolvedRegistrationForm } from "~/events/domain/form-schema/resolve/resolve";
+import type { ResolvedRegistrationForm } from "~/events/domain/form-schema/resolve/resolve";
 
 import { readRegistrationSuccess } from "../form/registration-success-storage";
 import { RegistrationForm } from "../form/RegistrationForm";
 import { styles } from "../shared/registration-styles";
-import { type PublicRegistrationConfig } from "../shared/registration-types";
+import type { PublicRegistrationConfig } from "../shared/registration-types";
 import { InfoBlock } from "./RegistrationInfo";
 
 export function Page(props: {

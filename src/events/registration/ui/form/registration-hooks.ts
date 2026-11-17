@@ -1,5 +1,5 @@
 // @boundary client
-import { type RefObject } from "preact";
+import type { RefObject } from "preact";
 import { useEffect } from "preact/hooks";
 
 /** Mount the Turnstile widget inside a rendered container. */

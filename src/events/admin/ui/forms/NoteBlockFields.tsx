@@ -1,9 +1,9 @@
 // @boundary client
-import { type JSX } from "preact";
+import type { JSX } from "preact";
 
 import { adminStyles as styles } from "~/events/admin/ui/shared/styles/admin-styles";
 import { MAX_NOTE_BULLETS_TEXT_LENGTH, MAX_NOTE_PARAGRAPH_LENGTH } from "~/events/domain/limits";
-import { type EventNoteBlock } from "~/events/domain/types";
+import type { EventNoteBlock } from "~/events/domain/types";
 
 export interface NoteBlockConfig {
   noteParagraph: string;

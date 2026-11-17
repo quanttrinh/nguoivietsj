@@ -29,7 +29,7 @@ import {
   computeConditionalState,
   type FormStateVisibility,
 } from "~/events/domain/form-schema/state";
-import { type EngineClientConfig } from "~/events/domain/form-schema/types";
+import type { EngineClientConfig } from "~/events/domain/form-schema/types";
 import { REGISTRATION_SOURCE } from "~/events/domain/registration";
 import { focusControl, readFormChecked, readFormValue } from "~/shared/client/form-controls";
 

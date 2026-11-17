@@ -1,7 +1,6 @@
 import { fileURLToPath } from "node:url";
 
 import cloudflare from "@astrojs/cloudflare";
-import { cacheCloudflare } from "@astrojs/cloudflare/cache";
 import preact from "@astrojs/preact";
 import pandacss from "@pandacss/vite";
 import Qui from "@quanttrinh/qui-unplugin";
@@ -13,39 +12,13 @@ import { betterAuthUrl } from "./plugins/better-auth-url";
 import { CSP_CONFIG } from "./plugins/csp-astro";
 import { modulePreloads } from "./plugins/module-preloads";
 import { securityHeadersFile } from "./plugins/security-headers-file";
-import { workerRouting } from "./plugins/worker-routing";
-import {
-  EVENT_PAGE_CACHE_MAX_AGE_SECONDS,
-  EVENT_PAGE_CACHE_SWR_SECONDS,
-} from "./src/events/services/cache";
-import { root } from "./src/server/root";
 
 const wranglerConfigPath = fileURLToPath(new URL("wrangler.jsonc", import.meta.url));
 
 export default defineConfig({
+  prefetch: { prefetchAll: true, defaultStrategy: "hover" },
   output: "static",
-  adapter: cloudflare(),
-  cache: {
-    provider: cacheCloudflare(),
-  },
-  routeRules: {
-    "/[locale]/events": {
-      maxAge: EVENT_PAGE_CACHE_MAX_AGE_SECONDS,
-      swr: EVENT_PAGE_CACHE_SWR_SECONDS,
-    },
-    "/api/events": {
-      maxAge: EVENT_PAGE_CACHE_MAX_AGE_SECONDS,
-      swr: EVENT_PAGE_CACHE_SWR_SECONDS,
-    },
-    "/api/events/[...path]": {
-      maxAge: EVENT_PAGE_CACHE_MAX_AGE_SECONDS,
-      swr: EVENT_PAGE_CACHE_SWR_SECONDS,
-    },
-    "/api/events/status/[...path]": {
-      maxAge: 0,
-      swr: 0,
-    },
-  },
+  adapter: cloudflare({ imageService: "compile" }),
   session: false,
   security: {
     csp: CSP_CONFIG,
@@ -59,6 +32,11 @@ export default defineConfig({
         access: "public",
         default: repository.url,
       }),
+      PUBLIC_CLOUDFLARE_ANALYTICS_TOKEN: envField.string({
+        context: "client",
+        access: "public",
+        default: "",
+      }),
     },
   },
   integrations: [
@@ -66,16 +44,18 @@ export default defineConfig({
     intlayer(),
     betterAuthUrl({ configPath: wranglerConfigPath }),
     securityHeadersFile({ fileName: "_headers" }),
-    modulePreloads(),
-    workerRouting({
-      wranglerConfigFile: "wrangler.json",
-      hono: root,
+    modulePreloads({
+      global: {
+        preload: ["astro:transitions/client", "preact", "~/shared/client/api/client"],
+      },
+      // The camera scanner is lazy-loaded; warm it in the HTTP cache on check-in pages only.
+      routes: [
+        { match: /\/admin\/events\/view\/checkin\/$/u, prefetch: [{ package: "@zxing/browser" }] },
+      ],
+      budget: 120_000,
     }),
   ],
   markdown: {
-    // Shiki emits inline styles that the strict CSP would block.
-    // No page currently renders Markdown code blocks, so disable highlighting
-    // Until a CSP-compatible highlighter is configured.
     syntaxHighlight: false,
   },
   build: {

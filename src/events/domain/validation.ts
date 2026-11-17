@@ -2,19 +2,19 @@
 import { SUPPORTED_CURRENCY_CODES } from "~/events/domain/defaults";
 import { SUPPORTED_LOCALES } from "~/shared/constants/locales";
 
-import { type CheckinCreateInput } from "./schemas/checkin";
-import {
-  type EventCreateInput,
-  type EventLocation,
-  type EventPayments,
-  type EventUpdateInput,
+import type { CheckinCreateInput } from "./schemas/checkin";
+import type {
+  EventCreateInput,
+  EventLocation,
+  EventPayments,
+  EventUpdateInput,
 } from "./schemas/event";
-import { type FormVersionInput } from "./schemas/form";
-import { type EventNotes } from "./schemas/notes";
-import { type PaymentInput } from "./schemas/payment";
-import { type RegistrationBody as RegistrationBodySchema } from "./schemas/registration";
-import { type TicketTypeInput, type TicketTypeUpdateInput } from "./schemas/tickets";
-import { type LocalizedText } from "./types";
+import type { FormVersionInput } from "./schemas/form";
+import type { EventNotes } from "./schemas/notes";
+import type { PaymentInput } from "./schemas/payment";
+import type { RegistrationBody as RegistrationBodySchema } from "./schemas/registration";
+import type { TicketTypeInput, TicketTypeUpdateInput } from "./schemas/tickets";
+import type { LocalizedText } from "./types";
 
 export { checkinCreateSchema } from "./schemas/checkin";
 export { eventCreateSchema, eventUpdateSchema } from "./schemas/event";

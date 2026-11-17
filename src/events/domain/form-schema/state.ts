@@ -1,7 +1,7 @@
 // @boundary shared
 import { evaluateCondition, type FormValue } from "~/events/domain/form-schema/conditions/evaluate";
 import { customRef } from "~/events/domain/form-schema/constants";
-import { type FormCondition } from "~/events/domain/form-schema/types";
+import type { FormCondition } from "~/events/domain/form-schema/types";
 
 export interface FormStateVisibility {
   visible: Map<string, boolean>;

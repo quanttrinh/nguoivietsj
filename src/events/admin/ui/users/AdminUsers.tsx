@@ -1,7 +1,7 @@
 // @boundary client
 /* oxlint-disable eslint/max-lines, eslint/max-lines-per-function -- User management keeps filters, form, list, and mutations in one workflow. */
-import { type InferResponseType } from "hono/client";
-import { type JSX } from "preact";
+import type { InferResponseType } from "hono/client";
+import type { JSX } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 
 import { css } from "styled-system/css";

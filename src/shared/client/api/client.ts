@@ -3,12 +3,32 @@ import { resolveBrowserLocale } from "@intlayer/core/localization";
 import { hc } from "hono/client";
 
 import { isRecord } from "~/shared/utils/records";
-/* oxlint-disable import/consistent-type-specifier-style -- keep the type-only import stripped in dev. */
 import type { ApiAppType } from "~/types/api";
+
+let unauthorizedHandler: (() => void) | null = null;
+
+/** Register a callback that runs when an API request returns 401. */
+export function setUnauthorizedHandler(handler: () => void): void {
+  unauthorizedHandler = handler;
+}
+
+async function fetchWithUnauthorizedReset(
+  input: RequestInfo | URL,
+  init?: RequestInit,
+): Promise<Response> {
+  const response = await globalThis.fetch(input, init);
+
+  if (response.status === 401) {
+    unauthorizedHandler?.();
+  }
+
+  return response;
+}
 
 /** Typed Hono RPC client for same-origin API requests. */
 export const apiClient = hc<ApiAppType>("/", {
   headers: () => ({ "x-locale": resolveBrowserLocale() }),
+  fetch: fetchWithUnauthorizedReset,
 });
 
 interface SuccessJsonResponse<TData> {

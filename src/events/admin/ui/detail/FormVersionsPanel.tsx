@@ -1,14 +1,10 @@
 // @boundary client
-import { type JSX } from "preact";
+import type { JSX } from "preact";
 
 import { adminEventUrl } from "~/events/admin/ui/shared/routes";
 
 import { styles } from "./admin-detail-styles";
-import {
-  type AdminEventDetailMessages,
-  type EventDetail,
-  type FormVersion,
-} from "./admin-detail-types";
+import type { AdminEventDetailMessages, EventDetail, FormVersion } from "./admin-detail-types";
 import { formatDateTime } from "./admin-detail-utils";
 
 export function FormVersionsPanel(props: {

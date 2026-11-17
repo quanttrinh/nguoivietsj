@@ -27,6 +27,16 @@ const engineEventsContent = {
       fr: "Aucun événement à venir pour le moment.",
       vi: "Hiện chưa có sự kiện sắp tới.",
     }),
+    unavailable: t({
+      en: "Events could not be loaded. Please try again later.",
+      fr: "Impossible de charger les événements. Veuillez réessayer plus tard.",
+      vi: "Không thể tải danh sách sự kiện. Vui lòng thử lại sau.",
+    }),
+    noscript: t({
+      en: "Enable JavaScript to see upcoming events.",
+      fr: "Activez JavaScript pour voir les événements à venir.",
+      vi: "Hãy bật JavaScript để xem các sự kiện sắp tới.",
+    }),
     viewEvent: t({ en: "View event", fr: "Voir l'événement", vi: "Xem sự kiện" }),
     register: t({ en: "Register", fr: "S'inscrire", vi: "Đăng ký" }),
     registrationClosed: t({

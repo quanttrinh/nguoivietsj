@@ -1,17 +1,18 @@
 // @boundary server
-import { eq, sql } from "drizzle-orm";
+import { eq, ne, sql } from "drizzle-orm";
+import { drizzle } from "drizzle-orm/d1";
 
-import { databaseSingleton, type EngineOrm } from "./orm";
-import { emailDeliveries } from "./schemas";
+import { emailDeliveries } from "~/db/app/schemas/email-deliveries";
 
-export interface EmailDeliveryRepository {
+export interface EmailDeliveryLedger {
   claim: (idempotencyKey: string, jobType: string) => Promise<boolean>;
   markSent: (idempotencyKey: string) => Promise<void>;
   markFailed: (idempotencyKey: string, error: string) => Promise<void>;
 }
 
-/** Persist email idempotency keys so queue retries do not re-send completed mail. */
-function createEmailDeliveryRepository(orm: EngineOrm): EmailDeliveryRepository {
+function createEmailDeliveryLedger(db: D1Database): EmailDeliveryLedger {
+  const orm = drizzle(db);
+
   return {
     async claim(idempotencyKey, jobType) {
       const rows = await orm
@@ -29,7 +30,7 @@ function createEmailDeliveryRepository(orm: EngineOrm): EmailDeliveryRepository 
             attempts: sql`${emailDeliveries.attempts} + 1`,
             lastError: null,
           },
-          setWhere: sql`${emailDeliveries.status} <> 'sent'`,
+          setWhere: ne(emailDeliveries.status, "sent"),
         })
         .returning({ idempotencyKey: emailDeliveries.idempotencyKey });
 
@@ -55,4 +56,18 @@ function createEmailDeliveryRepository(orm: EngineOrm): EmailDeliveryRepository 
   };
 }
 
-export const getEmailDeliveryRepository = databaseSingleton(createEmailDeliveryRepository);
+const ledgers = new WeakMap<D1Database, EmailDeliveryLedger>();
+
+/** Shared email-delivery ledger for the application database. */
+export function getEmailDeliveryLedger(db: D1Database): EmailDeliveryLedger {
+  const existing = ledgers.get(db);
+
+  if (existing !== undefined) {
+    return existing;
+  }
+
+  const ledger = createEmailDeliveryLedger(db);
+  ledgers.set(db, ledger);
+
+  return ledger;
+}

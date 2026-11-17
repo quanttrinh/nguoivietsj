@@ -1,10 +1,12 @@
 // @boundary server
 import { base64url } from "jose";
 
-import { type RegistrationStatusRepository } from "~/db/events/registration-status";
+import type { RegistrationStatusRepository } from "~/db/events/registration-status";
 import {
   STATUS_OTP_CODE_LENGTH,
   STATUS_OTP_CODE_REGEX,
+  STATUS_OTP_DAILY_MAX,
+  STATUS_OTP_DAILY_WINDOW_SECONDS,
   STATUS_OTP_MAX_ATTEMPTS,
   STATUS_OTP_RESEND_SECONDS,
   STATUS_OTP_TOKEN_TTL_SECONDS,
@@ -97,12 +99,15 @@ export async function issueStatusOtp(
   const id = newId();
   const expiresAt = new Date(Date.now() + STATUS_OTP_TTL_SECONDS * 1000).toISOString();
   const resendSince = new Date(Date.now() - STATUS_OTP_RESEND_SECONDS * 1000).toISOString();
+  const dailySince = new Date(Date.now() - STATUS_OTP_DAILY_WINDOW_SECONDS * 1000).toISOString();
   const created = await repository.createOtp({
     id,
     registrationId,
     codeHash: await digestOtp(registrationId, code),
     expiresAt,
     resendSince,
+    dailySince,
+    maxPerDay: STATUS_OTP_DAILY_MAX,
   });
 
   return created

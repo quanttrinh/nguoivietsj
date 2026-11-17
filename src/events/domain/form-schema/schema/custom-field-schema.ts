@@ -2,7 +2,7 @@
 import { type } from "arktype";
 
 import { FORM_CUSTOM_FIELD_TYPE, customRef } from "~/events/domain/form-schema/constants";
-import { type FormCustomField } from "~/events/domain/form-schema/types";
+import type { FormCustomField } from "~/events/domain/form-schema/types";
 
 // oxlint-disable-next-line typescript/explicit-function-return-type, typescript/explicit-module-boundary-types -- Preserve ArkType inference.
 function textSchema(field: FormCustomField, required: boolean) {

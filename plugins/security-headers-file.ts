@@ -1,7 +1,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 
-import { type AstroIntegration } from "astro";
+import type { AstroIntegration } from "astro";
 
 import { CSP_HEADER_DIRECTIVES } from "../src/shared/constants/csp";
 import { cspHeaderValue } from "./csp-serialization";

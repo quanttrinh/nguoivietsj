@@ -114,7 +114,7 @@ resource "cloudflare_ruleset" "public_api_challenge" {
   rules = [{
     ref         = "challenge_public_forms"
     description = "Challenge unverified public event registration requests"
-    expression  = "(http.request.method eq \"POST\" and http.request.uri.path matches ${jsonencode(var.public_registration_path_regex)})"
+    expression  = "(http.request.method eq \"POST\" and http.request.uri.path wildcard ${jsonencode(var.public_registration_path_pattern)})"
     action      = "managed_challenge"
   }]
 
@@ -133,8 +133,9 @@ resource "cloudflare_ruleset" "public_api_rate_limit" {
     description = "Block bursts above 10 requests per 10 seconds per IP"
     # Free-plan rate limiting only permits Path and Verified Bot expression
     # fields. Do not add http.request.method here; keep method filtering in the
-    # WAF custom rule above.
-    expression = "(http.request.uri.path matches ${jsonencode(var.public_registration_path_regex)})"
+    # WAF custom rule above. A single rule is allowed, so cover the other
+    # unauthenticated endpoints that benefit from burst protection.
+    expression = "(http.request.uri.path wildcard ${jsonencode(var.public_registration_path_pattern)} or http.request.uri.path wildcard \"/api/events/status/*\" or http.request.uri.path wildcard \"/api/auth/sign-in/*\")"
     action     = "block"
 
     ratelimit = {

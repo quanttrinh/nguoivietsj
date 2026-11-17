@@ -1,20 +1,20 @@
 // @boundary client
-import { type JSX } from "preact";
+import type { JSX } from "preact";
 
 import { vstack } from "styled-system/patterns";
-import { type ResolvedSection } from "~/events/domain/form-schema/resolve/resolve";
-import { type FormStateVisibility } from "~/events/domain/form-schema/state";
-import { type EngineClientConfig } from "~/events/domain/form-schema/types";
+import type { ResolvedSection } from "~/events/domain/form-schema/resolve/resolve";
+import type { FormStateVisibility } from "~/events/domain/form-schema/state";
+import type { EngineClientConfig } from "~/events/domain/form-schema/types";
 
 import { styles } from "../../shared/registration-styles";
-import { type PublicRegistrationConfig } from "../../shared/registration-types";
+import type { PublicRegistrationConfig } from "../../shared/registration-types";
 import {
   fieldRequired,
   fieldVisible,
   type RegistrationFieldContext,
   type RegistrationValues,
 } from "../registration-form-state";
-import { type FieldErrors } from "./field-types";
+import type { FieldErrors } from "./field-types";
 import { RegistrationField } from "./RegistrationField";
 
 export interface SectionProps {

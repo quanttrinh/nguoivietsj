@@ -1,8 +1,7 @@
 // @boundary client
 import { navigate } from "astro:transitions/client";
-/* oxlint-disable eslint/max-lines-per-function -- Support keeps filters, results, and paging in one workflow. */
-import { type InferResponseType } from "hono/client";
-import { type JSX } from "preact";
+import type { InferResponseType } from "hono/client";
+import type { JSX } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
 import { css } from "styled-system/css";
@@ -24,8 +23,8 @@ import {
   registrationAmountDue,
   registrationPaymentStatusText,
 } from "~/events/domain/presentation";
-import { type CheckinRecord, type PaymentRecord } from "~/events/domain/types";
-import { type ApiPagination } from "~/shared/api/response";
+import type { CheckinRecord, PaymentRecord } from "~/events/domain/types";
+import type { ApiPagination } from "~/shared/api/response";
 import { apiClient, apiErrorMessage } from "~/shared/client/api/client";
 import { useQuery } from "~/shared/client/query/use-query";
 import { dateTimeFormatter, moneyFormatter } from "~/shared/utils/format";

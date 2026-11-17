@@ -1,6 +1,6 @@
 // @boundary server
 import { type } from "arktype";
-import { type Context, type MiddlewareHandler } from "hono";
+import type { Context, MiddlewareHandler } from "hono";
 import { createMiddleware } from "hono/factory";
 
 import { apiError } from "~/server/api-response";
@@ -93,6 +93,13 @@ export function requireTurnstile(expectedAction?: string): MiddlewareHandler<Hon
 
     const allowTestKey = coalesceString(ctx.env.TURNSTILE_ALLOW_TEST_KEY) === "true";
     if (expectedAction !== undefined && !allowTestKey && result.action !== expectedAction) {
+      return apiError(ctx, "turnstile_failed", { status: 403 });
+    }
+
+    // A token solved for this widget on another hostname must not be reusable
+    // here. Cloudflare always returns the hostname on successful verification.
+    const requestHostname = new URL(ctx.req.url).hostname;
+    if (!allowTestKey && result.hostname !== requestHostname) {
       return apiError(ctx, "turnstile_failed", { status: 403 });
     }
 

@@ -1,17 +1,20 @@
 // @boundary server
 /* oxlint-disable typescript/explicit-function-return-type, typescript/explicit-module-boundary-types -- Response helpers stay inferred for Hono RPC. */
-import { type Context } from "hono";
-import { type ContentfulStatusCode } from "hono/utils/http-status";
+import type { Context } from "hono";
+import type { TypedResponse } from "hono/types";
+import type { ContentfulStatusCode } from "hono/utils/http-status";
+import type { JSONParsed } from "hono/utils/types";
 
-import {
-  type ApiError,
-  type ApiIssue,
-  type ApiMeta,
-  type ApiResponse,
-} from "~/shared/api/response";
+import type { ApiError, ApiIssue, ApiMeta, ApiResponse } from "~/shared/api/response";
 
 const NO_STORE = { "cache-control": "no-store" };
 
+export type SuccessBody<TData> = Extract<ApiResponse<TData>, { status: "success" }>;
+export type PartialBody<TData> = Extract<ApiResponse<TData>, { status: "partial" }>;
+export type ErrorBody = Extract<ApiResponse<never>, { status: "error" }>;
+
+type JsonResponse<TBody, TStatus extends ContentfulStatusCode> = Response &
+  TypedResponse<JSONParsed<TBody>, TStatus, "json">;
 type ErrorStatus = Exclude<
   ContentfulStatusCode,
   200 | 201 | 202 | 203 | 204 | 205 | 206 | 207 | 208 | 226
@@ -25,15 +28,15 @@ export function apiSuccess<TData>(
     meta?: ApiMeta;
     headers?: Record<string, string>;
   } = {},
-) {
-  const body: ApiResponse<TData> = {
+): JsonResponse<SuccessBody<TData>, 200 | 201 | 202> {
+  const body: SuccessBody<TData> = {
     status: "success",
     data,
     error: null,
     meta: options.meta ?? {},
   };
 
-  return ctx.json(body, options.status ?? 200, {
+  return ctx.json<SuccessBody<TData>, 200 | 201 | 202>(body, options.status ?? 200, {
     ...NO_STORE,
     ...options.headers,
   });
@@ -48,15 +51,15 @@ export function apiPartial<TData>(
     meta?: ApiMeta;
     headers?: Record<string, string>;
   } = {},
-) {
-  const body: ApiResponse<TData> = {
+): JsonResponse<PartialBody<TData>, 207> {
+  const body: PartialBody<TData> = {
     status: "partial",
     data,
     error: { ...error, message: error.message ?? "" },
     meta: options.meta ?? {},
   };
 
-  return ctx.json(body, 207, {
+  return ctx.json<PartialBody<TData>, 207>(body, 207, {
     ...NO_STORE,
     ...options.headers,
   });
@@ -73,7 +76,7 @@ export function apiError(
     headers?: Record<string, string>;
   },
 ) {
-  const body: ApiResponse<never> = {
+  const body: ErrorBody = {
     status: "error",
     data: null,
     error: {
@@ -85,7 +88,7 @@ export function apiError(
     meta: {},
   };
 
-  return ctx.json(body, options.status, {
+  return ctx.json<ErrorBody, ErrorStatus>(body, options.status, {
     ...NO_STORE,
     ...options.headers,
   });

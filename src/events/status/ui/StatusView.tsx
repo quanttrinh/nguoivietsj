@@ -1,6 +1,6 @@
 // @boundary client
-import { type InferResponseType } from "hono/client";
-import { type ComponentChildren, type JSX } from "preact";
+import type { InferResponseType } from "hono/client";
+import type { ComponentChildren, JSX } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
 import { css } from "styled-system/css";

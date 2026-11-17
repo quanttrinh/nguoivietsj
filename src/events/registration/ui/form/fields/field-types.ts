@@ -1,7 +1,7 @@
 // @boundary client
-import { type ResolvedField } from "~/events/domain/form-schema/resolve/resolve";
+import type { ResolvedField } from "~/events/domain/form-schema/resolve/resolve";
 
-import { type PublicRegistrationConfig } from "../../shared/registration-types";
+import type { PublicRegistrationConfig } from "../../shared/registration-types";
 
 /** Validation message lookup keyed by field or group reference. */
 export type FieldErrors = Readonly<Record<string, string>>;

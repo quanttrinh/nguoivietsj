@@ -1,9 +1,9 @@
 // @boundary client
-import { type JSX } from "preact";
+import type { JSX } from "preact";
 
 import { styles } from "../shared/registration-styles";
-import { type PublicRegistrationConfig } from "../shared/registration-types";
-import { type RegistrationSuccess as RegistrationSuccessState } from "./registration-submit";
+import type { PublicRegistrationConfig } from "../shared/registration-types";
+import type { RegistrationSuccess as RegistrationSuccessState } from "./registration-submit";
 
 function warningTitle(code: string, staff: boolean, config: PublicRegistrationConfig): string {
   if (code === "event_registration_email_not_queued") {

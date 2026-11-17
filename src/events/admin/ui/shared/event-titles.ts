@@ -1,7 +1,7 @@
 // @boundary client
 import { atom } from "nanostores";
 
-import { type LocalizedText } from "~/events/domain/types";
+import type { LocalizedText } from "~/events/domain/types";
 
 /** The minimum event data needed to render a page title. */
 export interface EventTitleRecord {

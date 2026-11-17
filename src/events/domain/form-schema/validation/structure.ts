@@ -13,13 +13,13 @@ import {
   isContactRef,
   refKey,
 } from "~/events/domain/form-schema/constants";
-import { type FormSchemaIssues } from "~/events/domain/form-schema/issues";
-import {
-  type FormContactsConfig,
-  type FormCustomField,
-  type FormGroup,
-  type FormSchema,
-  type FormSchemaValidationOptions,
+import type { FormSchemaIssues } from "~/events/domain/form-schema/issues";
+import type {
+  FormContactsConfig,
+  FormCustomField,
+  FormGroup,
+  FormSchema,
+  FormSchemaValidationOptions,
 } from "~/events/domain/form-schema/types";
 
 const RESERVED_CUSTOM_KEYS = new Set<string>(Object.values(RESERVED_CUSTOM_FIELD_KEY));

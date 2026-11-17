@@ -1,6 +1,6 @@
 // @boundary server
 /* oxlint-disable typescript/explicit-function-return-type, typescript/explicit-module-boundary-types -- Response types are inferred for Hono RPC. */
-import { type Context } from "hono";
+import type { Context } from "hono";
 
 import { apiError } from "./api-response";
 

@@ -1,5 +1,5 @@
 // @boundary shared
-import { type AstroUserConfig } from "astro";
+import type { AstroUserConfig } from "astro";
 
 import {
   CSP_BASE_DIRECTIVES,

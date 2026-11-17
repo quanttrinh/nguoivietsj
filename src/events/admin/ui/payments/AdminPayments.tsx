@@ -1,6 +1,6 @@
 // @boundary client
-import { type InferResponseType } from "hono/client";
-import { type JSX } from "preact";
+import type { InferResponseType } from "hono/client";
+import type { JSX } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 
 import { css } from "styled-system/css";
@@ -14,7 +14,7 @@ import {
   registrationAmountDue,
   registrationPaymentStatusText,
 } from "~/events/domain/presentation";
-import { type PaymentRecord } from "~/events/domain/types";
+import type { PaymentRecord } from "~/events/domain/types";
 import { apiClient, apiErrorMessage, readApiJson } from "~/shared/client/api/client";
 import { readFormValue } from "~/shared/client/form-controls";
 import { clientLogger } from "~/shared/client/logger";

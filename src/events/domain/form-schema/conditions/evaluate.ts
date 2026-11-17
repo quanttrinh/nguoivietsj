@@ -3,7 +3,7 @@ import {
   FORM_CONDITION_NODE,
   FORM_CONDITION_OPERATOR,
 } from "~/events/domain/form-schema/constants";
-import { type FormCondition } from "~/events/domain/form-schema/types";
+import type { FormCondition } from "~/events/domain/form-schema/types";
 
 export type FormValue = string | number | boolean | null | undefined;
 

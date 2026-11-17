@@ -40,14 +40,14 @@ variable "staging_session_duration" {
   }
 }
 
-variable "public_registration_path_regex" {
-  description = "Regular expression matching public event registration API paths for WAF challenge and rate limiting."
+variable "public_registration_path_pattern" {
+  description = "Wildcard pattern matching public event registration API paths for the WAF challenge. The `wildcard` operator is available on the Free plan, unlike `matches`."
   type        = string
-  default     = "^/api/events/[^/]+/registrations$"
+  default     = "/api/events/*/registrations"
 
   validation {
-    condition     = length(var.public_registration_path_regex) > 0
-    error_message = "public_registration_path_regex must not be empty."
+    condition     = length(var.public_registration_path_pattern) > 0
+    error_message = "public_registration_path_pattern must not be empty."
   }
 }
 

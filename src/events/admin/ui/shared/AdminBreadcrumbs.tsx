@@ -1,6 +1,6 @@
 // @boundary client
 import { useStore } from "@nanostores/preact";
-import { type JSX } from "preact";
+import type { JSX } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
 import { css } from "styled-system/css";

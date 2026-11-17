@@ -124,16 +124,13 @@ export default defineConfig({
     "import/no-named-export": "off",
     "import/no-relative-parent-imports": "off",
     "import/prefer-default-export": "off",
-    // Match the library: one import statement per module with inline types.
-    "import/consistent-type-specifier-style": ["error", "prefer-inline"],
-    "typescript/consistent-type-imports": [
-      "error",
-      { prefer: "type-imports", fixStyle: "inline-type-imports" },
-    ],
-    "import/no-duplicates": ["error", { preferInline: true }],
-    // Inline type specifiers are the chosen style; this rule requires the
-    // opposite top-level `import type` form.
-    "typescript/no-import-type-side-effects": "off",
+    // Prefer top-level `import type` so TypeScript erases the whole statement
+    // under `verbatimModuleSyntax`. Inline type specifiers keep the statement as
+    // a side-effect import, which defeats tree-shaking for modules that run
+    // ArkType at load time.
+    "import/consistent-type-specifier-style": "off",
+    "typescript/consistent-type-imports": "off",
+    "typescript/no-import-type-side-effects": "error",
 
     // --- oxc ---------------------------------------------------------------
     // These restrictions predate optional chaining and object spread.
@@ -224,7 +221,7 @@ export default defineConfig({
     "shared-node-browser": true,
   },
   globals: {
-    __BETTER_AUTH_BASE_URL__: "readonly",
+    __BETTER_AUTH_BASE_URL_CONFIG__: "readonly",
   },
   ignorePatterns: [
     ".intlayer/",
@@ -327,7 +324,6 @@ export default defineConfig({
         "src/**/server/**/*.ts",
         "src/events/services/**/*.ts",
         "src/db/**/*.ts",
-        "src/fetch.ts",
         "src/worker.ts",
         "src/middleware.ts",
       ],

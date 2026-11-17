@@ -1,17 +1,14 @@
 // @boundary server
-import {
-  getEmailDeliveryRepository,
-  getEventRepository,
-  getPaymentRepository,
-  getRegistrationRepository,
-} from "~/db/events";
+import { getEventRepository, getPaymentRepository, getRegistrationRepository } from "~/db/events";
 import {
   sendPaymentConfirmedEmail,
   sendRegistrationReceivedEmail,
   sendStatusOtpEmail,
 } from "~/events/services/email";
 import { EmailError, isEmailConfigured } from "~/server/services/email";
+import { getEmailDeliveryLedger } from "~/server/services/email/deliveries";
 import {
+  emailFailureReason,
   enqueueEmail,
   NonRetryableEmailError,
   type EmailQueueHandler,
@@ -24,7 +21,7 @@ const EVENT_EMAIL_JOB = {
   statusOtp: "event.status.otp",
 } as const;
 
-type EventEmailJob =
+export type EventEmailJob =
   | {
       type: typeof EVENT_EMAIL_JOB.registrationReceived;
       idempotencyKey: string;
@@ -50,15 +47,6 @@ type EventEmailJob =
       otpId: string;
       expiresMinutes: number;
     };
-
-/** Persist/log only non-PII diagnostic information for a failed delivery. */
-function emailFailureReason(error: unknown): string {
-  if (error instanceof EmailError) {
-    return error.status === 0 ? error.message : `${error.provider}_status_${error.status}`;
-  }
-
-  return error instanceof Error ? error.name : "email_delivery_failed";
-}
 
 async function deliverEventEmail(env: Env, job: EventEmailJob): Promise<void> {
   const engineDb = env.EVENT_ENGINE_DB;
@@ -114,8 +102,8 @@ async function deliverEventEmail(env: Env, job: EventEmailJob): Promise<void> {
 }
 
 async function deliverClaimedEmail(env: Env, job: EventEmailJob): Promise<void> {
-  const engineDb = env.EVENT_ENGINE_DB;
-  const claimed = await getEmailDeliveryRepository(engineDb).claim(job.idempotencyKey, job.type);
+  const ledger = getEmailDeliveryLedger(env.APP_DB);
+  const claimed = await ledger.claim(job.idempotencyKey, job.type);
 
   if (!claimed) {
     return;
@@ -124,7 +112,7 @@ async function deliverClaimedEmail(env: Env, job: EventEmailJob): Promise<void> 
   try {
     await deliverEventEmail(env, job);
   } catch (error) {
-    await getEmailDeliveryRepository(engineDb)
+    await ledger
       .markFailed(job.idempotencyKey, emailFailureReason(error))
       .catch((markError: unknown) => {
         serverLogger.error(
@@ -140,14 +128,12 @@ async function deliverClaimedEmail(env: Env, job: EventEmailJob): Promise<void> 
     throw error;
   }
 
-  await getEmailDeliveryRepository(engineDb)
-    .markSent(job.idempotencyKey)
-    .catch((error: unknown) => {
-      serverLogger.error(
-        { name: error instanceof Error ? error.name : typeof error },
-        "Failed to mark email as delivered",
-      );
-    });
+  await ledger.markSent(job.idempotencyKey).catch((error: unknown) => {
+    serverLogger.error(
+      { name: error instanceof Error ? error.name : typeof error },
+      "Failed to mark email as delivered",
+    );
+  });
 }
 
 async function enqueueEventEmail(env: Env, job: EventEmailJob): Promise<boolean> {

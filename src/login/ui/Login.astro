@@ -25,7 +25,10 @@ const styles = {
     fontWeight: "bold",
   }),
   intro: css({ margin: "0", maxWidth: "2xl", fontSize: "md", color: "onSurfaceVariant" }),
-  form: vstack({ alignItems: "stretch", gap: "4", maxW: "xl" }),
+  form: vstack({ alignItems: "stretch", gap: "4", maxW: "xl", "&[hidden]": { display: "none" } }),
+  codeHeading: css({ margin: "0", textStyle: "title-sm" }),
+  codeHint: css({ margin: "0", textStyle: "body-md", color: "onSurfaceVariant" }),
+  methods: css({ display: "flex", flexWrap: "wrap", gap: "2" }),
   noticeShell: css({ paddingBlockEnd: "5" }),
   notice: noticeStyles.error,
 };
@@ -80,6 +83,53 @@ const styles = {
           {content.submit}
         </qui-button>
       </form>
+
+      <form
+        data-login-code
+        class={styles.form}
+        novalidate
+        hidden
+        data-method="totp"
+        data-hint-totp={content.codeHintTotp.value}
+        data-hint-email={content.codeHintEmail.value}
+        data-hint-backup={content.codeHintBackup.value}
+        data-required-message={content.codeRequired.value}
+        data-failed-message={content.signInFailed.value}
+        data-unavailable-message={content.unavailable.value}
+      >
+        <h2 class={styles.codeHeading}>{content.codeHeading}</h2>
+        <p data-code-hint class={styles.codeHint}>
+          {content.codeHintTotp}
+        </p>
+        <qui-field>
+          <qui-field-label>{content.codeLabel}</qui-field-label>
+          <qui-input
+            id="login-code"
+            name="code"
+            input-type="text"
+            input-mode-hint="numeric"
+            autocomplete="one-time-code"
+            required
+          />
+        </qui-field>
+        <qui-checkbox name="trustDevice" value="true">
+          {content.trustDevice}
+        </qui-checkbox>
+        <qui-button type="submit" variant="filled">
+          {content.verify}
+        </qui-button>
+        <div class={styles.methods}>
+          <qui-button type="button" variant="text" data-code-method="totp" hidden>
+            {content.useTotp}
+          </qui-button>
+          <qui-button type="button" variant="text" data-code-method="email">
+            {content.useEmail}
+          </qui-button>
+          <qui-button type="button" variant="text" data-code-method="backup">
+            {content.useBackup}
+          </qui-button>
+        </div>
+      </form>
     </Panel>
   </section>
 
@@ -87,20 +137,37 @@ const styles = {
 </BaseLayout>
 
 <script>
+  import { navigate } from "astro:transitions/client";
   import "virtual:qui/register?components=qui-field,qui-field-label,qui-input,qui-checkbox,qui-button";
-  import { signInEmail } from "~/shared/client/auth/sign-in";
+
+  import { signInEmail } from "~/auth/client/sign-in";
+  import {
+    sendTwoFactorEmail,
+    verifyTwoFactor,
+    type TwoFactorMethod,
+  } from "~/auth/client/two-factor";
   import { readFormChecked, readFormValue } from "~/shared/client/form-controls";
   import { clientLogger } from "~/shared/client/logger";
 
-  /** Only allow same-origin, absolute-path redirects to avoid open redirects. */
+  /** Resolve the post-login destination and reject any other origin. */
   function safeRedirect(search: string): string {
     const redirect = new URLSearchParams(search).get("redirect");
 
-    if (redirect == null || !redirect.startsWith("/") || redirect.startsWith("//")) {
+    if (redirect == null) {
       return "/";
     }
 
-    return redirect;
+    try {
+      const target = new URL(redirect, globalThis.location.origin);
+
+      if (target.origin !== globalThis.location.origin) {
+        return "/";
+      }
+
+      return `${target.pathname}${target.search}${target.hash}`;
+    } catch {
+      return "/";
+    }
   }
 
   function showNotice(message: string): void {
@@ -118,6 +185,22 @@ const styles = {
 
   function formMessage(form: HTMLFormElement, key: string): string {
     return form.dataset[key] ?? "";
+  }
+
+  function codeForm(): HTMLFormElement | null {
+    return document.querySelector<HTMLFormElement>("[data-login-code]");
+  }
+
+  function showCodeStep(passwordForm: HTMLFormElement): void {
+    const form = codeForm();
+
+    if (form === null) {
+      return;
+    }
+
+    passwordForm.hidden = true;
+    form.hidden = false;
+    form.querySelector<HTMLElement>("#login-code")?.focus();
   }
 
   async function submitLogin(form: HTMLFormElement): Promise<void> {
@@ -140,20 +223,25 @@ const styles = {
     }
 
     try {
-      const message = await signInEmail({
+      const result = await signInEmail({
         email,
         password,
         rememberMe: readFormChecked(form, "rememberMe"),
         ...(form.dataset.locale === undefined ? {} : { locale: form.dataset.locale }),
       });
 
-      if (message !== null) {
-        clientLogger.error(message);
-        showNotice(message.length > 0 ? message : formMessage(form, "failedMessage"));
+      if (result.status === "error") {
+        clientLogger.error(result.message);
+        showNotice(result.message.length > 0 ? result.message : formMessage(form, "failedMessage"));
         return;
       }
 
-      globalThis.location.assign(safeRedirect(globalThis.location.search));
+      if (result.status === "two-factor") {
+        showCodeStep(form);
+        return;
+      }
+
+      await navigate(safeRedirect(globalThis.location.search));
     } catch (error) {
       clientLogger.error(error);
       showNotice(formMessage(form, "unavailableMessage"));
@@ -162,6 +250,104 @@ const styles = {
         button.disabled = false;
         button.removeAttribute("label");
       }
+    }
+  }
+
+  const HINTS: Record<TwoFactorMethod, string> = {
+    totp: "hintTotp",
+    email: "hintEmail",
+    backup: "hintBackup",
+  };
+
+  function isMethod(value: string | undefined): value is TwoFactorMethod {
+    return value === "totp" || value === "email" || value === "backup";
+  }
+
+  async function selectMethod(form: HTMLFormElement, method: TwoFactorMethod): Promise<void> {
+    if (method === "email") {
+      const error = await sendTwoFactorEmail();
+
+      if (error !== null) {
+        showNotice(error);
+        return;
+      }
+    }
+
+    form.dataset.method = method;
+    const hint = form.querySelector<HTMLElement>("[data-code-hint]");
+
+    if (hint !== null) {
+      hint.textContent = formMessage(form, HINTS[method]);
+    }
+
+    for (const button of form.querySelectorAll<HTMLElement>("[data-code-method]")) {
+      button.hidden = button.dataset.codeMethod === method;
+    }
+  }
+
+  async function submitCode(form: HTMLFormElement): Promise<void> {
+    const code = readFormValue(form, "code").trim();
+    const method = form.dataset.method;
+
+    if (!isMethod(method)) {
+      return;
+    }
+
+    if (code.length === 0) {
+      showNotice(formMessage(form, "requiredMessage"));
+      return;
+    }
+
+    const error = await verifyTwoFactor({
+      method,
+      code,
+      trustDevice: readFormChecked(form, "trustDevice"),
+    });
+
+    if (error !== null) {
+      showNotice(error.length > 0 ? error : formMessage(form, "failedMessage"));
+      return;
+    }
+
+    await navigate(safeRedirect(globalThis.location.search));
+  }
+
+  async function guarded(form: HTMLFormElement, task: () => Promise<void>): Promise<void> {
+    try {
+      await task();
+    } catch (error) {
+      clientLogger.error(error);
+      showNotice(formMessage(form, "unavailableMessage"));
+    }
+  }
+
+  function initCodeForm(): void {
+    const form = codeForm();
+
+    if (form === null || form.dataset.ready === "true") {
+      return;
+    }
+
+    form.dataset.ready = "true";
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      void guarded(form, () => submitCode(form));
+    });
+    form.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && !event.defaultPrevented) {
+        event.preventDefault();
+        form.requestSubmit();
+      }
+    });
+
+    for (const button of form.querySelectorAll<HTMLElement>("[data-code-method]")) {
+      button.addEventListener("click", () => {
+        const method = button.dataset.codeMethod;
+
+        if (isMethod(method)) {
+          void guarded(form, () => selectMethod(form, method));
+        }
+      });
     }
   }
 
@@ -193,5 +379,8 @@ const styles = {
     }
   }
 
-  document.addEventListener("astro:page-load", initLoginForm);
+  document.addEventListener("astro:page-load", () => {
+    initLoginForm();
+    initCodeForm();
+  });
 </script>

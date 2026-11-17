@@ -1,9 +1,9 @@
 // @boundary client
 import { resolveBrowserLocale } from "@intlayer/core/localization";
 /* oxlint-disable typescript/explicit-module-boundary-types -- query factories infer their response type. */
-import { type FetcherStore } from "@nanostores/query";
+import type { FetcherStore } from "@nanostores/query";
 
-import { type UserRole } from "~/auth/roles";
+import type { UserRole } from "~/auth/roles";
 import { apiClient, readApiJson } from "~/shared/client/api/client";
 import { mutateCache, revalidateKeys } from "~/shared/client/query/client";
 import { queryStore } from "~/shared/client/query/registry";
