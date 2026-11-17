@@ -32,6 +32,11 @@ export default defineConfig({
         access: "public",
         default: repository.url,
       }),
+      PUBLIC_CLOUDFLARE_ANALYTICS_TOKEN: envField.string({
+        context: "client",
+        access: "public",
+        default: "",
+      }),
     },
   },
   integrations: [

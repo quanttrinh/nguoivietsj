@@ -5,7 +5,7 @@ export const CSP_BASE_DIRECTIVES = {
   objectSrc: ["'none'"],
   imgSrc: ["'self'", "data:"],
   fontSrc: ["'self'"],
-  connectSrc: ["'self'", "https://challenges.cloudflare.com"],
+  connectSrc: ["'self'", "https://challenges.cloudflare.com", "https://cloudflareinsights.com"],
   frameSrc: [
     "'self'",
     "https://challenges.cloudflare.com",
@@ -18,7 +18,11 @@ export const CSP_BASE_DIRECTIVES = {
 };
 
 /** Sources allowed for scripts by both Astro's CSP meta tag and the Worker headers. */
-export const CSP_SCRIPT_RESOURCES = ["'self'", "https://challenges.cloudflare.com"] as const;
+export const CSP_SCRIPT_RESOURCES = [
+  "'self'",
+  "https://challenges.cloudflare.com",
+  "https://static.cloudflareinsights.com",
+] as const;
 
 /** Sources allowed for styles by both Astro's CSP meta tag and the Worker headers. */
 export const CSP_STYLE_RESOURCES = ["'self'"] as const;

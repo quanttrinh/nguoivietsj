@@ -1,6 +1,7 @@
 ---
 // @boundary astro
 import { useLocale } from "astro-intlayer";
+import { PUBLIC_CLOUDFLARE_ANALYTICS_TOKEN } from "astro:env/client";
 import { getHTMLTextDir, getLocaleName, getLocalizedUrl, getPathWithoutLocale } from "intlayer";
 
 import { Image } from "astro:assets";
@@ -192,6 +193,14 @@ const styles = {
       data-astro-transition-persist="app-stylesheet"
     />
     <ClientRouter />
+    {PUBLIC_CLOUDFLARE_ANALYTICS_TOKEN.length > 0 && (
+      <script
+        is:inline
+        defer
+        src="https://static.cloudflareinsights.com/beacon.min.js"
+        data-cf-beacon={JSON.stringify({ token: PUBLIC_CLOUDFLARE_ANALYTICS_TOKEN })}
+      />
+    )}
   </head>
   <body>
     <div class={styles.page}>

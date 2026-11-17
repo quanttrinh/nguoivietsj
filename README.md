@@ -68,6 +68,14 @@ payments, check-ins, status links, and the local users:
 - `staff@example.com` — staff
 - password: `dev-password`
 
+### Cloudflare Web Analytics
+
+Set `PUBLIC_CLOUDFLARE_ANALYTICS_TOKEN` in Doppler to the Web Analytics site
+token. Leaving it empty keeps the analytics beacon out of the build. Cloudflare
+Web Analytics reports page views, referrers, and Core Web Vitals; it does not
+capture JavaScript exceptions. Use Sentry or Workers Logs for frontend/backend
+error tracking.
+
 Useful local URLs:
 
 - Public event list: `http://localhost:4321/en/events/`
