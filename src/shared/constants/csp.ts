@@ -25,6 +25,9 @@ export const CSP_STYLE_RESOURCES = ["'self'"] as const;
 
 export const CSP_HEADER_DIRECTIVES = {
   ...CSP_BASE_DIRECTIVES,
+  defaultSrc: ["'self'"],
+  scriptSrc: [...CSP_SCRIPT_RESOURCES],
+  styleSrc: [...CSP_STYLE_RESOURCES],
   frameAncestors: ["'none'"],
   scriptSrcAttr: ["'none'"],
   styleSrcAttr: ["'none'"],

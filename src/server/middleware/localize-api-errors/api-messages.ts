@@ -4,7 +4,8 @@ import { getDictionary } from "intlayer";
 
 import engineApiMessages from "~/events/content/api-messages.content";
 import sharedApiMessages from "~/server/middleware/localize-api-errors/api-messages.content";
-import { DEFAULT_LOCALE, localeSchema } from "~/shared/constants/locales";
+import { localeSchema } from "~/shared/constants/locale-schema";
+import { DEFAULT_LOCALE } from "~/shared/constants/locales";
 
 type MessageCatalog = Record<string, string>;
 

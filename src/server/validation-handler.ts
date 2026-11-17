@@ -1,5 +1,5 @@
 // @boundary server
-import { type Context } from "hono";
+import type { Context } from "hono";
 
 import { badRequest } from "./common-responses";
 

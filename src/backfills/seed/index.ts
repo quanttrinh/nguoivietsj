@@ -4,9 +4,8 @@ import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 
-import { hashPassword } from "better-auth/crypto";
 import { inArray, or, sql, type SQL } from "drizzle-orm";
-import { type SQLiteTable } from "drizzle-orm/sqlite-core";
+import type { SQLiteTable } from "drizzle-orm/sqlite-core";
 import { drizzle } from "drizzle-orm/sqlite-proxy";
 
 import { ROOT } from "#tooling/d1/config";
@@ -15,6 +14,7 @@ import { toSqlStatement } from "#tooling/d1/sql";
 import { defineBackfill } from "#tooling/manage/backfill";
 
 import { USER_ROLE } from "../../auth/roles";
+import { hashPassword } from "../../auth/server/password";
 import { account, user } from "../../db/app/schemas/auth-schema";
 import {
   auditEvents,
@@ -36,8 +36,8 @@ import {
   registrations,
   ticketTypeStats,
 } from "../../db/events/schemas";
-import { type EventStatus } from "../../events/domain/constants";
-import { type EventNotes, type LocalizedText, type PaymentMethod } from "../../events/domain/types";
+import type { EventStatus } from "../../events/domain/constants";
+import type { EventNotes, LocalizedText, PaymentMethod } from "../../events/domain/types";
 
 interface SeedTicket {
   key: string;

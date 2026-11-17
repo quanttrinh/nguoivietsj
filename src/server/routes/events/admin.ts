@@ -6,6 +6,7 @@ import { type } from "arktype";
 import { type Context, Hono } from "hono";
 
 import { can } from "~/auth/permissions";
+import { requireAuth, requirePermission } from "~/auth/server/middleware";
 import {
   getAuditRepository,
   getCheckinRepository,
@@ -33,7 +34,7 @@ import {
   ticketTypeSchema,
   ticketTypeUpdateSchema,
 } from "~/events/domain/schemas/tickets";
-import { type TicketTypeInput } from "~/events/domain/types";
+import type { TicketTypeInput } from "~/events/domain/types";
 import {
   invalidFields,
   validateEventDates,
@@ -56,7 +57,6 @@ import {
 import { issueStatusToken } from "~/events/services/status";
 import { statusPageUrl } from "~/events/services/status-url";
 import { apiError, apiSuccess } from "~/server/api-response";
-import { requireAuth, requirePermission } from "~/server/middleware/auth";
 import { registrationFailureResponse } from "~/server/routes/events/registration-errors";
 import { defaultValidationHandler } from "~/server/validation-handler";
 import { SUPPORTED_LOCALES } from "~/shared/constants/locales";

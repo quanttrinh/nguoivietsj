@@ -1,7 +1,8 @@
 // @boundary shared
 import { type } from "arktype";
 
-import { DEFAULT_LOCALE, localeSchema } from "~/shared/constants/locales";
+import { localeSchema } from "~/shared/constants/locale-schema";
+import { DEFAULT_LOCALE } from "~/shared/constants/locales";
 
 import { EVENT_STATUS } from "../constants";
 import { DEFAULT_TIMEZONE } from "../defaults";

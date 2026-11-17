@@ -4,11 +4,11 @@
 import { type as ark } from "arktype";
 
 import { classifyDatabaseError, DATABASE_ERROR, type DatabaseError } from "~/db/events/errors";
-import { type RegistrationRepository } from "~/db/events/registrations";
+import type { RegistrationRepository } from "~/db/events/registrations";
 import { CONTACT_KIND, EVENT_STATUS, FORM_VERSION_STATUS } from "~/events/domain/constants";
 import { validateRegistrationForm } from "~/events/domain/form-schema";
 import { formSchemaSchema } from "~/events/domain/form-schema/schema/schema";
-import { type RegistrationFormIssue } from "~/events/domain/form-schema/types";
+import type { RegistrationFormIssue } from "~/events/domain/form-schema/types";
 import { LIMITS } from "~/events/domain/limits";
 import {
   normalizeCountry,
@@ -26,15 +26,15 @@ import {
   manualRegistrationSchema,
   registrationSchema,
 } from "~/events/domain/schemas/registration";
-import {
-  type ContactInput,
-  type EventDetail,
-  type PreparedAnswer,
-  type PreparedContact,
-  type PreparedRegistration,
-  type PreparedTicket,
-  type RegistrationInput,
-  type RegistrationResult,
+import type {
+  ContactInput,
+  EventDetail,
+  PreparedAnswer,
+  PreparedContact,
+  PreparedRegistration,
+  PreparedTicket,
+  RegistrationInput,
+  RegistrationResult,
 } from "~/events/domain/types";
 import { makeStatusToken } from "~/events/services/status";
 import { serverLogger } from "~/shared/server/logger";

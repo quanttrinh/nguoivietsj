@@ -10,7 +10,7 @@ import {
   uniqueIndex,
 } from "drizzle-orm/sqlite-core";
 
-import { type FormVersionStatus } from "~/events/domain/types";
+import type { FormVersionStatus } from "~/events/domain/types";
 
 import { events } from "./events";
 import { defineTable, timestamp } from "./shared";

@@ -1,17 +1,17 @@
 // @boundary server
 /* oxlint-disable eslint/max-lines-per-function -- Registration queries share one repository. */
 /* oxlint-disable unicorn/max-nested-calls -- Drizzle query builders are nested by design. */
-import { and, desc, eq, exists, inArray, not, or, sql, type SQL } from "drizzle-orm";
-import { type BatchItem } from "drizzle-orm/batch";
+import { and, desc, eq, exists, gte, inArray, not, or, sql, sum, type SQL } from "drizzle-orm";
+import type { BatchItem } from "drizzle-orm/batch";
 
 import { CONTACT_KIND, FORM_VERSION_STATUS } from "~/events/domain/constants";
-import {
-  type FormVersionRecord,
-  type PreparedRegistration,
-  type RegistrationContactRecord,
-  type RegistrationRecord,
-  type RegistrationSummary,
-  type RegistrationTicketRecord,
+import type {
+  FormVersionRecord,
+  PreparedRegistration,
+  RegistrationContactRecord,
+  RegistrationRecord,
+  RegistrationSummary,
+  RegistrationTicketRecord,
 } from "~/events/domain/types";
 import { newId } from "~/shared/utils/uuid";
 
@@ -438,11 +438,10 @@ function createRegistrationRepository(orm: EngineOrm): RegistrationRepository {
           eq(registrations.id, query),
           ftsQuery === null
             ? undefined
-            : sql`EXISTS (
-                SELECT 1 FROM registration_search
-                WHERE registration_search.registration_id = ${registrations.id}
-                  AND registration_search.event_id = ${eventId}
-                  AND registration_search MATCH ${ftsQuery}
+            : sql`${registrations.id} IN (
+                SELECT registration_id FROM registration_search
+                WHERE registration_search MATCH ${ftsQuery}
+                  AND event_id = ${eventId}
               )`,
         );
 
@@ -451,22 +450,28 @@ function createRegistrationRepository(orm: EngineOrm): RegistrationRepository {
         }
       }
 
-      const paidCondition = (): SQL =>
-        exists(
+      const paidCondition = (): SQL => {
+        const ticketTotal = orm
+          .select({
+            total: sum(
+              sql<number>`${registrationTickets.quantity} * ${registrationTickets.unitPriceMinor}`,
+            ),
+          })
+          .from(registrationTickets)
+          .where(eq(registrationTickets.registrationId, registrations.id));
+
+        return exists(
           orm
             .select({ id: payments.id })
             .from(payments)
             .where(
               and(
                 eq(payments.registrationId, registrations.id),
-                sql`${payments.amountMinor} >= (
-                  SELECT COALESCE(SUM(quantity * unit_price_minor), 0)
-                  FROM registration_tickets
-                  WHERE registration_id = ${registrations.id}
-                )`,
+                gte(payments.amountMinor, ticketTotal),
               ),
             ),
         );
+      };
 
       if (options.payment === "paid") {
         filters.push(paidCondition());
@@ -489,25 +494,47 @@ function createRegistrationRepository(orm: EngineOrm): RegistrationRepository {
       }
 
       const where = and(...filters);
-      const pageRows = await orm
+      const filtered =
+        query.length > 0 || options.payment !== undefined || options.checkin !== undefined;
+      // A window count reads every matching row. Use it only for filtered
+      // views; unfiltered totals come from the counter table.
+      const page = orm
         .select({
           id: registrations.id,
-          total: sql<number>`count(*) over ()`,
+          total: filtered ? sql<number>`count(*) over ()` : sql<number>`0`,
         })
         .from(registrations)
         .where(where)
         .orderBy(desc(registrations.createdAt), desc(registrations.id))
         .limit(options.limit)
-        .offset(options.offset)
-        .all();
+        .offset(options.offset);
+      let pageRows: { id: string; total: number }[];
+      let total: number;
+
+      if (filtered) {
+        pageRows = await page.all();
+        total = pageRows[0]?.total ?? 0;
+      } else {
+        const [rows, stats] = await orm.batch([
+          page,
+          orm
+            .select({ count: registrationStats.registrationCount })
+            .from(registrationStats)
+            .where(eq(registrationStats.eventId, eventId))
+            .limit(1),
+        ]);
+        pageRows = rows;
+        total = stats[0]?.count ?? 0;
+      }
 
       const ids = pageRows.map((row) => row.id);
-      let total = pageRows[0]?.total ?? 0;
 
       if (ids.length === 0) {
-        total = await orm.$count(registrations, where);
-
-        return { registrations: [], total };
+        // An empty filtered page past the end has no window total to read.
+        return {
+          registrations: [],
+          total: filtered ? await orm.$count(registrations, where) : total,
+        };
       }
 
       const rows = await orm.query.registrations.findMany({

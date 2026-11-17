@@ -19,6 +19,11 @@ const sharedApiMessages = {
       fr: "Vous n'avez pas la permission d'effectuer cette action.",
       vi: "Bạn không có quyền thực hiện thao tác này.",
     }),
+    two_factor_required: t({
+      en: "Set up two-factor authentication to continue.",
+      fr: "Configurez l'authentification à deux facteurs pour continuer.",
+      vi: "Vui lòng thiết lập xác thực hai lớp để tiếp tục.",
+    }),
     internal_server_error: t({
       en: "Something went wrong.",
       fr: "Une erreur est survenue.",

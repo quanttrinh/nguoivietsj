@@ -1,5 +1,5 @@
 // @boundary server
-import { type SQLiteTable } from "drizzle-orm/sqlite-core";
+import type { SQLiteTable } from "drizzle-orm/sqlite-core";
 
 import {
   auditEvents,

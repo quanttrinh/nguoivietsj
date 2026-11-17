@@ -13,6 +13,12 @@ export const STATUS_OTP_MAX_ATTEMPTS = 5;
 /** Minimum seconds between OTP resends. */
 export const STATUS_OTP_RESEND_SECONDS = 60;
 
+/** Maximum OTPs that may be issued for one registration in a rolling day. */
+export const STATUS_OTP_DAILY_MAX = 10;
+
+/** Rolling window used for the daily OTP cap. */
+export const STATUS_OTP_DAILY_WINDOW_SECONDS = 24 * 60 * 60;
+
 /** Seconds a status-page token remains valid. */
 export const STATUS_TOKEN_TTL_SECONDS = 90 * 24 * 60 * 60;
 

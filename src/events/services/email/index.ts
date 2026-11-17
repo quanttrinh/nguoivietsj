@@ -1,11 +1,7 @@
 // @boundary server
 import { CONTACT_KIND, PAYMENT_METHOD } from "~/events/domain/constants";
 import { localized } from "~/events/domain/localized";
-import {
-  type EventWithLimits,
-  type PaymentRecord,
-  type RegistrationRecord,
-} from "~/events/domain/types";
+import type { EventWithLimits, PaymentRecord, RegistrationRecord } from "~/events/domain/types";
 import { createCheckinQrGif } from "~/events/services/checkin-qr";
 import {
   sendEmail,
@@ -14,14 +10,10 @@ import {
   type EmailEnv,
   type EmailMessage,
 } from "~/server/services/email";
+import type { EmailTemplateVariables } from "~/server/services/email/template";
 import { formatMoney } from "~/shared/utils/format";
 
-import {
-  emailSubject,
-  renderEmailTemplate,
-  type EmailTemplateName,
-  type EmailTemplateVariables,
-} from "./render";
+import { emailSubject, renderEmailTemplate, type EmailTemplateName } from "./render";
 
 interface EmailBaseInput {
   env: EmailEnv;

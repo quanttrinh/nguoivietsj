@@ -6,7 +6,7 @@ staging_hostname      = "staging.nguoivietsj.ca"
 # authentication is handled in-app by Better Auth.
 staging_session_duration = "8h"
 
-public_registration_path_regex = "^/api/events/[^/]+/registrations$"
+public_registration_path_pattern = "/api/events/*/registrations"
 
 # Apply the Turnstile widget, deploy the Worker with its site key and secret,
 # then set this to true to create the WAF challenge.

@@ -1,10 +1,10 @@
 // @boundary server
 /* oxlint-disable typescript/explicit-function-return-type, typescript/explicit-module-boundary-types -- response types stay inferred for Hono RPC. */
-import { type Context } from "hono";
+import type { Context } from "hono";
 
-import {
-  type RegistrationFailureError,
-  type RegistrationFailureCode,
+import type {
+  RegistrationFailureError,
+  RegistrationFailureCode,
 } from "~/events/services/registration-service";
 import { apiError } from "~/server/api-response";
 

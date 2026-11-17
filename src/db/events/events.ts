@@ -1,17 +1,17 @@
 // @boundary server
 /* oxlint-disable unicorn/max-nested-calls, eslint/max-lines-per-function -- Drizzle query builders are nested by design and the catalog repository keeps related reads/writes together. */
 import { and, asc, eq, gt, inArray, isNull, or, sql } from "drizzle-orm";
-import { type BatchItem } from "drizzle-orm/batch";
+import type { BatchItem } from "drizzle-orm/batch";
 
 import { EVENT_STATUS } from "~/events/domain/constants";
-import {
-  type EventCreateInput,
-  type EventDetail,
-  type EventRecord,
-  type EventUpdateInput,
-  type EventTicketLimits,
-  type EventWithLimits,
-  type PublicEventSummary,
+import type {
+  EventCreateInput,
+  EventDetail,
+  EventRecord,
+  EventUpdateInput,
+  EventTicketLimits,
+  EventWithLimits,
+  PublicEventSummary,
 } from "~/events/domain/types";
 import { newId } from "~/shared/utils/uuid";
 
@@ -210,7 +210,7 @@ function createEventRepository(orm: EngineOrm): EventRepository {
         )
         .orderBy(
           // Events with a start time first, then chronological order.
-          sql`${events.startsAt} IS NULL`,
+          isNull(events.startsAt),
           asc(events.startsAt),
           asc(events.id),
         )

@@ -1,9 +1,9 @@
 // @boundary server
 /* oxlint-disable unicorn/max-nested-calls -- Drizzle query builders are nested by design. */
-import { and, eq, inArray, sql } from "drizzle-orm";
+import { and, eq, inArray, min, sql, sum } from "drizzle-orm";
 
 import { AUDIT_ACTION } from "~/events/domain/constants";
-import { type PaymentMethod, type PaymentRecord } from "~/events/domain/types";
+import type { PaymentMethod, PaymentRecord } from "~/events/domain/types";
 import { chunk } from "~/shared/utils/chunk";
 import { newId } from "~/shared/utils/uuid";
 
@@ -72,32 +72,43 @@ function createPaymentRepository(orm: EngineOrm): PaymentRepository {
 
     async findByRegistrationIds(registrationIds) {
       const ids = [...new Set(registrationIds)];
-      const results = await Promise.all(
-        chunk(ids, 90).map(async (group) => {
-          const rows = await orm
-            .select()
-            .from(payments)
-            .where(inArray(payments.registrationId, group))
-            .all();
 
-          return rows.map((row) => toPayment(row));
-        }),
+      if (ids.length === 0) {
+        return [];
+      }
+
+      const queries = chunk(ids, 90).map((group) =>
+        orm.select().from(payments).where(inArray(payments.registrationId, group)),
       );
+      const [first, ...rest] = queries;
 
-      return results.flat();
+      if (first === undefined) {
+        return [];
+      }
+
+      const results = await orm.batch([first, ...rest]);
+
+      return results.flat().map((row) => toPayment(row));
     },
 
     async findDue(registrationId) {
       const row = await orm
         .select({
-          amountMinor: sql<number>`COALESCE(SUM(${registrationTickets.quantity} * ${registrationTickets.unitPriceMinor}), 0)`,
-          currency: sql<string>`COALESCE(MIN(${registrationTickets.currency}), 'CAD')`,
+          amountMinor: sum(
+            sql<number>`${registrationTickets.quantity} * ${registrationTickets.unitPriceMinor}`,
+          ),
+          currency: min(registrationTickets.currency),
         })
         .from(registrationTickets)
         .where(eq(registrationTickets.registrationId, registrationId))
         .get();
 
-      return row === undefined ? null : { amountMinor: row.amountMinor, currency: row.currency };
+      return row === undefined
+        ? null
+        : {
+            amountMinor: Number(row.amountMinor ?? 0),
+            currency: row.currency ?? "CAD",
+          };
     },
 
     async upsert(input) {

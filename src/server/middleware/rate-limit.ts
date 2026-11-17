@@ -1,5 +1,5 @@
 // @boundary server
-import { type MiddlewareHandler } from "hono";
+import type { MiddlewareHandler } from "hono";
 import { createMiddleware } from "hono/factory";
 
 import { normalizeEmail } from "~/events/domain/normalize";
@@ -40,10 +40,15 @@ function clientAddress(request: Request): string {
     return cfIp;
   }
 
-  const forwarded = request.headers.get("x-forwarded-for")?.split(",", 1)[0]?.trim();
+  // Behind Cloudflare `cf-connecting-ip` is always present. Accept the
+  // forwarded header only in local development so a spoofed value cannot pick
+  // its own rate-limit bucket in production.
+  if (import.meta.env.DEV) {
+    const forwarded = request.headers.get("x-forwarded-for")?.split(",", 1)[0]?.trim();
 
-  if (forwarded !== undefined && forwarded.length > 0) {
-    return forwarded;
+    if (forwarded !== undefined && forwarded.length > 0) {
+      return forwarded;
+    }
   }
 
   return "unknown";

@@ -7,12 +7,12 @@ import { Hono } from "hono";
 
 import { can } from "~/auth/permissions";
 import { USER_ROLE } from "~/auth/roles";
+import { auth } from "~/auth/server/auth";
+import { requireAuth, requirePermission } from "~/auth/server/middleware";
 import { LIMITS } from "~/events/domain/limits";
 import { emailSchema } from "~/events/domain/schemas/common";
 import { apiError, apiSuccess } from "~/server/api-response";
-import { auth } from "~/server/auth";
 import { forbidden } from "~/server/common-responses";
-import { requireAuth, requirePermission } from "~/server/middleware/auth";
 import { defaultValidationHandler } from "~/server/validation-handler";
 import { serverLogger } from "~/shared/server/logger";
 import { isRecord } from "~/shared/utils/records";
@@ -186,6 +186,12 @@ export const adminUsers = new Hono<HonoEnv>()
 
       if (body.role !== undefined && !can(user.role, { user: ["set-role"] })) {
         return forbidden(ctx);
+      }
+
+      // The acting admin is always an admin, so only a self-demotion can leave
+      // the installation without anyone able to manage users.
+      if (body.role !== undefined && userId === user.id) {
+        return apiError(ctx, "cannot_change_own_role", { status: 400 });
       }
 
       if (body.password !== undefined && !can(user.role, { user: ["set-password"] })) {

@@ -3,7 +3,7 @@
 import { sql } from "drizzle-orm";
 import { snakeCase, text } from "drizzle-orm/sqlite-core";
 
-import { type LocalizedText } from "~/events/domain/types";
+import type { LocalizedText } from "~/events/domain/types";
 
 /** Tables derive physical column names from camelCase properties. */
 export const defineTable = snakeCase.table;

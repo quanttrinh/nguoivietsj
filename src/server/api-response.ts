@@ -1,14 +1,9 @@
 // @boundary server
 /* oxlint-disable typescript/explicit-function-return-type, typescript/explicit-module-boundary-types -- Response helpers stay inferred for Hono RPC. */
-import { type Context } from "hono";
-import { type ContentfulStatusCode } from "hono/utils/http-status";
+import type { Context } from "hono";
+import type { ContentfulStatusCode } from "hono/utils/http-status";
 
-import {
-  type ApiError,
-  type ApiIssue,
-  type ApiMeta,
-  type ApiResponse,
-} from "~/shared/api/response";
+import type { ApiError, ApiIssue, ApiMeta, ApiResponse } from "~/shared/api/response";
 
 const NO_STORE = { "cache-control": "no-store" };
 

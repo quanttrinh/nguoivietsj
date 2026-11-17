@@ -1,6 +1,6 @@
 // @boundary server
-import { and, inArray, isNotNull, lte } from "drizzle-orm";
-import { type BatchItem } from "drizzle-orm/batch";
+import { and, eq, exists, inArray, isNotNull, lte } from "drizzle-orm";
+import type { BatchItem } from "drizzle-orm/batch";
 
 import { getEngineOrm } from "~/db/events/orm";
 import {
@@ -84,10 +84,16 @@ async function pruneOperationalData(db: D1Database, now: Date = new Date()): Pro
 async function purgeExpiredRegistrationData(db: D1Database, now: Date = new Date()): Promise<void> {
   const orm = getEngineOrm(db);
   const cutoff = registrationRetentionCutoff(now);
+  const hasRegistrations = exists(
+    orm
+      .select({ id: registrations.id })
+      .from(registrations)
+      .where(eq(registrations.eventId, events.id)),
+  );
   const expiredEvents = await orm
     .select({ id: events.id })
     .from(events)
-    .where(and(isNotNull(events.endsAt), lte(events.endsAt, cutoff)))
+    .where(and(isNotNull(events.endsAt), lte(events.endsAt, cutoff), hasRegistrations))
     .all();
 
   if (expiredEvents.length === 0) {
@@ -101,7 +107,14 @@ async function purgeExpiredRegistrationData(db: D1Database, now: Date = new Date
     .where(inArray(registrations.eventId, eventIds));
 
   const statements: [BatchItem<"sqlite">, ...BatchItem<"sqlite">[]] = [
-    orm.delete(auditEvents).where(inArray(auditEvents.targetId, expiredRegistrationIds)),
+    orm
+      .delete(auditEvents)
+      .where(
+        and(
+          inArray(auditEvents.eventId, eventIds),
+          inArray(auditEvents.targetId, expiredRegistrationIds),
+        ),
+      ),
     orm
       .delete(registrationStatusSessions)
       .where(inArray(registrationStatusSessions.registrationId, expiredRegistrationIds)),
@@ -129,10 +142,7 @@ async function purgeExpiredRegistrationData(db: D1Database, now: Date = new Date
 }
 
 /** Run all daily cleanup and retention work for one event-engine database. */
-export async function runScheduledMaintenance(
-  db: D1Database,
-  now: Date = new Date(),
-): Promise<void> {
+export async function runMaintenance(db: D1Database, now: Date = new Date()): Promise<void> {
   await pruneOperationalData(db, now);
   await purgeExpiredRegistrationData(db, now);
 }

@@ -24,7 +24,7 @@ const EVENT_EMAIL_JOB = {
   statusOtp: "event.status.otp",
 } as const;
 
-type EventEmailJob =
+export type EventEmailJob =
   | {
       type: typeof EVENT_EMAIL_JOB.registrationReceived;
       idempotencyKey: string;

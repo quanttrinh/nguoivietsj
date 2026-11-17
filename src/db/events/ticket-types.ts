@@ -1,7 +1,7 @@
 // @boundary server
-import { and, asc, eq, getTableColumns } from "drizzle-orm";
+import { and, asc, eq, getTableColumns, type SQL } from "drizzle-orm";
 
-import { type TicketTypeInput, type TicketTypeRecord } from "~/events/domain/types";
+import type { TicketTypeInput, TicketTypeRecord } from "~/events/domain/types";
 
 import { databaseSingleton, type EngineOrm } from "./orm";
 import { eventTicketTypes, ticketTypeStats } from "./schemas";
@@ -58,6 +58,10 @@ export interface TicketTypeRepository {
   ) => Promise<TicketTypeRecord | null>;
 }
 
+function ticketTypeKeyWhere(eventId: string, key: string): SQL | undefined {
+  return and(eq(eventTicketTypes.eventId, eventId), eq(eventTicketTypes.key, key));
+}
+
 function createTicketTypeRepository(orm: EngineOrm): TicketTypeRepository {
   // oxlint-disable-next-line typescript/explicit-function-return-type -- Drizzle select builder type is inferred.
   const selectRows = () =>
@@ -75,10 +79,13 @@ function createTicketTypeRepository(orm: EngineOrm): TicketTypeRepository {
         ),
       );
 
+  // oxlint-disable-next-line typescript/explicit-function-return-type -- Drizzle select builder type is inferred.
+  function findByKeyQuery(eventId: string, key: string) {
+    return selectRows().where(ticketTypeKeyWhere(eventId, key)).limit(1);
+  }
+
   async function findByKey(eventId: string, key: string): Promise<TicketTypeRecord | null> {
-    const row = await selectRows()
-      .where(and(eq(eventTicketTypes.eventId, eventId), eq(eventTicketTypes.key, key)))
-      .get();
+    const row = await findByKeyQuery(eventId, key).get();
 
     return row === undefined ? null : toTicketTypeRecord(row, row.ticketsSold);
   }
@@ -96,15 +103,17 @@ function createTicketTypeRepository(orm: EngineOrm): TicketTypeRepository {
     findByKey,
 
     async create(eventId, input) {
-      await orm.insert(eventTicketTypes).values(ticketTypeInsertValues(eventId, input));
+      const [, rows] = await orm.batch([
+        orm.insert(eventTicketTypes).values(ticketTypeInsertValues(eventId, input)),
+        findByKeyQuery(eventId, input.key),
+      ]);
+      const row = rows[0];
 
-      const created = await findByKey(eventId, input.key);
-
-      if (created === null) {
+      if (row === undefined) {
         throw new Error("ticket_type_insert_failed");
       }
 
-      return created;
+      return toTicketTypeRecord(row, row.ticketsSold);
     },
 
     async update(eventId, key, input) {
@@ -142,12 +151,13 @@ function createTicketTypeRepository(orm: EngineOrm): TicketTypeRepository {
         return findByKey(eventId, key);
       }
 
-      await orm
-        .update(eventTicketTypes)
-        .set(changes)
-        .where(and(eq(eventTicketTypes.eventId, eventId), eq(eventTicketTypes.key, key)));
+      const [, rows] = await orm.batch([
+        orm.update(eventTicketTypes).set(changes).where(ticketTypeKeyWhere(eventId, key)),
+        findByKeyQuery(eventId, key),
+      ]);
+      const row = rows[0];
 
-      return findByKey(eventId, key);
+      return row === undefined ? null : toTicketTypeRecord(row, row.ticketsSold);
     },
   };
 }

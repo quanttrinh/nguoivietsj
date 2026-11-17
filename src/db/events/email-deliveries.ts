@@ -1,5 +1,5 @@
 // @boundary server
-import { eq, sql } from "drizzle-orm";
+import { eq, ne, sql } from "drizzle-orm";
 
 import { databaseSingleton, type EngineOrm } from "./orm";
 import { emailDeliveries } from "./schemas";
@@ -29,7 +29,7 @@ function createEmailDeliveryRepository(orm: EngineOrm): EmailDeliveryRepository 
             attempts: sql`${emailDeliveries.attempts} + 1`,
             lastError: null,
           },
-          setWhere: sql`${emailDeliveries.status} <> 'sent'`,
+          setWhere: ne(emailDeliveries.status, "sent"),
         })
         .returning({ idempotencyKey: emailDeliveries.idempotencyKey });
 
