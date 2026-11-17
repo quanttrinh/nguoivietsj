@@ -1,6 +1,11 @@
 // @boundary client
 import { navigate } from "astro:transitions/client";
 
+import { prefetch } from "astro:prefetch";
+
+/** Matches the debounce Astro uses for its own hover strategy. */
+const PREFETCH_HOVER_DELAY_MS = 80;
+
 function findRouterLink(event: Event): HTMLElement | null {
   for (const node of event.composedPath()) {
     if (
@@ -59,6 +64,78 @@ function isSameLocation(url: URL): boolean {
   );
 }
 
+function prefetchableUrl(event: Event): URL | null {
+  const link = findRouterLink(event);
+
+  if (
+    link === null ||
+    link.dataset.astroPrefetch === "false" ||
+    link.hasAttribute("download") ||
+    link.hasAttribute("disabled") ||
+    link.getAttribute("aria-disabled") === "true"
+  ) {
+    return null;
+  }
+
+  const target = link.getAttribute("target");
+
+  if (target !== null && target !== "" && target !== "_self") {
+    return null;
+  }
+
+  return resolveHref(link);
+}
+
+function prefetchNow(event: Event): void {
+  const url = prefetchableUrl(event);
+
+  if (url !== null) {
+    prefetch(url.href, { ignoreSlowConnection: true });
+  }
+}
+
+/**
+ * Astro's prefetch only scans light-DOM anchors, so `qui-button href` links
+ * (anchor inside a shadow root) were never prefetched. Mirror its hover, focus
+ * and tap strategies here. `prefetch()` already skips cross-origin URLs, the
+ * current page, duplicates, offline and Save-Data / 2G connections.
+ */
+function initRouterLinkPrefetch(): void {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const cancel = (): void => {
+    clearTimeout(timer);
+    timer = undefined;
+  };
+  const schedule = (event: Event): void => {
+    const url = prefetchableUrl(event);
+
+    if (url === null) {
+      return;
+    }
+
+    cancel();
+    timer = setTimeout(() => {
+      prefetch(url.href);
+    }, PREFETCH_HOVER_DELAY_MS);
+  };
+  const options = { capture: true, passive: true } as const;
+
+  document.addEventListener(
+    "pointerover",
+    (event) => {
+      if (event.pointerType !== "touch") {
+        schedule(event);
+      }
+    },
+    options,
+  );
+  document.addEventListener("pointerout", cancel, options);
+  document.addEventListener("focusin", schedule, options);
+  document.addEventListener("focusout", cancel, options);
+  document.addEventListener("touchstart", prefetchNow, options);
+  document.addEventListener("mousedown", prefetchNow, options);
+}
+
 /**
  * Astro's ClientRouter handles normal anchors. Bridge custom elements that
  * expose an `href` but keep their anchor inside a shadow root.
@@ -69,6 +146,7 @@ export function initRouterLinks(): void {
   }
 
   document.documentElement.dataset.routerLinksBound = "true";
+  initRouterLinkPrefetch();
 
   document.addEventListener(
     "click",

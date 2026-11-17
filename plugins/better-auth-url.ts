@@ -1,7 +1,7 @@
 /* oxlint-disable typescript/no-unsafe-type-assertion -- Wrangler configuration is read at this build-tool boundary. */
 import { readFileSync } from "node:fs";
 
-import { type AstroIntegration } from "astro";
+import type { AstroIntegration } from "astro";
 import { parse } from "jsonc-parser";
 
 interface WranglerRoute {
