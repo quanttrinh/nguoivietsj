@@ -50,6 +50,12 @@ const capitalize = (value: string): string =>
   value.charAt(0).toLocaleUpperCase(locale) + value.slice(1);
 const pathWithoutLocale = getPathWithoutLocale(Astro.url.pathname);
 const currentSearch = Astro.url.search;
+const languageHref = (item: string): string => {
+  const localized = getLocalizedUrl(pathWithoutLocale, item);
+  const path = localized.endsWith("/") ? localized : `${localized}/`;
+
+  return `${path}${currentSearch}`;
+};
 const copyrightYear = new Date().getUTCFullYear();
 
 const styles = {
@@ -183,7 +189,6 @@ const styles = {
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="icon" type="image/png" sizes="64x64" href={favicon.src} />
-    <link rel="shortcut icon" type="image/png" href={favicon.src} />
     {noindex && <meta name="robots" content="noindex, nofollow" />}
     <link rel="stylesheet" href={themeStylesUrl} data-astro-transition-persist="theme-stylesheet" />
     <link
@@ -231,7 +236,7 @@ const styles = {
             {availableLocales.map((item) => (
               <a
                 class={styles.languageLink}
-                href={`${getLocalizedUrl(pathWithoutLocale, item)}${currentSearch}`}
+                href={languageHref(item)}
                 data-language-link
                 hreflang={item}
                 lang={item}
