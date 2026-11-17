@@ -1,9 +1,9 @@
 // @boundary shared
 import { createAccessControl, type RoleAuthorizeRequest } from "better-auth/plugins/access";
 
+import { eventsPermissions } from "~/auth/access/events";
+import { usersPermissions } from "~/auth/access/users";
 import { USER_ROLE } from "~/auth/roles";
-import { eventsPermissions } from "~/events/permissions";
-import { usersPermissions } from "~/users/permissions";
 
 /** Single access-control statement merged from every feature. */
 export const statement = {

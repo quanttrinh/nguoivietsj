@@ -1,11 +1,11 @@
 // @boundary client
-import { type JSX } from "preact";
+import type { JSX } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
 import { css } from "styled-system/css";
 import { grid, vstack, wrap } from "styled-system/patterns";
+import { getSharedSession } from "~/auth/client/session";
 import { can } from "~/auth/permissions";
-import { getSharedSession } from "~/shared/client/auth/session";
 import { isRecord } from "~/shared/utils/records";
 
 export interface AdminHomeCard {

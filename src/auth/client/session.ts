@@ -1,4 +1,5 @@
 // @boundary client
+import { setUnauthorizedHandler } from "~/shared/client/api/client";
 import { isRecord } from "~/shared/utils/records";
 
 import { authClient } from "./client";
@@ -13,9 +14,8 @@ export interface SharedSessionResult {
   error: { message?: string } | null;
 }
 
-const SESSION_TTL_MS = 60_000;
+const SESSION_TTL_MS = 5 * 60_000;
 const SESSION_HINT_KEY = "admin-session-hint";
-const SESSION_HINT_TTL_MS = 60_000;
 
 let cached: { result: SharedSessionResult; at: number } | null = null;
 let pending: Promise<SharedSessionResult> | null = null;
@@ -28,24 +28,47 @@ function clearSessionHint(): void {
   }
 }
 
-function rememberSessionHint(): void {
+function rememberSession(user: SharedSessionUser): void {
   try {
-    globalThis.sessionStorage.setItem(SESSION_HINT_KEY, String(Date.now()));
+    globalThis.sessionStorage.setItem(SESSION_HINT_KEY, JSON.stringify({ at: Date.now(), user }));
   } catch {
     // Storage can be unavailable in private or restricted contexts.
   }
 }
 
-/** Whether this tab recently confirmed an authenticated session. */
-export function hasRecentSessionHint(): boolean {
+interface StoredSession {
+  at: number;
+  user: SharedSessionUser;
+}
+
+function readStoredSession(): StoredSession | null {
   try {
     const raw = globalThis.sessionStorage.getItem(SESSION_HINT_KEY);
-    const at = raw === null ? Number.NaN : Number(raw);
 
-    return Number.isFinite(at) && Date.now() - at < SESSION_HINT_TTL_MS;
+    if (raw === null) {
+      return null;
+    }
+
+    const parsed: unknown = JSON.parse(raw);
+
+    if (
+      !isRecord(parsed) ||
+      typeof parsed.at !== "number" ||
+      !isRecord(parsed.user) ||
+      Date.now() - parsed.at >= SESSION_TTL_MS
+    ) {
+      return null;
+    }
+
+    return { at: parsed.at, user: parsed.user };
   } catch {
-    return false;
+    return null;
   }
+}
+
+/** Whether this tab recently confirmed an authenticated session. */
+export function hasRecentSessionHint(): boolean {
+  return readStoredSession() !== null;
 }
 
 function normalizeSession(raw: unknown): SharedSessionResult {
@@ -78,6 +101,14 @@ export async function getSharedSession(): Promise<SharedSessionResult> {
     return cached.result;
   }
 
+  const stored = readStoredSession();
+
+  if (stored !== null) {
+    const result: SharedSessionResult = { data: { user: stored.user }, error: null };
+    cached = { result, at: stored.at };
+    return result;
+  }
+
   if (pending !== null) {
     return pending;
   }
@@ -92,7 +123,7 @@ export async function getSharedSession(): Promise<SharedSessionResult> {
       if (result.data === null) {
         clearSessionHint();
       } else {
-        rememberSessionHint();
+        rememberSession(result.data.user);
       }
     }
 
@@ -114,3 +145,5 @@ export function clearSharedSession(): void {
   pending = null;
   clearSessionHint();
 }
+
+setUnauthorizedHandler(clearSharedSession);

@@ -1,0 +1,12 @@
+---
+// @boundary astro
+import { locales } from "intlayer";
+
+import TwoFactorSetup from "~/login/ui/TwoFactorSetup.astro";
+
+export function getStaticPaths(): { params: { locale: string } }[] {
+  return locales.map((locale) => ({ params: { locale } }));
+}
+---
+
+<TwoFactorSetup />

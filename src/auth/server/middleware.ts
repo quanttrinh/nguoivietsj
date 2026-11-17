@@ -1,10 +1,12 @@
 // @boundary server
 /* oxlint-disable eslint/require-await, node/callback-return -- Hono middleware returns next(). */
-import { type MiddlewareHandler } from "hono";
+import type { MiddlewareHandler } from "hono";
 import { createMiddleware } from "hono/factory";
 
 import { can, type PermissionRequest } from "~/auth/permissions";
-import { auth } from "~/server/auth";
+import { auth } from "~/auth/server/auth";
+import { TWO_FACTOR_ROLES } from "~/auth/server/config";
+import { apiError } from "~/server/api-response";
 import { forbidden, unauthorized } from "~/server/common-responses";
 
 type AuthSession = ReturnType<typeof auth>["$Infer"]["Session"];
@@ -22,6 +24,14 @@ export const requireAuth = createMiddleware<AuthEnv>(async (ctx, next) => {
 
   if (!result) {
     return unauthorized(ctx);
+  }
+
+  // Better Auth deletes the session cookie when an enrolled user still owes a
+  // second factor, so they never reach this check. This guard only blocks staff
+  // who have not enrolled yet; enrollment and sign-out are Better Auth routes
+  // under /api/auth, which never pass through this middleware.
+  if (TWO_FACTOR_ROLES.has(result.user.role ?? "") && result.user.twoFactorEnabled !== true) {
+    return apiError(ctx, "two_factor_required", { status: 403 });
   }
 
   ctx.set("user", result.user);

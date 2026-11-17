@@ -1,7 +1,7 @@
 // @boundary shared
-import { type Statements } from "better-auth/plugins/access";
+import type { Statements } from "better-auth/plugins/access";
 
-import { type UserRole } from "~/auth/roles";
+import type { UserRole } from "~/auth/roles";
 
 type RoleGrantFor<TStatement extends Statements> = {
   [TResource in keyof TStatement]?: readonly TStatement[TResource][number][];

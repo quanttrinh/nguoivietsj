@@ -28,7 +28,10 @@ const styles = {
 </section>
 
 <script>
-  import { getSharedSession, hasRecentSessionHint } from "~/shared/client/auth/session";
+  import "virtual:qui/register?components=qui-button";
+  import { navigate } from "astro:transitions/client";
+
+  import { getSharedSession, hasRecentSessionHint } from "~/auth/client/session";
 
   function protectedElements(): HTMLElement[] {
     return [...document.querySelectorAll<HTMLElement>("[data-admin-protected]")];
@@ -64,6 +67,25 @@ const styles = {
     }
   }
 
+  const TWO_FACTOR_ROLES = new Set(["admin", "event_staff", "event_checkin"]);
+
+  /** Staff without two-factor authentication are sent to enrollment first. */
+  function redirectToEnrollment(user: { role?: string | null; [key: string]: unknown }): boolean {
+    const loginBase = document.querySelector<HTMLElement>("[data-admin-login]")?.dataset.loginBase;
+
+    if (
+      loginBase === undefined ||
+      !TWO_FACTOR_ROLES.has(user.role ?? "") ||
+      user.twoFactorEnabled === true
+    ) {
+      return false;
+    }
+
+    const redirect = `${globalThis.location.pathname}${globalThis.location.search}`;
+    void navigate(`${loginBase}/two-factor/?redirect=${encodeURIComponent(redirect)}`);
+    return true;
+  }
+
   async function initAdminAuthGate(): Promise<void> {
     if (document.querySelector("[data-admin-auth-gate]") === null) {
       return;
@@ -77,6 +99,11 @@ const styles = {
 
     try {
       const result = await getSharedSession();
+
+      if (result.data !== null && redirectToEnrollment(result.data.user)) {
+        applyAuthenticated(false);
+        return;
+      }
 
       applyAuthenticated(result.data !== null);
     } catch {

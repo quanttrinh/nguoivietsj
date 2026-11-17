@@ -1,0 +1,7 @@
+Your sign-in code is: {{code}}
+Votre code de connexion : {{code}}
+Mã đăng nhập của bạn: {{code}}
+
+This code expires in {{expires_minutes}} minutes. If you did not try to sign in, change your password.
+Ce code expire dans {{expires_minutes}} minutes. Si vous n'avez pas tenté de vous connecter, changez votre mot de passe.
+Mã này hết hạn sau {{expires_minutes}} phút. Nếu bạn không đăng nhập, hãy đổi mật khẩu.

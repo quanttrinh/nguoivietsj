@@ -2,9 +2,9 @@
 // @boundary client
 import { useDictionary } from "astro-intlayer";
 
+import { BETTER_AUTH_BASE_PATH } from "~/auth/constants";
 import { adminCatalogUrl } from "~/events/admin/ui/shared/routes";
 import engineAdminContent from "~/events/content/admin.content";
-import { BETTER_AUTH_BASE_PATH } from "~/shared/constants/auth";
 import LogoutButton from "~/shared/ui/LogoutButton.astro";
 
 interface Props {

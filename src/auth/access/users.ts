@@ -14,17 +14,7 @@ export const usersPermissions = defineBasePermissions({
   statement: defaultStatements,
   roles: {
     admin: {
-      user: [
-        "create",
-        "list",
-        "set-role",
-        "impersonate",
-        "delete",
-        "set-password",
-        "set-email",
-        "get",
-        "update",
-      ],
+      user: ["create", "list", "set-role", "delete", "set-password", "set-email", "get", "update"],
       session: ["list", "revoke", "delete"],
     },
   },
