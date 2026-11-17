@@ -37,7 +37,10 @@ export default defineConfig({
   integrations: [
     preact(),
     intlayer(),
-    betterAuthUrl({ configPath: wranglerConfigPath }),
+    betterAuthUrl({
+      configPath: wranglerConfigPath,
+      preview: process.env.BETTER_AUTH_PREVIEW === "1",
+    }),
     securityHeadersFile({ fileName: "_headers" }),
     modulePreloads({
       global: {

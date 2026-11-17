@@ -19,12 +19,6 @@ import {
 import { drizzleLogger } from "~/db/logger";
 
 const authSchema = { account, rateLimit, session, twoFactor, user, verification };
-const productionBaseURL = __BETTER_AUTH_BASE_URL__;
-const previewBaseURL = {
-  allowedHosts: ["localhost:4321", "127.0.0.1:4321"],
-  protocol: "auto" as const,
-  fallback: productionBaseURL,
-};
 
 const authInstances = new WeakMap<Env, ReturnType<typeof createAuth>>();
 
@@ -79,12 +73,8 @@ function createAuth(env: Env) {
     ...(kvStorage ? { secondaryStorage: kvStorage as SecondaryStorage } : {}),
 
     secret: env.BETTER_AUTH_SECRET,
-    // Production uses the Wrangler custom-domain origin. Preview builds allow
-    // the local preview host while retaining the production origin as fallback.
-    baseURL: import.meta.env.MODE === "preview" ? previewBaseURL : productionBaseURL,
+    baseURL: __BETTER_AUTH_BASE_URL_CONFIG__,
     basePath: BETTER_AUTH_BASE_PATH,
-
-    trustedOrigins: [productionBaseURL],
   });
 }
 

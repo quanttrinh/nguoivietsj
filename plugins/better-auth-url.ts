@@ -89,15 +89,64 @@ function readWranglerConfig(pathname: string): WranglerConfig {
   return parse(readFileSync(pathname, "utf8")) as WranglerConfig;
 }
 
+export type AuthBaseUrl =
+  | string
+  | {
+      allowedHosts: string[];
+      protocol: "auto" | "http" | "https";
+      fallback?: string;
+    };
+
+export interface ResolveAuthBaseUrlInput {
+  command: "dev" | "build" | "preview" | "sync";
+  preview?: boolean;
+  serverPort: number;
+  productionOrigin: string;
+  devOrigin?: string;
+}
+
+function localAllowedHosts(port: number): string[] {
+  return [`localhost:${port}`, `127.0.0.1:${port}`, `[::1]:${port}`];
+}
+
+/**
+ * Pick the injected Better Auth base URL.
+ *
+ * Production and staging builds are fixed to the Wrangler custom domain.
+ * Development and preview builds accept loopback hosts so local sign-in works
+ * on localhost, 127.0.0.1, or IPv6 while retaining a non-local fallback.
+ */
+export function resolveAuthBaseUrl(input: ResolveAuthBaseUrlInput): AuthBaseUrl {
+  const localOrigin = input.devOrigin ?? `http://localhost:${input.serverPort}`;
+  const isPreviewBuild = input.command === "build" && input.preview === true;
+  const isDevelopment = input.command === "dev";
+
+  if (isDevelopment || isPreviewBuild) {
+    return {
+      allowedHosts: localAllowedHosts(input.serverPort),
+      protocol: "auto",
+      fallback: isDevelopment ? localOrigin : input.productionOrigin,
+    };
+  }
+
+  if (input.command === "build") {
+    return input.productionOrigin;
+  }
+
+  return localOrigin;
+}
+
 export interface BetterAuthUrlOptions {
   /** Path to the Wrangler configuration file used for build-time route discovery. */
   configPath: string;
   /** Local origin used by `astro dev`, `astro preview`, and non-build commands. */
   devOrigin?: string;
+  /** Allow loopback preview hosts. Set by the `prepreview` script. */
+  preview?: boolean;
 }
 
 /**
- * Inject `__BETTER_AUTH_BASE_URL__` from the active Wrangler custom-domain
+ * Inject `__BETTER_AUTH_BASE_URL_CONFIG__` from the active Wrangler custom-domain
  * route instead of duplicating the URL in every environment's `vars`.
  */
 export function betterAuthUrl(options: BetterAuthUrlOptions): AstroIntegration {
@@ -105,20 +154,26 @@ export function betterAuthUrl(options: BetterAuthUrlOptions): AstroIntegration {
     name: "better-auth-url",
     hooks: {
       "astro:config:setup": ({ command, config, updateConfig }) => {
-        const devOrigin = options.devOrigin ?? `http://localhost:${config.server.port}`;
-        const origin =
+        const productionOrigin =
           command === "build"
             ? resolveWranglerOrigin(
                 readWranglerConfig(options.configPath),
                 process.env.CLOUDFLARE_ENV,
                 options.configPath,
               )
-            : devOrigin;
+            : `http://localhost:${config.server.port}`;
+        const baseURL = resolveAuthBaseUrl({
+          command,
+          preview: options.preview === true,
+          serverPort: config.server.port,
+          productionOrigin,
+          ...(options.devOrigin === undefined ? {} : { devOrigin: options.devOrigin }),
+        });
 
         updateConfig({
           vite: {
             define: {
-              __BETTER_AUTH_BASE_URL__: JSON.stringify(origin),
+              __BETTER_AUTH_BASE_URL_CONFIG__: JSON.stringify(baseURL),
             },
           },
         });

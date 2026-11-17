@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 
-import { resolveWranglerOrigin } from "../plugins/better-auth-url";
+import { resolveAuthBaseUrl, resolveWranglerOrigin } from "../plugins/better-auth-url";
 
 const production = {
   routes: [{ pattern: "example.com", custom_domain: true }],
@@ -45,5 +45,44 @@ describe("better-auth-url", () => {
     expect(() =>
       resolveWranglerOrigin({ routes: [{ pattern: "example.com" }] }, undefined),
     ).toThrow("No enabled custom-domain route");
+  });
+
+  test("uses the production origin for production builds", () => {
+    expect(
+      resolveAuthBaseUrl({
+        command: "build",
+        serverPort: 4321,
+        productionOrigin: "https://example.com",
+      }),
+    ).toBe("https://example.com");
+  });
+
+  test("allows loopback preview hosts with the production fallback", () => {
+    expect(
+      resolveAuthBaseUrl({
+        command: "build",
+        preview: true,
+        serverPort: 4321,
+        productionOrigin: "https://example.com",
+      }),
+    ).toEqual({
+      allowedHosts: ["localhost:4321", "127.0.0.1:4321", "[::1]:4321"],
+      protocol: "auto",
+      fallback: "https://example.com",
+    });
+  });
+
+  test("uses the configured dev port", () => {
+    expect(
+      resolveAuthBaseUrl({
+        command: "dev",
+        serverPort: 4322,
+        productionOrigin: "http://localhost:4322",
+      }),
+    ).toEqual({
+      allowedHosts: ["localhost:4322", "127.0.0.1:4322", "[::1]:4322"],
+      protocol: "auto",
+      fallback: "http://localhost:4322",
+    });
   });
 });

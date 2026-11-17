@@ -221,7 +221,7 @@ export default defineConfig({
     "shared-node-browser": true,
   },
   globals: {
-    __BETTER_AUTH_BASE_URL__: "readonly",
+    __BETTER_AUTH_BASE_URL_CONFIG__: "readonly",
   },
   ignorePatterns: [
     ".intlayer/",
