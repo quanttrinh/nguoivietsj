@@ -15,7 +15,7 @@
   "scripts": {
     "dev": "doppler run -- astro dev",
     "preview": "doppler run -- astro preview",
-    "prepreview": "doppler run -- astro build",
+    "prepreview": "doppler run -- astro build --mode preview",
     "check": "tsc -b tsconfig.json && astro check",
     "lint": "oxlint && bun scripts/check-boundaries.ts",
     "lint:fix": "oxlint --fix",
