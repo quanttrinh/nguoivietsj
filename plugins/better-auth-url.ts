@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 
 import type { AstroIntegration } from "astro";
 import { parse } from "jsonc-parser";
+import type { Plugin } from "vite";
 
 interface WranglerRoute {
   pattern?: string;
@@ -141,8 +142,29 @@ export interface BetterAuthUrlOptions {
   configPath: string;
   /** Local origin used by `astro dev`, `astro preview`, and non-build commands. */
   devOrigin?: string;
-  /** Allow loopback preview hosts. Set by the `prepreview` script. */
-  preview?: boolean;
+}
+
+function authBaseUrlPlugin(input: {
+  command: "dev" | "build" | "preview" | "sync";
+  serverPort: number;
+  productionOrigin: string;
+  devOrigin?: string;
+}): Plugin {
+  return {
+    name: "better-auth-url:base-url",
+    config(_config, env) {
+      const baseURL = resolveAuthBaseUrl({
+        ...input,
+        preview: env.mode === "preview",
+      });
+
+      return {
+        define: {
+          __BETTER_AUTH_BASE_URL_CONFIG__: JSON.stringify(baseURL),
+        },
+      };
+    },
+  };
 }
 
 /**
@@ -162,19 +184,16 @@ export function betterAuthUrl(options: BetterAuthUrlOptions): AstroIntegration {
                 options.configPath,
               )
             : `http://localhost:${config.server.port}`;
-        const baseURL = resolveAuthBaseUrl({
-          command,
-          preview: options.preview === true,
-          serverPort: config.server.port,
-          productionOrigin,
-          ...(options.devOrigin === undefined ? {} : { devOrigin: options.devOrigin }),
-        });
-
         updateConfig({
           vite: {
-            define: {
-              __BETTER_AUTH_BASE_URL_CONFIG__: JSON.stringify(baseURL),
-            },
+            plugins: [
+              authBaseUrlPlugin({
+                command,
+                serverPort: config.server.port,
+                productionOrigin,
+                ...(options.devOrigin === undefined ? {} : { devOrigin: options.devOrigin }),
+              }),
+            ],
           },
         });
       },
