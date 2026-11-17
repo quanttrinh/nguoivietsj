@@ -3,7 +3,9 @@
   "extends": ["config:recommended", "github>aquaproj/aqua-renovate-config#2.15.0"],
   "timezone": "America/Moncton",
   "schedule": ["before 6am on monday"],
-  "dependencyDashboard": true,
+  "dependencyDashboard": {
+    "enabled": true
+  },
   "minimumReleaseAge": "3 days",
   "lockFileMaintenance": {
     "enabled": true,
