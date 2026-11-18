@@ -143,6 +143,14 @@ function formatDate(value: string): string {
   return dateTimeFormatter(locale).format(date);
 }
 
+function scannerText(result: string | (string | Error)[]): string | null {
+  if (typeof result === "string") {
+    return result;
+  }
+
+  return result.find((value): value is string => typeof value === "string") ?? null;
+}
+
 export default function AdminCheckinScanner(props: { config: AdminCheckinConfig }): JSX.Element {
   const [eventId, setEventId] = useState<string | null | undefined>();
   const [notice, setNotice] = useState<NoticeState | null>(null);
@@ -266,8 +274,7 @@ export default function AdminCheckinScanner(props: { config: AdminCheckinConfig 
     setNotice(null);
 
     try {
-      const { BrowserQRCodeReader } = await import("@zxing/browser");
-      const reader = new BrowserQRCodeReader();
+      const { QRCanvas, frameLoop, rearCamera } = await import("qr/dom.js");
       const video = videoRef.current;
 
       if (video === null) {
@@ -275,28 +282,62 @@ export default function AdminCheckinScanner(props: { config: AdminCheckinConfig 
         return;
       }
 
-      const controls = await reader.decodeFromConstraints(
-        { video: { facingMode: { ideal: "environment" } } },
-        video,
-        (decoded, _error, scannerControls) => {
-          if (decoded === undefined) {
+      const canvas = new QRCanvas();
+      const camera = await rearCamera(video);
+      let cancel: (() => void) | null = null;
+      let reading = false;
+      let logged = false;
+
+      const stop = (): void => {
+        cancel?.();
+        camera.stop();
+      };
+
+      const readFrame = async (): Promise<void> => {
+        if (reading) {
+          return;
+        }
+
+        reading = true;
+
+        try {
+          const decoded = await camera.readFrame(canvas);
+
+          if (decoded === undefined || !mountedRef.current) {
             return;
           }
 
-          scannerControls.stop();
+          const text = scannerText(decoded);
+
+          if (text === null) {
+            return;
+          }
+
+          stop();
           controlsRef.current = null;
           video.srcObject = null;
           setScanning(false);
-          void checkIn(decoded.getText());
-        },
-      );
+          void checkIn(text);
+        } catch (error) {
+          if (!logged) {
+            logged = true;
+            clientLogger.error(error);
+          }
+        } finally {
+          reading = false;
+        }
+      };
+
+      cancel = frameLoop(() => {
+        void readFrame();
+      }, video);
 
       if (!mountedRef.current) {
-        controls.stop();
+        stop();
         return;
       }
 
-      controlsRef.current = controls;
+      controlsRef.current = { stop };
     } catch (error) {
       clientLogger.error(error);
       controlsRef.current = null;
