@@ -2,13 +2,11 @@
 /* oxlint-disable eslint/max-lines, typescript/no-unsafe-type-assertion -- Seed fixtures are data-shaped and validated by the seed schema tests. */
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
-import path from "node:path";
 
 import { inArray, or, sql, type SQL } from "drizzle-orm";
 import type { SQLiteTable } from "drizzle-orm/sqlite-core";
 import { drizzle } from "drizzle-orm/sqlite-proxy";
 
-import { ROOT } from "#tooling/d1/config";
 import { createD1Context } from "#tooling/d1/d1";
 import { toSqlStatement } from "#tooling/d1/sql";
 import { defineBackfill } from "#tooling/manage/backfill";
@@ -123,7 +121,7 @@ const db = drizzle({
 });
 
 const fixture = JSON.parse(
-  await readFile(path.join(ROOT, "scripts", "fixtures", "seed-events.json"), "utf8"),
+  await readFile(new URL("seed-events.json", import.meta.url), "utf8"),
 ) as SeedFixture;
 
 function seededId(prefix: number, number: number): string {
