@@ -11,7 +11,12 @@
   },
   "remoteUser": "dev",
   "initializeCommand": "sh .devcontainer/initialize-doppler.sh",
-  "runArgs": ["--env-file", "${localEnv:HOME}/.doppler/devcontainer.env"],
+  "runArgs": [
+    "--env-file",
+    "${localEnv:HOME}/.doppler/devcontainer.env",
+    "--name",
+    "nguoivietsj-devcontainer"
+  ],
   "remoteEnv": {
     "PATH": "/home/dev/.local/share/aquaproj-aqua/bin:${containerEnv:PATH}",
     "EDITOR": "code --wait",
@@ -24,7 +29,9 @@
     }
   },
   "postCreateCommand": "export PATH=\"$HOME/.local/share/aquaproj-aqua/bin:$PATH\" && (cd aqua && aqua policy allow aqua-policy.yaml && aqua i) && doppler run -- bun install --frozen-lockfile && bun manage.ts migrate --target local && bun manage.ts seed",
-  "forwardPorts": [4321],
+  "forwardPorts": [
+    4321
+  ],
   "portsAttributes": {
     "4321": {
       "label": "Astro dev server",
