@@ -16,7 +16,7 @@
     "dev": "doppler run -- astro dev",
     "preview": "doppler run -- astro preview",
     "prepreview": "doppler run -- astro build --mode preview",
-    "check": "tsc -b tsconfig.json && astro check",
+    "check": "astro sync && tsc -b tsconfig.json && astro check",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
     "fmt": "oxfmt",

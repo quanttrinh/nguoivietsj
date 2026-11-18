@@ -43,4 +43,6 @@ jobs:
           tofu init -backend=false -input=false
           tofu validate
       - name: Build
-        run: bunx astro build
+        env:
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_READ_TOKEN }}
+        run: doppler run -- bunx astro build
