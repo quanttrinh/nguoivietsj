@@ -51,5 +51,8 @@ export function wranglerArgs(target: TargetConfig): string[] {
   if (target.env !== null) {
     args.push("--env", target.env);
   }
+  if (process.env.WRANGLER_CONFIG !== undefined) {
+    args.push("--config", process.env.WRANGLER_CONFIG);
+  }
   return args;
 }

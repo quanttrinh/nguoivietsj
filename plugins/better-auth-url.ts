@@ -2,7 +2,6 @@
 import { readFileSync } from "node:fs";
 
 import type { AstroIntegration } from "astro";
-import { parse } from "jsonc-parser";
 import type { Plugin } from "vite";
 
 interface WranglerRoute {
@@ -87,7 +86,7 @@ export function resolveWranglerOrigin(
 }
 
 function readWranglerConfig(pathname: string): WranglerConfig {
-  return parse(readFileSync(pathname, "utf8")) as WranglerConfig;
+  return JSON.parse(readFileSync(pathname, "utf8")) as WranglerConfig;
 }
 
 export type AuthBaseUrl =

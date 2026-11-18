@@ -1,29 +1,34 @@
 cloudflare_zone_id    = "replace-with-zone-id"
 cloudflare_account_id = "replace-with-account-id"
-staging_hostname      = "staging.nguoivietsj.ca"
 
-# Cloudflare Access protects the whole staging hostname only. Production staff
-# authentication is handled in-app by Better Auth.
-staging_session_duration = "8h"
+# Zone, hostnames, and D1/KV bindings come from wrangler.json. This file only
+# holds values that are specific to the Cloudflare account or policy.
 
+# Public event registration paths.
 public_registration_path_pattern = "/api/events/*/registrations"
+additional_rate_limit_paths = [
+  "/api/events/status/*",
+  "/api/auth/sign-in/*",
+]
+
+# Free-plan-safe defaults.
+rate_limit_requests            = 10
+rate_limit_period              = 10
+rate_limit_mitigation_timeout  = 10
 
 # Apply the Turnstile widget, deploy the Worker with its site key and secret,
 # then set this to true to create the WAF challenge.
 turnstile_preclearance_confirmed = false
 
 # HSTS is applied at the zone. Enable subdomains only after confirming every
-# subdomain serves HTTPS.
+# subdomain serves HTTPS. Preload requires a max age of at least two years.
 hsts_include_subdomains = false
+hsts_max_age            = 31536000
+hsts_preload            = false
 
 turnstile_widget_name     = "Event registration"
 turnstile_widget_mode     = "managed"
 turnstile_clearance_level = "managed"
-turnstile_domains = [
-  "nguoivietsj.ca",
-  "staging.nguoivietsj.ca",
-]
-
 # Additional DNS records not owned by Wrangler custom domains.
 # Only add records here after checking they are not already managed by Wrangler.
 # Example:
@@ -36,14 +41,15 @@ turnstile_domains = [
 # }
 dns_records = {}
 
-# Staging Access allow list. Empty uses allowed_emails.
-staging_allowed_emails = []
+# Cloudflare Access protects the whole staging hostname only. Production staff
+# authentication is handled in-app by Better Auth.
+staging_session_duration = "8h"
 
+# Staging Access allow list. Empty staging_allowed_emails uses allowed_emails.
 allowed_emails = [
   "organizer@example.com",
 ]
+staging_allowed_emails = []
 
-# Optional Access service token IDs for automated staging checks. Create the
-# token in Zero Trust, then add its ID here. The token must use a Service Auth
-# policy, not an Allow policy containing only email rules.
+# Optional Access service token IDs for automated staging checks.
 access_service_token_ids = []

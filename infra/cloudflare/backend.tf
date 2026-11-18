@@ -1,4 +1,7 @@
-# R2-backed OpenTofu state.
+# R2-backed OpenTofu state for the Cloudflare root.
+#
+# This root owns zone-wide resources (TLS, HSTS, WAF, rate limiting, Turnstile,
+# DNS), the staging Access application, and read-only D1/KV discovery.
 #
 # The R2 S3 endpoint is supplied at runtime so the account ID is not stored
 # here:

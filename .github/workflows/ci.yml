@@ -13,11 +13,11 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    env:
-      DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: ./.github/actions/setup-deps
+        env:
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_READ_TOKEN }}
       - name: Schema drift
         run: |
           bun run db:generate:events
@@ -37,7 +37,7 @@ jobs:
         run: bun run fmt:check
       - name: OpenTofu format check
         run: tofu fmt -check -recursive infra
-      - name: OpenTofu validate Cloudflare
+      - name: OpenTofu validate
         working-directory: infra/cloudflare
         run: |
           tofu init -backend=false -input=false

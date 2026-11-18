@@ -32,7 +32,6 @@ jobs:
     environment: ${{ inputs.environment }}
     env:
       DEPLOY_ENV: ${{ inputs.environment }}
-      DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
 
     steps:
       - name: Resolve deploy ref
@@ -78,56 +77,77 @@ jobs:
           ref: ${{ steps.ref.outputs.ref }}
 
       - uses: ./.github/actions/setup-deps
+        env:
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_READ_TOKEN }}
 
-      - name: Write Terraform variables
+      - name: Generate deploy config
+        env:
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_READ_TOKEN }}
         run: |
-          if ! doppler secrets get TERRAFORM_TFVARS --plain > infra/cloudflare/terraform.tfvars; then
-            echo "Doppler secret TERRAFORM_TFVARS is required. Use the contents of infra/cloudflare/terraform.tfvars." >&2
-            exit 1
-          fi
+          doppler run -- tofu -chdir=infra/cloudflare output -json > /tmp/tofu-outputs.json
+          python3 scripts/deploy.py render-config \
+            --config wrangler.json \
+            --outputs /tmp/tofu-outputs.json \
+            --env "$DEPLOY_ENV" \
+            --out wrangler.generated.json
 
-      - name: Apply Cloudflare infrastructure
-        working-directory: infra/cloudflare
-        run: |
-          doppler run -- tofu init -input=false
-          doppler run -- tofu apply -input=false -auto-approve
-
-      - name: Sync generated secrets to Doppler
+      - name: Publish Turnstile values to Doppler
         env:
           DOPPLER_TOKEN: ${{ secrets.DOPPLER_WRITE_TOKEN }}
+          DOPPLER_CONFIG: ${{ inputs.environment == 'staging' && 'stg' || 'prd' }}
         run: |
-          if [ -z "${DOPPLER_TOKEN:-}" ]; then
-            echo "Skipping: DOPPLER_WRITE_TOKEN is not set."
-            exit 0
-          fi
-          doppler run -- bun scripts/infra.ts push-doppler --env "$DEPLOY_ENV"
+          TURNSTILE_SITE_KEY=$(doppler run -- tofu -chdir=infra/cloudflare output -raw turnstile_site_key)
+          TURNSTILE_SECRET=$(doppler run -- tofu -chdir=infra/cloudflare output -raw turnstile_secret)
+          DOPPLER_PROJECT=$(awk '/project:/{print $3; exit}' doppler.yaml)
+          doppler secrets upload \
+            <(python3 scripts/deploy.py turnstile \
+                --site "$TURNSTILE_SITE_KEY" \
+                --secret "$TURNSTILE_SECRET") \
+            --project "$DOPPLER_PROJECT" \
+            --config "$DOPPLER_CONFIG" \
+            --silent
 
-      - name: Sync Cloudflare config and secrets
-        run: doppler run -- bun scripts/infra.ts apply --env "$DEPLOY_ENV"
+      - name: Sync Worker secrets from Doppler
+        env:
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_READ_TOKEN }}
+        run: |
+          if [ "$DEPLOY_ENV" = "staging" ]; then
+            ENV_FLAG="--env $DEPLOY_ENV"
+          else
+            ENV_FLAG=""
+          fi
+          doppler secrets --json \
+            | python3 scripts/deploy.py worker-secrets --env "$DEPLOY_ENV" --config wrangler.generated.json \
+            | doppler run -- bunx wrangler secret bulk --config wrangler.generated.json $ENV_FLAG
 
       - name: Apply D1 migrations
+        env:
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_READ_TOKEN }}
+          WRANGLER_CONFIG: wrangler.generated.json
         run: doppler run -- bun run db:migrate --target "$DEPLOY_ENV"
 
       - name: Check deploy configuration
-        run: |
-          if [ "$DEPLOY_ENV" = "staging" ]; then
-            bun scripts/check-deploy-config.ts --env=staging
-          else
-            bun scripts/check-deploy-config.ts
-          fi
+        run: python3 scripts/deploy.py check --env "$DEPLOY_ENV" --config wrangler.generated.json
 
       - name: Build and deploy
+        env:
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_READ_TOKEN }}
+          WRANGLER_CONFIG: wrangler.generated.json
         run: |
           if [ "$DEPLOY_ENV" = "staging" ]; then
-            CLOUDFLARE_ENV=staging bunx astro build
+            CLOUDFLARE_ENV="$DEPLOY_ENV" doppler run -- bunx astro build
           else
-            bunx astro build
+            doppler run -- bunx astro build
           fi
-          bunx wrangler deploy
+          doppler run -- bunx wrangler deploy
 
       - name: Smoke test staging through Cloudflare Access
         if: env.DEPLOY_ENV == 'staging'
+        env:
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_READ_TOKEN }}
         run: |
+          STAGING_URL=$(python3 scripts/deploy.py hostname --env staging --config wrangler.generated.json)
+          export STAGING_URL
           doppler run -- bash -c '
             if [ -z "${STAGING_ACCESS_CLIENT_ID:-}" ] || [ -z "${STAGING_ACCESS_CLIENT_SECRET:-}" ]; then
               echo "Skipping: STAGING_ACCESS_CLIENT_ID/SECRET are not set in Doppler."
@@ -138,5 +158,5 @@ jobs:
               --retry 3 --retry-delay 2 \
               -H "CF-Access-Client-Id: $STAGING_ACCESS_CLIENT_ID" \
               -H "CF-Access-Client-Secret: $STAGING_ACCESS_CLIENT_SECRET" \
-              https://staging.nguoivietsj.ca/
+              "$STAGING_URL"
           '

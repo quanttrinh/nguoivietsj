@@ -17,6 +17,9 @@ src/types/worker-env.d.ts
 __pycache__/
 *.pyc
 
+# Generated deploy config (contains resolved binding IDs)
+wrangler.generated.json
+
 # OpenTofu / Terraform
 .terraform/
 *.tfstate
