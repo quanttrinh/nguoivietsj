@@ -35,7 +35,7 @@ describe("module-preloads", () => {
     },
     {
       fileName: "_astro/scan.js",
-      moduleIds: ["/app/node_modules/@zxing/browser/esm/index.js"],
+      moduleIds: ["/app/node_modules/qr/dom.js"],
       imports: [],
     },
   ];
@@ -45,13 +45,13 @@ describe("module-preloads", () => {
       "_astro/a.js",
       "_astro/shared.js",
     ]);
-    expect(matchChunks(chunks, { package: "@zxing/browser" }, null)).toEqual(["_astro/scan.js"]);
+    expect(matchChunks(chunks, { package: "qr" }, null)).toEqual(["_astro/scan.js"]);
     expect(matchChunks(chunks, { chunk: /shared/u }, null)).toEqual(["_astro/shared.js"]);
     expect(matchChunks(chunks, "missing", null)).toEqual([]);
   });
 
   test("applies global hints everywhere and route hints only on matching paths", () => {
-    const scanner = { package: "@zxing/browser" };
+    const scanner = { package: "qr" };
     const index = new Map<Parameters<typeof matchChunks>[1], string[]>([
       ["preact", ["_astro/shared.js"]],
       [scanner, ["_astro/scan.js"]],

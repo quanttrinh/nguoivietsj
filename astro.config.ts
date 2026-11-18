@@ -50,9 +50,7 @@ export default defineConfig({
         preload: ["astro:transitions/client", "preact", "~/shared/client/api/client"],
       },
       // The camera scanner is lazy-loaded; warm it in the HTTP cache on check-in pages only.
-      routes: [
-        { match: /\/admin\/events\/view\/checkin\/$/u, prefetch: [{ package: "@zxing/browser" }] },
-      ],
+      routes: [{ match: /\/admin\/events\/view\/checkin\/$/u, prefetch: [{ package: "qr" }] }],
       budget: 120_000,
     }),
   ],
