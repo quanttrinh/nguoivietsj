@@ -245,8 +245,8 @@ parameters, responses, effects, and route decorators in
 
 ### Client/server boundaries
 
-The import graph is enforced by `scripts/check-boundaries.ts`, which runs as part
-of `bun run lint`:
+The import graph is enforced by the `boundary/scopes` Oxlint rule in
+`plugins/oxlint-boundary-plugin.ts`, which runs as part of `bun run lint`:
 
 | Scope  | Paths                                                                    | May import                        |
 | ------ | ------------------------------------------------------------------------ | --------------------------------- |
@@ -263,7 +263,8 @@ Every source file starts with a boundary marker:
 
 Astro files put the same marker inside their frontmatter. Lint verifies that
 the marker exists and matches the path convention above. The generated
-`src/types/worker-configuration.d.ts` is exempt.
+`src/types/worker-configuration.d.ts` is exempt; these paths are configured in
+`oxlint.config.ts` rather than baked into the rule.
 
 Client code may reach server types only through `~/types/api`. Direct imports
 from client modules into server/database modules, or server modules into client
@@ -613,12 +614,14 @@ src/
   backfills/
     <name>/index.ts         Backfill command and description
     <name>/backfill.sql     Optional SQL used by the backfill
+    seed/seed-events.json   Local development seed fixtures
 tooling/
   d1/                       D1 adapters used by backfills
   manage/                   Generic backfill discovery and runner
+plugins/
+  oxlint-boundary-plugin.ts Client/server boundary lint rule
 scripts/
   deploy.py                 Deploy-time Wrangler/Doppler validation
-  fixtures/                 Local seed fixtures
 ```
 
 ## Verification
@@ -638,5 +641,5 @@ bunx astro build
 CI checks that the Drizzle schema generates no migration drift, migrates and
 seeds a fresh local D1 database, runs the tests and type checks, lints, checks
 formatting, and builds the Worker on pull requests and pushes to `main`.
-`bun run lint` also runs `scripts/check-boundaries.ts`, which rejects imports
-from client UI modules into server/database modules and vice versa.
+`bun run lint` also runs the `boundary/scopes` Oxlint plugin, which rejects
+imports from client UI modules into server/database modules and vice versa.

@@ -23,7 +23,10 @@ export default defineConfig({
     "typescript",
     "unicorn",
   ],
-  jsPlugins: [{ name: "@pandacss", specifier: "@pandacss/eslint-plugin/oxlint" }],
+  jsPlugins: [
+    { name: "@pandacss", specifier: "@pandacss/eslint-plugin/oxlint" },
+    { name: "boundary", specifier: "./plugins/oxlint-boundary-plugin.ts" },
+  ],
   categories: {
     correctness: "error",
     nursery: "error",
@@ -233,6 +236,23 @@ export default defineConfig({
     "node_modules/",
   ],
   overrides: [
+    {
+      // Client/server import boundaries for every source file under `src/`.
+      files: ["src/**/*.ts", "src/**/*.tsx", "src/**/*.astro"],
+      rules: {
+        "boundary/scopes": [
+          "error",
+          {
+            serverSegments: ["server", "db", "services", "backfills"],
+            clientSegments: ["ui", "client"],
+            astroSegments: ["pages", "layouts"],
+            exempt: ["src/types/worker-configuration.d.ts"],
+            importExempt: ["src/types/api.d.ts"],
+            allowedServerTypes: ["src/types/api"],
+          },
+        ],
+      },
+    },
     {
       // Build-time Node code: Astro integrations, tooling scripts, configs, tests.
       files: [
