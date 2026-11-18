@@ -44,7 +44,7 @@
     "@nanostores/query": "0.3.4",
     "@quanttrinh/qui": "0.9.3",
     "@zxing/browser": "0.2.1",
-    "arktype": "2.2.9",
+    "arktype": "2.2.10",
     "astro": "7.4.12",
     "astro-intlayer": "9.8.1",
     "auth": "1.7.25",
