@@ -30,9 +30,4 @@ runs:
 
     - name: Install project dependencies
       shell: bash
-      run: |
-        if [ -z "${DOPPLER_TOKEN:-}" ]; then
-          echo "DOPPLER_TOKEN is required to install project dependencies." >&2
-          exit 1
-        fi
-        doppler run -- bun install --frozen-lockfile
+      run: doppler run -- bun install --frozen-lockfile

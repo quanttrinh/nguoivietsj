@@ -42,7 +42,6 @@
         "@types/node": "26.6.6",
         "drizzle-kit": "1.0.0-rc.5",
         "gray-matter": "4.0.3",
-        "jsonc-parser": "3.3.1",
         "oxc-parser": "0.159.0",
         "oxfmt": "0.79.0",
         "oxlint": "1.94.0",

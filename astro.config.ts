@@ -13,12 +13,13 @@ import { CSP_CONFIG } from "./plugins/csp-astro";
 import { modulePreloads } from "./plugins/module-preloads";
 import { securityHeadersFile } from "./plugins/security-headers-file";
 
-const wranglerConfigPath = fileURLToPath(new URL("wrangler.jsonc", import.meta.url));
+const wranglerConfigName = process.env.WRANGLER_CONFIG ?? "wrangler.json";
+const wranglerConfigPath = fileURLToPath(new URL(wranglerConfigName, import.meta.url));
 
 export default defineConfig({
   prefetch: { prefetchAll: true, defaultStrategy: "hover" },
   output: "static",
-  adapter: cloudflare({ imageService: "compile" }),
+  adapter: cloudflare({ imageService: "compile", configPath: wranglerConfigName }),
   session: false,
   security: {
     csp: CSP_CONFIG,

@@ -43,6 +43,7 @@ export default defineConfig({
     ".devcontainer/",
     "node_modules/",
     "worker-configuration.d.ts",
+    "wrangler.json",
     "bun.lock",
     // Drizzle Kit generates these snapshots; formatting them causes churn.
     "drizzle/*/meta/",

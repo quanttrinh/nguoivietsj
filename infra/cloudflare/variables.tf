@@ -1,5 +1,5 @@
 variable "cloudflare_zone_id" {
-  description = "Zone ID for nguoivietsj.ca."
+  description = "Zone ID for the apex domain."
   type        = string
 
   validation {
@@ -9,7 +9,7 @@ variable "cloudflare_zone_id" {
 }
 
 variable "cloudflare_account_id" {
-  description = "Cloudflare account ID that owns the zone and Zero Trust organization."
+  description = "Cloudflare account ID that owns the zone."
   type        = string
 
   validation {
@@ -18,30 +18,8 @@ variable "cloudflare_account_id" {
   }
 }
 
-variable "staging_hostname" {
-  description = "Hostname protected end-to-end by Cloudflare Access."
-  type        = string
-  default     = "staging.nguoivietsj.ca"
-
-  validation {
-    condition     = can(regex("^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$", var.staging_hostname))
-    error_message = "staging_hostname must be a lowercase hostname without a scheme, port, or path."
-  }
-}
-
-variable "staging_session_duration" {
-  description = "Cloudflare Access session duration for the staging application."
-  type        = string
-  default     = "8h"
-
-  validation {
-    condition     = can(regex("^[0-9]+(?:ms|s|m|h)$", var.staging_session_duration))
-    error_message = "staging_session_duration must use a Cloudflare Access duration such as 30m, 8h, or 24h."
-  }
-}
-
 variable "public_registration_path_pattern" {
-  description = "Wildcard pattern matching public event registration API paths for the WAF challenge. The `wildcard` operator is available on the Free plan, unlike `matches`."
+  description = "Wildcard pattern matching public event registration API paths for the WAF challenge."
   type        = string
   default     = "/api/events/*/registrations"
 
@@ -51,14 +29,75 @@ variable "public_registration_path_pattern" {
   }
 }
 
+variable "additional_rate_limit_paths" {
+  description = "Additional wildcard paths covered by the free-plan rate-limit rule."
+  type        = list(string)
+  default     = ["/api/events/status/*", "/api/auth/sign-in/*"]
+
+  validation {
+    condition     = alltrue([for path in var.additional_rate_limit_paths : startswith(path, "/")])
+    error_message = "additional_rate_limit_paths must contain absolute paths."
+  }
+}
+
+variable "rate_limit_requests" {
+  description = "Requests allowed per rate-limit period."
+  type        = number
+  default     = 10
+
+  validation {
+    condition     = var.rate_limit_requests >= 1 && var.rate_limit_requests <= 1000
+    error_message = "rate_limit_requests must be between 1 and 1000."
+  }
+}
+
+variable "rate_limit_period" {
+  description = "Rate-limit counting window in seconds."
+  type        = number
+  default     = 10
+
+  validation {
+    condition     = var.rate_limit_period >= 10 && var.rate_limit_period <= 3600
+    error_message = "rate_limit_period must be between 10 and 3600 seconds."
+  }
+}
+
+variable "rate_limit_mitigation_timeout" {
+  description = "Seconds a blocked client remains blocked."
+  type        = number
+  default     = 10
+
+  validation {
+    condition     = var.rate_limit_mitigation_timeout >= 10 && var.rate_limit_mitigation_timeout <= 86400
+    error_message = "rate_limit_mitigation_timeout must be between 10 and 86400 seconds."
+  }
+}
+
 variable "turnstile_preclearance_confirmed" {
-  description = "Set to true only after the Turnstile widget is applied and the Worker is deployed with its site key and secret. This gates the WAF challenge until clearance is live."
+  description = "Set to true only after the Turnstile widget is applied and the Worker is deployed with its site key and secret."
   type        = bool
   default     = false
 }
 
 variable "hsts_include_subdomains" {
   description = "Include subdomains in the zone HSTS policy. Enable only after confirming every subdomain serves HTTPS."
+  type        = bool
+  default     = false
+}
+
+variable "hsts_max_age" {
+  description = "HSTS max-age in seconds. Preload requires at least 63072000 (two years)."
+  type        = number
+  default     = 31536000
+
+  validation {
+    condition     = var.hsts_max_age >= 0
+    error_message = "hsts_max_age must be zero or greater."
+  }
+}
+
+variable "hsts_preload" {
+  description = "Submit the zone for HSTS preload. Requires hsts_max_age of at least two years."
   type        = bool
   default     = false
 }
@@ -81,7 +120,7 @@ variable "turnstile_widget_mode" {
 }
 
 variable "turnstile_clearance_level" {
-  description = "Challenge clearance granted by the Turnstile widget. managed matches the WAF managed_challenge rule."
+  description = "Challenge clearance granted by the Turnstile widget."
   type        = string
   default     = "managed"
 
@@ -91,24 +130,8 @@ variable "turnstile_clearance_level" {
   }
 }
 
-variable "turnstile_domains" {
-  description = "Hostnames where the Turnstile widget is allowed to run."
-  type        = list(string)
-  default     = ["nguoivietsj.ca", "staging.nguoivietsj.ca"]
-
-  validation {
-    condition = length(var.turnstile_domains) > 0 && alltrue([
-      for domain in var.turnstile_domains : can(regex(
-        "^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$",
-        domain,
-      ))
-    ])
-    error_message = "turnstile_domains must contain at least one lowercase hostname without a scheme or path."
-  }
-}
-
 variable "dns_records" {
-  description = "Additional DNS records not owned by Wrangler, keyed by a stable name. Do not add records already managed by Wrangler custom domains."
+  description = "Additional DNS records not owned by Wrangler, keyed by a stable name."
   type = map(object({
     name     = string
     type     = string
@@ -143,6 +166,24 @@ variable "dns_records" {
     ])
     error_message = "dns_records ttl must be 1 (automatic) or between 60 and 86400 seconds."
   }
+
+  validation {
+    condition = alltrue([
+      for record in values(var.dns_records) : !record.proxied || record.ttl == 1
+    ])
+    error_message = "Proxied DNS records must use ttl = 1 (automatic)."
+  }
+}
+
+variable "staging_session_duration" {
+  description = "Cloudflare Access session duration for the staging application."
+  type        = string
+  default     = "8h"
+
+  validation {
+    condition     = can(regex("^[0-9]+(?:ms|s|m|h)$", var.staging_session_duration))
+    error_message = "staging_session_duration must use a Cloudflare Access duration such as 30m, 8h, or 24h."
+  }
 }
 
 variable "allowed_emails" {
@@ -174,7 +215,7 @@ variable "staging_allowed_emails" {
 }
 
 variable "access_service_token_ids" {
-  description = "Optional Access service token IDs allowed through the staging Service Auth policy, for example CI smoke tests."
+  description = "Optional Access service token IDs allowed through the staging Service Auth policy."
   type        = list(string)
   default     = []
 

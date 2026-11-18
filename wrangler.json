@@ -5,28 +5,32 @@
   "compatibility_date": "2026-10-01",
   "assets": {
     "not_found_handling": "404-page",
-    "run_worker_first": ["/api/*"],
+    "run_worker_first": [
+      "/api/*"
+    ]
   },
   "cache": {
-    "enabled": false,
+    "enabled": false
   },
   "routes": [
     {
       "pattern": "nguoivietsj.ca",
-      "custom_domain": true,
-    },
+      "custom_domain": true
+    }
   ],
   "workers_dev": false,
   "preview_urls": false,
   "triggers": {
-    "crons": ["0 3 * * *"],
+    "crons": [
+      "0 3 * * *"
+    ]
   },
   "queues": {
     "producers": [
       {
         "binding": "EMAIL_QUEUE",
-        "queue": "nguoivietsj-emails",
-      },
+        "queue": "nguoivietsj-emails"
+      }
     ],
     "consumers": [
       {
@@ -35,15 +39,15 @@
         "max_batch_timeout": 5,
         "max_concurrency": 1,
         "max_retries": 3,
-        "dead_letter_queue": "nguoivietsj-emails-dlq",
+        "dead_letter_queue": "nguoivietsj-emails-dlq"
       },
       {
         "queue": "nguoivietsj-emails-dlq",
         "max_batch_size": 3,
         "max_batch_timeout": 5,
-        "max_retries": 1,
-      },
-    ],
+        "max_retries": 1
+      }
+    ]
   },
   "secrets": {
     "required": [
@@ -51,22 +55,21 @@
       "GMAIL_CLIENT_ID",
       "GMAIL_CLIENT_SECRET",
       "GMAIL_REFRESH_TOKEN",
-      "BETTER_AUTH_SECRET",
-    ],
+      "BETTER_AUTH_SECRET"
+    ]
   },
   "vars": {
-    "TURNSTILE_SITE_KEY": "1x00000000000000000000AA",
     "TURNSTILE_SCRIPT_URL": "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit",
     "TURNSTILE_SITEVERIFY_URL": "https://challenges.cloudflare.com/turnstile/v0/siteverify",
     "TURNSTILE_ALLOW_TEST_KEY": "false",
     "EMAIL_PROVIDER": "gmail",
     "GMAIL_SENDER_EMAIL": "events@nguoivietsj.ca",
-    "GMAIL_SENDER_NAME": "Người Việt SJ Events",
+    "GMAIL_SENDER_NAME": "Ng\u01b0\u1eddi Vi\u1ec7t SJ Events",
     "GMAIL_TOKEN_URL": "https://oauth2.googleapis.com/token",
     "GMAIL_SEND_URL": "https://gmail.googleapis.com/gmail/v1/users/me/messages/send",
     "MAILTRAP_API_URL": "",
     "MAILTRAP_FROM_EMAIL": "",
-    "MAILTRAP_FROM_NAME": "",
+    "MAILTRAP_FROM_NAME": ""
   },
   "ratelimits": [
     {
@@ -74,48 +77,43 @@
       "namespace_id": "1001",
       "simple": {
         "limit": 10,
-        "period": 60,
-      },
+        "period": 60
+      }
     },
     {
       "name": "EVENT_ENGINE_STATUS_RATE_LIMITER",
       "namespace_id": "1003",
       "simple": {
         "limit": 5,
-        "period": 60,
-      },
-    },
+        "period": 60
+      }
+    }
   ],
   "d1_databases": [
     {
       "binding": "APP_DB",
       "database_name": "nguoivietsj-db",
-      "database_id": "00000000-0000-0000-0000-000000000000",
       "migrations_dir": "drizzle/app",
-      "migrations_pattern": "drizzle/app/*/migration.sql",
+      "migrations_pattern": "drizzle/app/*/migration.sql"
     },
     {
       "binding": "EVENT_ENGINE_DB",
       "database_name": "nguoivietsj-event-engine-db",
-      "database_id": "00000000-0000-0000-0000-000000000001",
       "migrations_dir": "drizzle/events",
-      "migrations_pattern": "drizzle/events/*/migration.sql",
-    },
+      "migrations_pattern": "drizzle/events/*/migration.sql"
+    }
   ],
   "kv_namespaces": [
     {
-      "binding": "AUTH_SESSION_KV",
-      "id": "00000000-0000-0000-0000-000000000001",
-    },
+      "binding": "AUTH_SESSION_KV"
+    }
   ],
   "observability": {
     "enabled": true,
-    // The free plan ingests 0.5 GB/day from 1 Dec 2026. Sample successful
-    // requests while keeping errors visible.
     "head_sampling_rate": 0.2,
     "issues": {
-      "enabled": true,
-    },
+      "enabled": true
+    }
   },
   "env": {
     "staging": {
@@ -123,27 +121,28 @@
       "routes": [
         {
           "pattern": "staging.nguoivietsj.ca",
-          "custom_domain": true,
-        },
+          "custom_domain": true
+        }
       ],
       "workers_dev": false,
       "preview_urls": false,
       "triggers": {
-        "crons": ["0 3 * * *"],
+        "crons": [
+          "0 3 * * *"
+        ]
       },
       "vars": {
-        "TURNSTILE_SITE_KEY": "1x00000000000000000000AA",
         "TURNSTILE_SCRIPT_URL": "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit",
         "TURNSTILE_SITEVERIFY_URL": "https://challenges.cloudflare.com/turnstile/v0/siteverify",
         "TURNSTILE_ALLOW_TEST_KEY": "false",
         "EMAIL_PROVIDER": "gmail",
         "GMAIL_SENDER_EMAIL": "events@nguoivietsj.ca",
-        "GMAIL_SENDER_NAME": "Người Việt SJ Events",
+        "GMAIL_SENDER_NAME": "Ng\u01b0\u1eddi Vi\u1ec7t SJ Events",
         "GMAIL_TOKEN_URL": "https://oauth2.googleapis.com/token",
         "GMAIL_SEND_URL": "https://gmail.googleapis.com/gmail/v1/users/me/messages/send",
         "MAILTRAP_API_URL": "",
         "MAILTRAP_FROM_EMAIL": "",
-        "MAILTRAP_FROM_NAME": "",
+        "MAILTRAP_FROM_NAME": ""
       },
       "secrets": {
         "required": [
@@ -151,8 +150,8 @@
           "GMAIL_CLIENT_ID",
           "GMAIL_CLIENT_SECRET",
           "GMAIL_REFRESH_TOKEN",
-          "BETTER_AUTH_SECRET",
-        ],
+          "BETTER_AUTH_SECRET"
+        ]
       },
       "ratelimits": [
         {
@@ -160,24 +159,24 @@
           "namespace_id": "1002",
           "simple": {
             "limit": 10,
-            "period": 60,
-          },
+            "period": 60
+          }
         },
         {
           "name": "EVENT_ENGINE_STATUS_RATE_LIMITER",
           "namespace_id": "1004",
           "simple": {
             "limit": 5,
-            "period": 60,
-          },
-        },
+            "period": 60
+          }
+        }
       ],
       "queues": {
         "producers": [
           {
             "binding": "EMAIL_QUEUE",
-            "queue": "nguoivietsj-staging-emails",
-          },
+            "queue": "nguoivietsj-staging-emails"
+          }
         ],
         "consumers": [
           {
@@ -186,43 +185,42 @@
             "max_batch_timeout": 5,
             "max_concurrency": 1,
             "max_retries": 3,
-            "dead_letter_queue": "nguoivietsj-staging-emails-dlq",
+            "dead_letter_queue": "nguoivietsj-staging-emails-dlq"
           },
           {
             "queue": "nguoivietsj-staging-emails-dlq",
             "max_batch_size": 3,
             "max_batch_timeout": 5,
-            "max_retries": 1,
-          },
-        ],
+            "max_retries": 1
+          }
+        ]
       },
       "d1_databases": [
         {
           "binding": "APP_DB",
           "database_name": "nguoivietsj-staging-db",
           "migrations_dir": "drizzle/app",
-          "migrations_pattern": "drizzle/app/*/migration.sql",
+          "migrations_pattern": "drizzle/app/*/migration.sql"
         },
         {
           "binding": "EVENT_ENGINE_DB",
           "database_name": "nguoivietsj-staging-event-engine-db",
           "migrations_dir": "drizzle/events",
-          "migrations_pattern": "drizzle/events/*/migration.sql",
-        },
+          "migrations_pattern": "drizzle/events/*/migration.sql"
+        }
       ],
       "kv_namespaces": [
         {
-          "binding": "AUTH_SESSION_KV",
-          "id": "00000000-0000-0000-0000-000000000001",
-        },
+          "binding": "AUTH_SESSION_KV"
+        }
       ],
       "observability": {
         "enabled": true,
         "head_sampling_rate": 0.2,
         "issues": {
-          "enabled": true,
-        },
-      },
-    },
-  },
+          "enabled": true
+        }
+      }
+    }
+  }
 }

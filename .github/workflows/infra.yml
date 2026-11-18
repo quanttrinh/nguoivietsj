@@ -1,0 +1,89 @@
+name: Infrastructure
+
+on:
+  pull_request:
+    paths:
+      - "infra/**"
+      - "wrangler.json"
+      - ".github/workflows/infra.yml"
+  push:
+    branches: [main]
+    paths:
+      - "infra/**"
+      - "wrangler.json"
+      - ".github/workflows/infra.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: infra
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: ./.github/actions/setup-deps
+        env:
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_READ_TOKEN }}
+      - name: OpenTofu format check
+        run: tofu fmt -check -recursive infra
+      - name: OpenTofu validate
+        working-directory: infra/cloudflare
+        run: |
+          tofu init -backend=false -input=false
+          tofu validate
+
+  plan:
+    needs: validate
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    environment: production
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: ./.github/actions/setup-deps
+        env:
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_READ_TOKEN }}
+      - name: Write Terraform variables
+        working-directory: infra/cloudflare
+        env:
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_READ_TOKEN }}
+        run: doppler secrets get TERRAFORM_TFVARS --plain > terraform.tfvars
+      - name: Plan
+        working-directory: infra/cloudflare
+        env:
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_READ_TOKEN }}
+        run: |
+          doppler run -- tofu init -input=false
+          doppler run -- tofu plan -input=false -lock-timeout=5m -out=cloudflare.tfplan
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cloudflare-plan
+          path: infra/cloudflare/cloudflare.tfplan
+          retention-days: 7
+
+  apply:
+    needs: plan
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    environment: production
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: ./.github/actions/setup-deps
+        env:
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_READ_TOKEN }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: cloudflare-plan
+          path: infra/cloudflare
+      - name: Apply
+        working-directory: infra/cloudflare
+        env:
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_READ_TOKEN }}
+        run: |
+          doppler run -- tofu init -input=false
+          doppler run -- tofu apply -input=false -lock-timeout=5m cloudflare.tfplan
