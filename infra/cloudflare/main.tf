@@ -1,7 +1,5 @@
 locals {
-  zone_id    = trimspace(var.cloudflare_zone_id)
-  account_id = trimspace(var.cloudflare_account_id)
-  wrangler   = jsondecode(file("${path.module}/../../wrangler.json"))
+  wrangler = jsondecode(file("${path.module}/../../wrangler.json"))
 
   production_routes = [
     for route in local.wrangler.routes : route.pattern
@@ -37,8 +35,6 @@ locals {
     }
   ]...)
 
-  allowed_emails = length(var.staging_allowed_emails) > 0 ? var.staging_allowed_emails : var.allowed_emails
-
   # String-valued zone settings. `security_header` is separate because its value
   # is an object.
   zone_settings = {
@@ -49,11 +45,28 @@ locals {
     ssl                      = "strict"
     tls_1_3                  = "on"
   }
+}
 
-  rate_limit_paths = distinct(concat(
-    [var.public_registration_path_pattern],
-    var.additional_rate_limit_paths,
-  ))
+# The zone name comes from the wrangler.json route, so the zone and account IDs
+# do not need to be configured.
+data "cloudflare_zones" "this" {
+  name = local.zone_name
+}
+
+locals {
+  zone_id    = try(one(data.cloudflare_zones.this.result).id, null)
+  account_id = try(one(data.cloudflare_zones.this.result).account.id, null)
+}
+
+resource "terraform_data" "zone_exists" {
+  input = local.zone_name
+
+  lifecycle {
+    precondition {
+      condition     = length(data.cloudflare_zones.this.result) == 1
+      error_message = "Expected exactly one Cloudflare zone named \"${local.zone_name}\"; found ${length(data.cloudflare_zones.this.result)} for this token."
+    }
+  }
 }
 
 resource "cloudflare_zone_setting" "this" {
@@ -85,6 +98,35 @@ locals {
       for item in data.cloudflare_workers_kv_namespaces.this.result : item
       if item.title == namespace.title
     ])
+  }
+}
+
+# Terraform discovers D1 databases and KV namespaces by name instead of owning
+# them, so a binding declared in wrangler.json can still be missing. These
+# guards fail the plan with the command that creates the missing resource.
+resource "terraform_data" "d1_bindings_exist" {
+  for_each = local.d1_bindings
+
+  input = each.key
+
+  lifecycle {
+    precondition {
+      condition     = local.d1_resolved[each.key] != null
+      error_message = "D1 database \"${each.value.database_name}\" for ${each.key} was not found. Create it with: bunx wrangler d1 create ${each.value.database_name}"
+    }
+  }
+}
+
+resource "terraform_data" "kv_bindings_exist" {
+  for_each = local.kv_bindings
+
+  input = each.key
+
+  lifecycle {
+    precondition {
+      condition     = local.kv_resolved[each.key] != null
+      error_message = "KV namespace \"${each.value.title}\" for ${each.key} was not found. Create it with: bunx wrangler kv namespace create ${each.value.title}"
+    }
   }
 }
 
@@ -142,44 +184,47 @@ resource "cloudflare_dns_record" "additional" {
   comment  = each.value.comment
 }
 
-resource "cloudflare_ruleset" "public_api_challenge" {
+resource "cloudflare_ruleset" "challenge" {
   # Enable this only after the Turnstile widget is applied and the Worker is
   # deployed with its site key and secret. Applying the challenge before that
-  # can return an HTML challenge to the registration fetch.
+  # can return an HTML challenge to a fetch-based form submission.
   count = var.turnstile_preclearance_confirmed ? 1 : 0
 
   zone_id     = local.zone_id
-  name        = "Public event registration challenge"
-  description = "Managed Challenge for public event registration API requests."
+  name        = "Path challenge"
+  description = "Managed Challenge for POST requests matching challenge_path_patterns."
   kind        = "zone"
   phase       = "http_request_firewall_custom"
 
   rules = [{
-    ref         = "challenge_public_forms"
-    description = "Challenge unverified public event registration requests"
-    expression  = "(http.request.method eq \"POST\" and http.request.uri.path wildcard ${jsonencode(var.public_registration_path_pattern)})"
-    action      = "managed_challenge"
+    ref         = "challenge_matched_paths"
+    description = "Challenge unverified POST requests matching challenge_path_patterns"
+    expression = join(" or ", [
+      for path in var.challenge_path_patterns :
+      "(http.request.method eq \"POST\" and http.request.uri.path wildcard ${jsonencode(path)})"
+    ])
+    action = "managed_challenge"
   }]
 
   depends_on = [cloudflare_turnstile_widget.registration]
 }
 
-resource "cloudflare_ruleset" "public_api_rate_limit" {
+resource "cloudflare_ruleset" "rate_limit" {
   zone_id     = local.zone_id
-  name        = "Public event registration rate limit"
-  description = "Free-plan burst protection for public event registration API requests."
+  name        = "Path rate limit"
+  description = "Free-plan burst protection for requests matching rate_limit_paths."
   kind        = "zone"
   phase       = "http_ratelimit"
 
   rules = [{
-    ref         = "rate_limit_public_forms"
+    ref         = "rate_limit_matched_paths"
     description = "Block bursts above ${var.rate_limit_requests} requests per ${var.rate_limit_period} seconds per IP"
     # Free-plan rate limiting only permits Path and Verified Bot expression
     # fields. Do not add http.request.method here; method filtering lives in the
-    # WAF custom rule above. A single rule is allowed, so cover the other
-    # unauthenticated endpoints that benefit from burst protection.
+    # WAF custom rule above. A single rule is allowed, so list every path that
+    # benefits from burst protection in rate_limit_paths.
     expression = join(" or ", [
-      for path in local.rate_limit_paths : "(http.request.uri.path wildcard ${jsonencode(path)})"
+      for path in var.rate_limit_paths : "(http.request.uri.path wildcard ${jsonencode(path)})"
     ])
     action = "block"
 
@@ -211,7 +256,7 @@ resource "cloudflare_zero_trust_access_application" "staging" {
       decision   = "allow"
       precedence = 1
       include = [
-        for email in local.allowed_emails : {
+        for email in var.staging_allowed_emails : {
           email = {
             email = email
           }

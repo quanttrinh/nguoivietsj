@@ -1,12 +1,11 @@
-cloudflare_zone_id    = "replace-with-zone-id"
-cloudflare_account_id = "replace-with-account-id"
+# Zone, hostnames, zone/account IDs, and D1/KV bindings come from wrangler.json
+# and the Cloudflare API. This file only holds values that are specific to the
+# account or policy.
 
-# Zone, hostnames, and D1/KV bindings come from wrangler.json. This file only
-# holds values that are specific to the Cloudflare account or policy.
-
-# Public event registration paths.
-public_registration_path_pattern = "/api/events/*/registrations"
-additional_rate_limit_paths = [
+# Challenged path patterns.
+challenge_path_patterns = ["/api/events/*/registrations"]
+rate_limit_paths = [
+  "/api/events/*/registrations",
   "/api/events/status/*",
   "/api/auth/sign-in/*",
 ]
@@ -45,11 +44,10 @@ dns_records = {}
 # authentication is handled in-app by Better Auth.
 staging_session_duration = "8h"
 
-# Staging Access allow list. Empty staging_allowed_emails uses allowed_emails.
-allowed_emails = [
+# Staging Access allow list.
+staging_allowed_emails = [
   "organizer@example.com",
 ]
-staging_allowed_emails = []
 
 # Optional Access service token IDs for automated staging checks.
 access_service_token_ids = []

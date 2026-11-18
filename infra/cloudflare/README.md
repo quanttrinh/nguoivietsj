@@ -22,10 +22,10 @@ Production does not use Cloudflare Access; staff sign in through Better Auth.
   - Brotli
 - HSTS through the zone `security_header` setting.
 - A Turnstile widget for the apex and staging hostnames.
-- A zone WAF custom rule that issues a **Managed Challenge** for public event
-  registration requests matching `public_registration_path_pattern`.
+- A zone WAF custom rule that issues a **Managed Challenge** for POST requests
+  matching `challenge_path_patterns`.
 - A zone rate-limiting rule that blocks bursts above the configured threshold on
-  registration, status, and sign-in paths.
+  the paths in `rate_limit_paths`.
 - Optional additional DNS records not owned by Wrangler custom domains.
 - A staging Cloudflare Access application, allow policy, and optional Service
   Auth policy.
@@ -58,13 +58,18 @@ cp infra/cloudflare/terraform.tfvars.example infra/cloudflare/terraform.tfvars
 Required values:
 
 ```hcl
-cloudflare_zone_id    = "..."
-cloudflare_account_id = "..."
-allowed_emails        = ["organizer@example.com"]
+staging_allowed_emails = ["organizer@example.com"]
+challenge_path_patterns = ["/api/events/*/registrations"]
+rate_limit_paths = [
+  "/api/events/*/registrations",
+  "/api/events/status/*",
+  "/api/auth/sign-in/*",
+]
 ```
 
-Zone name, staging hostname, and the D1/KV bindings are read from
-`wrangler.json`. Define a binding once there; Terraform follows it. The Turnstile
+Zone name, zone and account IDs, staging hostname, and the D1/KV bindings are
+read from `wrangler.json` and the Cloudflare API. Define a binding once there;
+Terraform follows it. The Turnstile
 domain list is derived from the production and staging custom-domain routes.
 
 See [`terraform.tfvars.example`](./terraform.tfvars.example) for the WAF path,
@@ -73,8 +78,9 @@ rate-limit, HSTS, Turnstile, and DNS variables.
 `hsts_include_subdomains` defaults to `false`. `hsts_preload` requires a max age
 of at least two years; the resource rejects an invalid combination.
 
-`terraform.tfvars` is ignored by git. In CI the contents are stored as the
-`TERRAFORM_TFVARS` secret in the `prd` Doppler config.
+`terraform.tfvars` is ignored by git. In CI the same values are stored as the
+`TERRAFORM_TFVARS` secret in the `prd` Doppler config as a JSON object; the
+workflow writes it to `terraform.tfvars.json` before planning.
 
 ## Turnstile and WAF gating
 
@@ -100,13 +106,11 @@ tofu -chdir=infra/cloudflare import cloudflare_turnstile_widget.registration \
 The Access application covers the entire staging hostname:
 
 ```hcl
-allowed_emails = ["organizer@example.com"]
-# or staging-specific:
-staging_allowed_emails = ["staging-tester@example.com"]
+staging_allowed_emails = ["organizer@example.com"]
 ```
 
-`staging_allowed_emails` overrides `allowed_emails` for staging only. There is no
-production allow list here.
+`staging_allowed_emails` is the whole Access allow list. There is no production
+allow list here.
 
 For automated staging checks, create an Access service token in Zero Trust and
 add its ID:
@@ -158,9 +162,9 @@ curl -sS \
 Import them:
 
 ```sh
-tofu -chdir=infra/cloudflare import 'cloudflare_ruleset.public_api_challenge[0]' \
+tofu -chdir=infra/cloudflare import 'cloudflare_ruleset.challenge[0]' \
   zones/<zone-id>/<ruleset-id>
-tofu -chdir=infra/cloudflare import cloudflare_ruleset.public_api_rate_limit \
+tofu -chdir=infra/cloudflare import cloudflare_ruleset.rate_limit \
   zones/<zone-id>/<ruleset-id>
 ```
 

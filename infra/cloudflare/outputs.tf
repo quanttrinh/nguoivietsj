@@ -15,8 +15,8 @@ output "d1_databases" {
     for key, database in local.d1_bindings : key => {
       environment = database.environment
       binding     = database.binding
-      name        = local.d1_resolved[key].name
-      id          = local.d1_resolved[key].uuid
+      name        = try(local.d1_resolved[key].name, database.database_name)
+      id          = try(local.d1_resolved[key].uuid, null)
     }
   }
 }
@@ -27,8 +27,8 @@ output "kv_namespaces" {
     for key, namespace in local.kv_bindings : key => {
       environment = namespace.environment
       binding     = namespace.binding
-      id          = local.kv_resolved[key].id
-      title       = local.kv_resolved[key].title
+      id          = try(local.kv_resolved[key].id, null)
+      title       = try(local.kv_resolved[key].title, namespace.title)
     }
   }
 }
