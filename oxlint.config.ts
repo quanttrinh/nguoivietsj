@@ -243,7 +243,7 @@ export default defineConfig({
         "boundary/scopes": [
           "error",
           {
-            serverSegments: ["server", "db", "services", "backfills"],
+            serverSegments: ["server", "db", "services", "backfills", "tooling"],
             clientSegments: ["ui", "client"],
             astroSegments: ["pages", "layouts"],
             exempt: ["src/types/worker-configuration.d.ts"],
@@ -260,7 +260,7 @@ export default defineConfig({
         "src/backfills/**/*.ts",
         "plugins/**/*.ts",
         "scripts/**/*.ts",
-        "tooling/**/*.ts",
+        "src/tooling/**/*.ts",
         "manage.ts",
         "tests/**/*.ts",
       ],

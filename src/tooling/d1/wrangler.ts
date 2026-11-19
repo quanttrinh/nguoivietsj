@@ -1,3 +1,4 @@
+// @boundary server
 import { spawn } from "node:child_process";
 import { access, mkdir, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";

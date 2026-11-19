@@ -7,6 +7,6 @@
 
 import { exit } from "node:process";
 
-import { main } from "./tooling/manage/cli";
+import { main } from "./src/tooling/manage/cli";
 
 exit(await main(process.argv.slice(2)));

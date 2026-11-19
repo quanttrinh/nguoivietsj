@@ -1,3 +1,4 @@
+// @boundary server
 /** Failure reported by a command launched for a backfill. */
 export class CommandError extends Error {
   readonly exitCode: number;

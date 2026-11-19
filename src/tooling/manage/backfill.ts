@@ -1,8 +1,9 @@
+// @boundary server
 import { access, readdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
-const ROOT = fileURLToPath(new URL("../..", import.meta.url));
+const ROOT = fileURLToPath(new URL("../../..", import.meta.url));
 
 /** Context passed by the generic manager to every backfill. */
 export interface BackfillContext {

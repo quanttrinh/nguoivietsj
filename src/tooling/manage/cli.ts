@@ -1,3 +1,4 @@
+// @boundary server
 import { parseArgs } from "node:util";
 
 import { backfillName, loadBackfills, type BackfillContext, type LoadedBackfill } from "./backfill";

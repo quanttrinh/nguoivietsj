@@ -1,6 +1,7 @@
+// @boundary server
 import { fileURLToPath } from "node:url";
 
-export const ROOT = fileURLToPath(new URL("../..", import.meta.url));
+export const ROOT = fileURLToPath(new URL("../../..", import.meta.url));
 
 export const TARGETS = ["local", "staging", "production"] as const;
 export const DATABASES = ["app", "events", "all"] as const;

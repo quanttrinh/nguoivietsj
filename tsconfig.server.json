@@ -20,7 +20,7 @@
     "manage.ts",
     "plugins/**/*.ts",
     "scripts/**/*.ts",
-    "tooling/**/*.ts",
+    "src/tooling/**/*.ts",
     "src/*.ts",
     "src/auth/**/*.ts",
     "src/db/**/*.ts",

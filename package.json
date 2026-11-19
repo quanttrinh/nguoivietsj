@@ -10,7 +10,7 @@
   },
   "type": "module",
   "imports": {
-    "#tooling/*": "./tooling/*.ts"
+    "#tooling/*": "./src/tooling/*.ts"
   },
   "scripts": {
     "dev": "doppler run -- astro dev",

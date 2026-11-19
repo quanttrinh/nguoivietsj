@@ -1,3 +1,4 @@
+// @boundary server
 import {
   TARGETS,
   TARGET_CONFIGS,
