@@ -80,6 +80,11 @@ jobs:
         env:
           DOPPLER_TOKEN: ${{ secrets.DOPPLER_READ_TOKEN }}
 
+      - name: Init OpenTofu
+        env:
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_READ_TOKEN }}
+        run: doppler run -- tofu -chdir=infra/cloudflare init -input=false
+
       - name: Generate deploy config
         env:
           DOPPLER_TOKEN: ${{ secrets.DOPPLER_READ_TOKEN }}
