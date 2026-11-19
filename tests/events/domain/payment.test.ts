@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 
-import { isRegistrationPaid } from "../src/events/domain/payment";
+import { isRegistrationPaid } from "../../../src/events/domain/payment";
 
 describe("isRegistrationPaid", () => {
   test("treats a zero-due registration as paid", () => {

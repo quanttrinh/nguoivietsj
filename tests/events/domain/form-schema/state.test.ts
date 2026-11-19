@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 
-import { computeConditionalState } from "../src/events/domain/form-schema/state";
+import { computeConditionalState } from "../../../../src/events/domain/form-schema/state";
 
 describe("computeConditionalState", () => {
   test("propagates visibility and required state from a condition", () => {

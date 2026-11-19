@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 
-import { resolveAuthBaseUrl, resolveWranglerOrigin } from "../plugins/better-auth-url";
+import { resolveAuthBaseUrl, resolveWranglerOrigin } from "../../plugins/better-auth-url";
 
 const production = {
   routes: [{ pattern: "example.com", custom_domain: true }],

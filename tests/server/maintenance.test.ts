@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 
-import { runMaintenance, type MaintenanceTask } from "../src/server/maintenance";
+import { runMaintenance, type MaintenanceTask } from "../../src/server/maintenance";
 
 describe("runMaintenance", () => {
   test("runs every task with the same timestamp and isolates failures", async () => {

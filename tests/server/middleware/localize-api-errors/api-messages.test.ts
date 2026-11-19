@@ -1,12 +1,12 @@
 import { Hono } from "hono";
 import { describe, expect, test } from "vitest";
 
-import { localizeApiErrors } from "../src/server/middleware/localize-api-errors";
+import { localizeApiErrors } from "../../../../src/server/middleware/localize-api-errors";
 import {
   apiMessage,
   resolveRequestLocale,
-} from "../src/server/middleware/localize-api-errors/api-messages";
-import { DEFAULT_LOCALE } from "../src/shared/constants/locales";
+} from "../../../../src/server/middleware/localize-api-errors/api-messages";
+import { DEFAULT_LOCALE } from "../../../../src/shared/constants/locales";
 
 function request(url: string, headers?: HeadersInit): Request {
   return new Request(url, { headers });

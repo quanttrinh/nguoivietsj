@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { describe, expect, test } from "vitest";
 
-import { apiError, apiPartial, apiSuccess } from "../src/server/api-response";
+import { apiError, apiPartial, apiSuccess } from "../../src/server/api-response";
 
 const app = new Hono()
   .get("/success", (ctx) => apiSuccess(ctx, { value: 1 }))

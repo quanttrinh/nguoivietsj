@@ -2,8 +2,8 @@ import { betterAuth } from "better-auth";
 import { memoryAdapter } from "better-auth/adapters/memory";
 import { describe, expect, test } from "vitest";
 
-import { authPlugins, baseAuthConfig } from "../src/auth/server/config";
-import { hashPassword } from "../src/auth/server/password";
+import { authPlugins, baseAuthConfig } from "../../../src/auth/server/config";
+import { hashPassword } from "../../../src/auth/server/password";
 
 const PASSWORD = "correct horse battery";
 const BASE_URL = "http://localhost:4321";

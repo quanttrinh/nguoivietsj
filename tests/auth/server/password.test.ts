@@ -1,7 +1,7 @@
 import { hashPassword as hashScryptPassword } from "better-auth/crypto";
 import { describe, expect, test } from "vitest";
 
-import { hashPassword, verifyPassword } from "../src/auth/server/password";
+import { hashPassword, verifyPassword } from "../../../src/auth/server/password";
 
 describe("PBKDF2 password hashing", () => {
   test("round-trips and rejects a wrong password", async () => {

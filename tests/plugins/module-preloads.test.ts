@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 
-import { configuredHints, matchChunks, staticJsImports } from "../plugins/module-preloads";
+import { configuredHints, matchChunks, staticJsImports } from "../../plugins/module-preloads";
 
 describe("module-preloads", () => {
   test("collects static imports and re-exports of JavaScript modules", () => {

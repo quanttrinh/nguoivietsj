@@ -3,7 +3,7 @@ import { describe, expect, test } from "vitest";
 import {
   REGISTRATION_RETENTION_MONTHS,
   registrationRetentionCutoff,
-} from "../src/events/services/maintenance";
+} from "../../../src/events/services/maintenance";
 
 describe("registration retention cutoff", () => {
   test("uses a three-month retention window", () => {

@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 
-import { safeExternalUrl } from "../src/shared/utils/url";
+import { safeExternalUrl } from "../../../src/shared/utils/url";
 
 describe("safeExternalUrl", () => {
   test("allows http, https, and mailto", () => {

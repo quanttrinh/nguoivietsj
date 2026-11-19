@@ -4,7 +4,7 @@ import {
   type AdminBreadcrumb,
   type AdminBreadcrumbLabels,
   resolveAdminBreadcrumbs,
-} from "../src/events/admin/ui/shared/breadcrumbs";
+} from "../../../../../src/events/admin/ui/shared/breadcrumbs";
 
 const labels: AdminBreadcrumbLabels = {
   administration: "Administration",

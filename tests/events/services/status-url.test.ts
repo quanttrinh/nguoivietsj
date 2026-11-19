@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 
-import { statusPageUrl } from "../src/events/services/status-url";
+import { statusPageUrl } from "../../../src/events/services/status-url";
 
 describe("statusPageUrl", () => {
   test("builds a same-origin status URL for a supported locale", () => {

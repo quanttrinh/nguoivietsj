@@ -1,10 +1,10 @@
 import { expect, test } from "vitest";
 
-import { emailSubject, renderEmailTemplate } from "../src/events/services/email/render";
-import { emailTransport } from "../src/server/services/email";
-import { toBase64, toBase64Url } from "../src/server/services/email/encoding";
-import { buildGmailMimeMessage, gmailTransport } from "../src/server/services/email/gmail";
-import { mailtrapTransport } from "../src/server/services/email/mailtrap";
+import { emailSubject, renderEmailTemplate } from "../../../../src/events/services/email/render";
+import { emailTransport } from "../../../../src/server/services/email";
+import { toBase64, toBase64Url } from "../../../../src/server/services/email/encoding";
+import { buildGmailMimeMessage, gmailTransport } from "../../../../src/server/services/email/gmail";
+import { mailtrapTransport } from "../../../../src/server/services/email/mailtrap";
 
 const variables = {
   full_name: 'Nguyễn <Văn> & "A"',

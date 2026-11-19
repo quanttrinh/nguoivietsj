@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 
-import { validateEventFormatting } from "../src/events/domain/validation";
-import { toUtcTimestamp } from "../src/shared/utils/datetime";
+import { validateEventFormatting } from "../../../src/events/domain/validation";
+import { toUtcTimestamp } from "../../../src/shared/utils/datetime";
 
 describe("event formatting validation", () => {
   test("accepts valid timezone and currency", () => {

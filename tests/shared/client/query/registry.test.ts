@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { queryStore } from "../src/shared/client/query/registry";
+import { queryStore } from "../../../../src/shared/client/query/registry";
 
 describe("query registry", () => {
   it("reuses one store per request key", () => {

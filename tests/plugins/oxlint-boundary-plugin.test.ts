@@ -3,9 +3,9 @@ import { fileURLToPath } from "node:url";
 
 import { describe, expect, test } from "vitest";
 
-import plugin from "../plugins/oxlint-boundary-plugin";
+import plugin from "../../plugins/oxlint-boundary-plugin";
 
-const ROOT = fileURLToPath(new URL("..", import.meta.url));
+const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 
 const options = {
   root: ROOT,
@@ -82,7 +82,7 @@ describe("boundary/scopes", () => {
       expect(
         messagesFor(
           "src/shared/client/a.ts",
-          '// @boundary client\nimport type { Api } from "~/types/api";\n',
+          '// @boundary client\nimport type { Api } from "../../src/types/api";\n',
         ),
       ).toEqual([]);
     });
@@ -93,7 +93,7 @@ describe("boundary/scopes", () => {
 
     test("import-exempt file keeps its marker but skips imports", () => {
       expect(
-        messagesFor("src/types/api.d.ts", '// @boundary shared\nimport "~/db/app";\n'),
+        messagesFor("src/types/api.d.ts", '// @boundary shared\nimport "../../src/db/app";\n'),
       ).toEqual([]);
     });
 
