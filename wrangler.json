@@ -61,7 +61,6 @@
   "vars": {
     "TURNSTILE_SCRIPT_URL": "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit",
     "TURNSTILE_SITEVERIFY_URL": "https://challenges.cloudflare.com/turnstile/v0/siteverify",
-    "TURNSTILE_ALLOW_TEST_KEY": "false",
     "EMAIL_PROVIDER": "gmail",
     "GMAIL_SENDER_EMAIL": "events@nguoivietsj.ca",
     "GMAIL_SENDER_NAME": "Ng\u01b0\u1eddi Vi\u1ec7t SJ Events",
@@ -134,7 +133,6 @@
       "vars": {
         "TURNSTILE_SCRIPT_URL": "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit",
         "TURNSTILE_SITEVERIFY_URL": "https://challenges.cloudflare.com/turnstile/v0/siteverify",
-        "TURNSTILE_ALLOW_TEST_KEY": "false",
         "EMAIL_PROVIDER": "gmail",
         "GMAIL_SENDER_EMAIL": "events@nguoivietsj.ca",
         "GMAIL_SENDER_NAME": "Ng\u01b0\u1eddi Vi\u1ec7t SJ Events",

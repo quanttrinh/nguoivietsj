@@ -91,7 +91,9 @@ export function requireTurnstile(expectedAction?: string): MiddlewareHandler<Hon
       return challengeRequired(ctx);
     }
 
-    const allowTestKey = coalesceString(ctx.env.TURNSTILE_ALLOW_TEST_KEY) === "true";
+    // Cloudflare test keys return no matching action or hostname, so skip
+    // those checks only for local dev and preview builds.
+    const allowTestKey = import.meta.env.DEV || import.meta.env.MODE === "preview";
     if (expectedAction !== undefined && !allowTestKey && result.action !== expectedAction) {
       return apiError(ctx, "turnstile_failed", { status: 403 });
     }
