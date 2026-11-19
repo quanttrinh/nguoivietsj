@@ -629,7 +629,7 @@ scripts/
 bun run db:generate:events
 bun run db:generate:app
 git diff --exit-code -- drizzle
-bun run db:smoke
+bun run db:schema
 bun run test
 bun run check
 bun run lint
@@ -637,9 +637,12 @@ bun run fmt:check
 bunx astro build
 ```
 
-CI checks that the Drizzle schema generates no migration drift, migrates and
-seeds a fresh local D1 database, runs the tests and type checks, lints, checks
-formatting, and builds the Worker on pull requests and pushes to `main`.
+CI checks that the Drizzle schema generates no migration drift, migrates a
+fresh local D1 database and compares the resulting schema with the Drizzle
+definitions, runs the tests and type checks, lints, checks formatting, and
+builds the Worker on pull requests and pushes to `main`. `bun run db:smoke`
+also seeds the local database and runs in the separate `Database seed` workflow
+when migrations, seed scripts, fixtures, or database schemas change.
 `bun run lint` also runs the `boundary/scopes` Oxlint plugin, which rejects
 imports from client UI modules into server/database modules and vice versa.
 

@@ -29,7 +29,8 @@
     "db:generate:events": "drizzle-kit generate --config=drizzle.events.config.ts",
     "db:generate:app": "drizzle-kit generate --config=drizzle.app.config.ts",
     "db:generate:auth": "auth generate --config ./better-auth.config.ts --adapter drizzle --dialect sqlite --output ./src/db/app/schemas/auth-schema.ts -y",
-    "db:smoke": "bun manage.ts migrate --target local && bun manage.ts seed --target local && bun manage.ts check --target local",
+    "db:schema": "bun manage.ts migrate --target local && bun manage.ts check --target local",
+    "db:smoke": "bun run db:schema && bun run db:seed",
     "db:migrate": "bun manage.ts migrate",
     "db:seed": "bun manage.ts seed",
     "db:check": "bun manage.ts check"
