@@ -8,7 +8,7 @@ import { Image } from "astro:assets";
 import { ClientRouter } from "astro:transitions";
 
 import { css } from "styled-system/css";
-import { container, hstack, vstack, visuallyHidden, wrap } from "styled-system/patterns";
+import { container, grid, hstack, vstack, visuallyHidden, wrap } from "styled-system/patterns";
 import Eyebrow from "~/shared/ui/Eyebrow.astro";
 
 import packageJson from "../../../package.json";
@@ -26,9 +26,8 @@ interface Props {
   homeHref: string;
   skipHref: string;
   skipLabel: string;
-  adminLabel: string;
   languageLabel: string;
-  repositoryUrl: string;
+  builtBy: string;
   noindex?: boolean;
 }
 
@@ -40,9 +39,8 @@ const {
   homeHref,
   skipHref,
   skipLabel,
-  adminLabel,
   languageLabel,
-  repositoryUrl,
+  builtBy,
   noindex = false,
 }: Props = Astro.props;
 const { locale, availableLocales } = useLocale();
@@ -150,32 +148,30 @@ const styles = {
     paddingInline: { base: "5", md: "10" },
     paddingBlockEnd: { base: "10", md: "16" },
   }),
-  footer: wrap({
+  footer: grid({
     width: "full",
     maxWidth: "8xl",
     marginInline: "auto",
     paddingInline: { base: "5", md: "10" },
     paddingBlock: "6",
-    align: "center",
-    justify: "space-between",
-    gap: "3",
+    columns: { base: 1, sm: 3 },
+    gap: "2",
+    alignItems: "center",
     borderTopWidth: "thin",
     borderTopStyle: "solid",
     borderColor: "outlineVariant",
     color: "onSurfaceVariant",
     fontSize: "xs",
   }),
-  footerLink: css({
-    color: "inherit",
-    textDecoration: "underline",
-    textUnderlineOffset: "0.5",
-    _hover: { color: "onSurface" },
-    _focusVisible: {
-      outlineWidth: "thick",
-      outlineStyle: "solid",
-      outlineColor: "primary",
-      outlineOffset: "0.5",
-    },
+  footerVersion: css({
+    justifySelf: { sm: "start" },
+  }),
+  footerCredit: css({
+    justifySelf: { sm: "center" },
+    textAlign: "center",
+  }),
+  footerCopyright: css({
+    justifySelf: { sm: "end" },
   }),
 };
 ---
@@ -254,17 +250,9 @@ const styles = {
       </main>
 
       <footer class={styles.footer}>
-        <span>v{packageJson.version}</span>
-        <span>
-          <a class={styles.footerLink} href={repositoryUrl} target="_blank" rel="noreferrer">
-            GitHub
-          </a>
-          <span aria-hidden="true"> · </span>
-          <a class={styles.footerLink} href={getLocalizedUrl("/admin", locale)}>
-            {adminLabel}
-          </a>
-          <span aria-hidden="true"> · </span>© {copyrightYear}
-        </span>
+        <span class={styles.footerVersion}>v{packageJson.version}</span>
+        <span class={styles.footerCredit}>{builtBy}</span>
+        <span class={styles.footerCopyright}>© {copyrightYear}</span>
       </footer>
     </div>
 

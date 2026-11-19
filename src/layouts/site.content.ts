@@ -20,7 +20,11 @@ const siteContent = {
       vi: "Chuyển đến nội dung chính",
     }),
     language: t({ en: "Language", fr: "Langue", vi: "Ngôn ngữ" }),
-    adminShortcut: t({ en: "Admin", fr: "Administration", vi: "Quản trị" }),
+    builtBy: t({
+      en: "Built by Quân Trịnh",
+      fr: "Conçu par Quân Trịnh",
+      vi: "Được xây dựng bởi Trịnh Thế Quân",
+    }),
     backToHome: t({
       en: "Back to home",
       fr: "Retour à l'accueil",
