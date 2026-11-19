@@ -638,7 +638,8 @@ bunx astro build
 ```
 
 CI checks that the Drizzle schema generates no migration drift, runs the tests
-and type checks, lints, checks formatting, and builds the Worker on pull
+(only those affected by changed files on pull requests, the full suite on
+`main`) and type checks, lints, checks formatting, and builds the Worker on pull
 requests and pushes to `main`. The `Database` workflow migrates a fresh local
 D1 database and compares the resulting schema with the Drizzle definitions,
 then seeds it; it runs only when migrations, seed scripts, fixtures, or database
