@@ -27,7 +27,6 @@ function createTestAuth(sent: string[]) {
       account: [],
       verification: [],
       twoFactor: [],
-      rateLimit: [],
     }),
     secret: "test-secret-test-secret-test-secret",
     baseURL: BASE_URL,

@@ -78,22 +78,11 @@ export const baseAuthConfig = {
     storeInDatabase: true,
   },
 
+  // Auth rate limits live in the Workers rate-limiting bindings used from
+  // src/server/root.ts. Better Auth's D1 counter added two cross-region round
+  // trips per request, so its limiter stays off.
   rateLimit: {
-    // The Worker does not define NODE_ENV, so Better Auth's production default
-    // never enables this. Turn it on explicitly.
-    enabled: true,
-    // KV cannot atomically increment counters; keep auth limits in D1.
-    storage: "database" as const,
-    customRules: {
-      // Session reads are not a credential-guessing target, and rate limiting
-      // them would add a D1 read and write to every admin page load.
-      "/get-session": false as const,
-      // The edge rate-limit rule already covers /api/auth/sign-in/*, and the
-      // D1 counter adds two cross-region round trips to every attempt.
-      "/sign-in/email": false as const,
-      // Each call sends an email; keep it well below the queue and provider limits.
-      "/two-factor/send-otp": { window: 60, max: 3 },
-    },
+    enabled: false,
   },
 
   advanced: {

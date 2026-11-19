@@ -86,6 +86,22 @@
         "limit": 5,
         "period": 60
       }
+    },
+    {
+      "name": "AUTH_SEND_OTP_RATE_LIMITER",
+      "namespace_id": "1005",
+      "simple": {
+        "limit": 3,
+        "period": 60
+      }
+    },
+    {
+      "name": "AUTH_VERIFY_OTP_RATE_LIMITER",
+      "namespace_id": "1006",
+      "simple": {
+        "limit": 10,
+        "period": 60
+      }
     }
   ],
   "d1_databases": [
@@ -170,6 +186,22 @@
           "namespace_id": "1004",
           "simple": {
             "limit": 5,
+            "period": 60
+          }
+        },
+        {
+          "name": "AUTH_SEND_OTP_RATE_LIMITER",
+          "namespace_id": "1007",
+          "simple": {
+            "limit": 3,
+            "period": 60
+          }
+        },
+        {
+          "name": "AUTH_VERIFY_OTP_RATE_LIMITER",
+          "namespace_id": "1008",
+          "simple": {
+            "limit": 10,
             "period": 60
           }
         }

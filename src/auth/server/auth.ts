@@ -10,7 +10,6 @@ import { enqueueTwoFactorCodeEmail } from "~/auth/server/email/two-factor";
 import {
   account,
   authRelations,
-  rateLimit,
   session,
   twoFactor,
   user,
@@ -18,7 +17,7 @@ import {
 } from "~/db/app/schemas/auth-schema";
 import { drizzleLogger } from "~/db/logger";
 
-const authSchema = { account, rateLimit, session, twoFactor, user, verification };
+const authSchema = { account, session, twoFactor, user, verification };
 
 const authInstances = new WeakMap<Env, ReturnType<typeof createAuth>>();
 
