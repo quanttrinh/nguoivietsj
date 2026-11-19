@@ -235,7 +235,7 @@ resource "cloudflare_ruleset" "rate_limit" {
 
 resource "cloudflare_zero_trust_access_application" "staging" {
   account_id = local.account_id
-  name       = "Event engine staging"
+  name       = "${local.wrangler.name} staging"
   domain     = local.staging_hostname
   type       = "self_hosted"
 
