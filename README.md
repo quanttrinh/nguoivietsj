@@ -642,3 +642,15 @@ seeds a fresh local D1 database, runs the tests and type checks, lints, checks
 formatting, and builds the Worker on pull requests and pushes to `main`.
 `bun run lint` also runs the `boundary/scopes` Oxlint plugin, which rejects
 imports from client UI modules into server/database modules and vice versa.
+
+## License
+
+Copyright (C) 2026 Quan Trinh.
+
+This program is free software: you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation, version 3 of the License.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the [GNU General Public License](LICENSE) for details.
