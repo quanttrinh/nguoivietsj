@@ -31,7 +31,8 @@
     "db:generate:auth": "auth generate --config ./better-auth.config.ts --adapter drizzle --dialect sqlite --output ./src/db/app/schemas/auth-schema.ts -y",
     "db:migrate": "bun manage.ts migrate",
     "db:seed": "bun manage.ts seed",
-    "db:check": "bun manage.ts check"
+    "db:check": "bun manage.ts check",
+    "test:coverage": "vitest run --project integration --coverage"
   },
   "dependencies": {
     "@astrojs/cloudflare": "14.4.8",
@@ -71,6 +72,7 @@
     "@types/node": "26.6.6",
     "@vitest/browser": "5.1.1",
     "@vitest/browser-playwright": "5.1.1",
+    "@vitest/coverage-v8": "5.1.1",
     "drizzle-kit": "1.0.0-rc.5",
     "miniflare": "4.20260730.0",
     "oxc-parser": "0.159.0",

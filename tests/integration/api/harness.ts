@@ -26,6 +26,7 @@ function createLimiter(): LimiterController {
 
 export interface ApiHarness {
   db: TestDatabase;
+  env: Record<string, unknown>;
   request: (path: string, init?: RequestInit) => Promise<Response>;
   signIn: (email: string, password?: string) => Promise<Response>;
   clearSession: () => void;
@@ -182,6 +183,7 @@ export async function createApiHarness(): Promise<ApiHarness> {
 
   return {
     db,
+    env,
     request,
     signIn,
     clearSession: () => {

@@ -1,5 +1,10 @@
 name: CI
 
+permissions:
+  contents: read
+  checks: write
+  pull-requests: read
+
 on:
   pull_request:
   push:
@@ -43,6 +48,29 @@ jobs:
           else
             bun run test
           fi
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: vitest-reports
+          path: reports
+          retention-days: 7
+      - name: Publish test report
+        if: always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+        uses: mikepenz/action-junit-report@3585e9575db828022551b4231f165eb59a0e74e3 # v5
+        with:
+          report_paths: reports/junit.xml
+          check_name: Vitest
+          detailed_summary: true
+      - name: Test report summary
+        if: always()
+        run: |
+          {
+            echo "### Vitest reports"
+            echo ""
+            echo "- Test results are published in the **Vitest** check run."
+            echo "- Download the **vitest-reports** artifact and open \`html/index.html\` for the HTML report."
+          } >> "$GITHUB_STEP_SUMMARY"
       - name: Check
         run: bun run check
       - name: Lint
