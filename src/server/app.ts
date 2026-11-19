@@ -15,6 +15,14 @@ import { root } from "./root";
 
 const isDev = import.meta.env.DEV;
 
+/** API responses are JSON, so no script, style, or fetch source is needed. */
+const API_CSP_DIRECTIVES = {
+  ...CSP_HEADER_DIRECTIVES,
+  defaultSrc: ["'none'"],
+  scriptSrc: ["'none'"],
+  styleSrc: ["'none'"],
+};
+
 /** Hono app for every request under `/api`. */
 export const api = new Hono<HonoEnv>();
 
@@ -32,8 +40,8 @@ api.use(methodNotAllowed({ app: api }));
 api.use(
   secureHeaders({
     contentSecurityPolicy: isDev
-      ? { ...CSP_HEADER_DIRECTIVES, frameAncestors: ["*"] }
-      : CSP_HEADER_DIRECTIVES,
+      ? { ...API_CSP_DIRECTIVES, frameAncestors: ["*"] }
+      : API_CSP_DIRECTIVES,
     xContentTypeOptions: "nosniff",
     xFrameOptions: isDev ? false : "DENY",
     referrerPolicy: "no-referrer",

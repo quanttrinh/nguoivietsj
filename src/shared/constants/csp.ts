@@ -27,6 +27,14 @@ export const CSP_SCRIPT_RESOURCES = [
 /** Sources allowed for styles by both Astro's CSP meta tag and the Worker headers. */
 export const CSP_STYLE_RESOURCES = ["'self'"] as const;
 
+/**
+ * CSP sent by the Worker and written to the static `_headers` file.
+ *
+ * Script and style directives are intentionally absent: Astro puts per-page
+ * hashes in a `Content-Security-Policy` meta tag, and a header without those
+ * hashes would block the hashed inline scripts and styles. API responses add
+ * `default-src 'none'` on top of this, since they never contain documents.
+ */
 export const CSP_HEADER_DIRECTIVES = {
   ...CSP_BASE_DIRECTIVES,
   frameAncestors: ["'none'"],

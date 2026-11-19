@@ -53,6 +53,10 @@ export const baseAuthConfig = {
     enabled: true,
     // Accounts are provisioned by staff; public sign-up must stay closed.
     disableSignUp: true,
+    // Twelve characters compensates for the reduced PBKDF2 iteration count
+    // that the Workers Free CPU budget forces.
+    minPasswordLength: 12,
+    maxPasswordLength: 128,
     // WebCrypto PBKDF2 keeps hashing inside the Workers Free 10 ms CPU budget.
     password: {
       hash: hashPassword,
@@ -63,14 +67,8 @@ export const baseAuthConfig = {
   session: {
     // KV is the session store; session checks should not read or write D1.
     storeSessionInDatabase: false,
-    cookieCache: {
-      enabled: true,
-      // 5 minutes: short-lived cookie cache.
-      maxAge: 5 * 60,
-      strategy: "compact" as const,
-      // Session cache falls back to KV after expiry, so no stateless refresh.
-      refreshCache: false,
-    },
+    // No cookie cache: a revoked, banned, or demoted user must lose access on
+    // the next request, not up to five minutes later.
   },
 
   verification: {

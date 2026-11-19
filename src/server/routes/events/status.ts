@@ -15,7 +15,7 @@ import { isRegistrationPaid } from "~/events/domain/payment";
 import { registrationAmountDue } from "~/events/domain/presentation";
 import {
   statusRequestBodySchema,
-  statusTokenParamSchema,
+  statusTokenHeaderSchema,
   statusVerifyBodySchema,
 } from "~/events/domain/schemas/status";
 import { STATUS_OTP_TTL_SECONDS } from "~/events/domain/status";
@@ -186,10 +186,11 @@ export const eventStatus = new Hono<HonoEnv>()
     },
   )
   .get(
-    "/:token",
-    sValidator("param", statusTokenParamSchema, defaultValidationHandler),
+    "/",
+    sValidator("header", statusTokenHeaderSchema, defaultValidationHandler),
     async (ctx) => {
-      const { token } = ctx.req.valid("param");
+      // The token travels in a header so it never lands in Worker trace paths.
+      const { "x-status-token": token } = ctx.req.valid("header");
 
       const engineDb = ctx.env.EVENT_ENGINE_DB;
       const access = await getRegistrationStatusRepository(engineDb).findByTokenHash(

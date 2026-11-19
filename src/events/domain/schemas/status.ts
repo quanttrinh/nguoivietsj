@@ -17,7 +17,7 @@ export const statusVerifyBodySchema = type({
 });
 export type StatusVerifyInput = typeof statusVerifyBodySchema.infer;
 
-export const statusTokenParamSchema = type({
-  token: patternStringSchema(STATUS_TOKEN_REGEX, 100, 20),
+export const statusTokenHeaderSchema = type({
+  "x-status-token": patternStringSchema(STATUS_TOKEN_REGEX, 100, 20),
 });
-export type StatusTokenParam = typeof statusTokenParamSchema.infer;
+export type StatusTokenHeader = typeof statusTokenHeaderSchema.infer;

@@ -18,7 +18,7 @@ import { serverLogger } from "~/shared/server/logger";
 import { isRecord } from "~/shared/utils/records";
 
 const roleSchema = type.valueOf(USER_ROLE);
-const passwordSchema = type("8 <= string <= 128");
+const passwordSchema = type("12 <= string <= 128");
 const nameSchema = type("1 <= string <= 200");
 const userIdSchema = type({ userId: "string" });
 
@@ -227,6 +227,15 @@ export const adminUsers = new Hono<HonoEnv>()
           await authApi.setUserPassword({
             headers: ctx.req.raw.headers,
             body: { userId, newPassword: body.password },
+          });
+        }
+
+        // A role or password change must take effect immediately, including on
+        // devices that still hold a session.
+        if (body.role !== undefined || body.password !== undefined) {
+          await authApi.revokeUserSessions({
+            headers: ctx.req.raw.headers,
+            body: { userId },
           });
         }
 

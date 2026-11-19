@@ -46,7 +46,7 @@ export interface StatusViewConfig {
   linkInvalid: string;
 }
 
-const getStatus = apiClient.api.events.status[":token"].$get;
+const getStatus = apiClient.api.events.status.$get;
 type StatusPayload = InferResponseType<typeof getStatus, 200>["data"];
 
 const styles = {
@@ -268,7 +268,9 @@ export default function StatusView(props: { config: StatusViewConfig }): JSX.Ele
     token == null || token.length === 0
       ? null
       : async () => {
-          const payload = await readApiJson(await getStatus({ param: { token } }));
+          const payload = await readApiJson(
+            await getStatus({ header: { "x-status-token": token } }),
+          );
 
           return payload.data;
         },

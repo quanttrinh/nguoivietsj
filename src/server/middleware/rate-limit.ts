@@ -5,6 +5,7 @@ import { createMiddleware } from "hono/factory";
 import { normalizeEmail } from "~/events/domain/normalize";
 import { rateLimited } from "~/server/common-responses";
 import { serverLogger } from "~/shared/server/logger";
+import { isRecord } from "~/shared/utils/records";
 
 const DEFAULT_RETRY_AFTER_SECONDS = 60;
 
@@ -14,7 +15,7 @@ export interface RateLimitSettings {
   /** Namespaces keys so one policy cannot consume another policy's budget. */
   scope: string;
   /** Return null to skip the check for this request. */
-  key: (request: Request) => string | null;
+  key: (request: Request) => string | null | Promise<string | null>;
   label?: string;
   retryAfterSeconds?: number;
   /**
@@ -83,7 +84,7 @@ export async function checkRateLimit(
   settings: RateLimitSettings,
 ): Promise<RateLimitCheck> {
   const retryAfterSeconds = settings.retryAfterSeconds ?? DEFAULT_RETRY_AFTER_SECONDS;
-  const key = settings.key(request);
+  const key = await settings.key(request);
 
   if (key === null || key.length === 0) {
     return { allowed: true };
@@ -113,15 +114,44 @@ export async function checkRateLimit(
   }
 }
 
-/** Hono middleware for the standard 429 response. */
-export function rateLimit(settings: RateLimitSettings): MiddlewareHandler<HonoEnv> {
+/**
+ * Hono middleware for the standard 429 response.
+ *
+ * Pass more than one setting to check independent keys, such as an IP key and
+ * an identifier key. Each key gets its own counter.
+ */
+export function rateLimit(...settings: readonly RateLimitSettings[]): MiddlewareHandler<HonoEnv> {
   return createMiddleware<HonoEnv>(async (ctx, next) => {
-    const result = await checkRateLimit(ctx.req.raw, ctx.env, settings);
+    for (const setting of settings) {
+      // oxlint-disable-next-line eslint/no-await-in-loop -- a blocked first key must short-circuit the rest.
+      const result = await checkRateLimit(ctx.req.raw, ctx.env, setting);
 
-    if (result.allowed) {
-      return next();
+      if (!result.allowed) {
+        return rateLimited(ctx, result.retryAfterSeconds);
+      }
     }
 
-    return rateLimited(ctx, result.retryAfterSeconds);
+    return next();
   });
+}
+
+/**
+ * Read a normalized email key from a JSON body without consuming the request.
+ *
+ * Returns null when the body is not JSON or has no usable email.
+ */
+export async function bodyEmailKey(scope: string, request: Request): Promise<string | null> {
+  let body: unknown;
+
+  try {
+    body = await request.clone().json();
+  } catch {
+    return null;
+  }
+
+  if (!isRecord(body) || typeof body.email !== "string") {
+    return null;
+  }
+
+  return emailKey(scope, body.email);
 }
