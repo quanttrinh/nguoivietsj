@@ -2,8 +2,8 @@
 
 This OpenTofu root manages the Cloudflare resources that Wrangler cannot:
 zone-wide TLS/HSTS/WAF/rate limiting, the Turnstile widget, DNS records, the
-staging Cloudflare Access application, and read-only discovery of the D1
-databases and KV namespaces declared in `wrangler.json`.
+staging Cloudflare Access application, and the D1 databases and KV namespaces
+declared in `wrangler.json`.
 
 Wrangler still manages the Worker, assets, routes, D1/KV/queue bindings,
 rate-limit bindings, and Worker secrets. Terraform never owns the lifecycle of
@@ -29,7 +29,8 @@ Production does not use Cloudflare Access; staff sign in through Better Auth.
 - Optional additional DNS records not owned by Wrangler custom domains.
 - A staging Cloudflare Access application, allow policy, and optional Service
   Auth policy.
-- Read-only discovery of the existing D1 databases and KV namespaces.
+- The D1 databases and KV namespaces declared in `wrangler.json`, protected by
+  `prevent_destroy`.
 
 ## Prerequisites
 
@@ -41,12 +42,11 @@ Production does not use Cloudflare Access; staff sign in through Better Auth.
   - Zone → DNS → Edit, if managing `dns_records`
   - Account → Access: Apps and Policies → Edit
   - Account → Turnstile → Edit
-  - Account → D1 → Read
-  - Account → Workers KV Storage → Read
+  - Account → D1 → Edit
+  - Account → Workers KV Storage → Edit
+  - Account → Queues → Edit
 - The zone must be active and the custom domain must work.
 - Zero Trust must be initialized for the account.
-- Production and staging D1 databases and KV namespaces must already exist.
-  See [One-time resource bootstrap](#one-time-resource-bootstrap).
 - R2 state credentials, as described in [State backend](#state-backend).
 
 ## Configure
@@ -67,9 +67,9 @@ rate_limit_paths = [
 ]
 ```
 
-Zone name, zone and account IDs, staging hostname, and the D1/KV bindings are
-read from `wrangler.json` and the Cloudflare API. Define a binding once there;
-Terraform follows it. The Turnstile
+Zone name and staging hostname are read from the `wrangler.json` routes. The D1
+databases, KV namespaces, and queues are created from the bindings declared
+there; define a binding once and Terraform follows it. The Turnstile
 domain list is derived from the production and staging custom-domain routes.
 
 See [`terraform.tfvars.example`](./terraform.tfvars.example) for the WAF path,
@@ -197,10 +197,12 @@ tofu -chdir=infra/cloudflare import 'cloudflare_dns_record.additional["dmarc"]' 
 CAA records have had drift reports in some Cloudflare provider versions. Verify
 the second plan after applying.
 
-## D1 and KV discovery
+## Data store ownership
 
-The root reads the D1 bindings by `database_name` and derives KV titles from the
-Wrangler convention:
+The D1 databases, KV namespaces, and queues are created by this root from the
+bindings in `wrangler.json`, with `prevent_destroy` so removing a binding or
+running a destroy plan cannot delete data. KV titles follow the Wrangler
+convention:
 
 ```text
 <worker-name>-<binding lowercased, _ replaced by ->
@@ -209,10 +211,9 @@ Wrangler convention:
 For example, `AUTH_SESSION_KV` on `nguoivietsj` becomes
 `nguoivietsj-auth-session-kv`.
 
-It does not manage their lifecycle. If a binding is missing, the plan fails.
-
-`deploy.yml` renders a generated Wrangler config from these outputs before
-building, so IDs are not stored in source.
+`deploy.yml` renders a generated Wrangler config from the D1 and KV outputs
+before building, so IDs are not stored in source. Wrangler attaches queue
+consumers during `wrangler deploy`.
 
 ## Workflows
 
@@ -224,28 +225,6 @@ building, so IDs are not stored in source.
   the Worker.
 
 Staging deployments, including PR deployments, cannot change infrastructure.
-
-## One-time resource bootstrap
-
-```sh
-bunx wrangler d1 create nguoivietsj-db
-bunx wrangler d1 create nguoivietsj-event-engine-db
-bunx wrangler d1 create nguoivietsj-staging-db
-bunx wrangler d1 create nguoivietsj-staging-event-engine-db
-
-bunx wrangler kv namespace create nguoivietsj-auth-session-kv
-bunx wrangler kv namespace create nguoivietsj-staging-auth-session-kv
-
-bunx wrangler queues create nguoivietsj-emails
-bunx wrangler queues create nguoivietsj-emails-dlq
-bunx wrangler queues create nguoivietsj-staging-emails
-bunx wrangler queues create nguoivietsj-staging-emails-dlq
-```
-
-Terraform discovers the D1 databases by name and the KV namespaces by the
-derived title. The deploy workflow renders a generated Wrangler config with the
-resolved IDs before building; source `wrangler.json` contains no binding IDs.
-Wrangler attaches queue consumers during `wrangler deploy`.
 
 ## State backend
 

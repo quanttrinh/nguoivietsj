@@ -15,8 +15,8 @@ output "d1_databases" {
     for key, database in local.d1_bindings : key => {
       environment = database.environment
       binding     = database.binding
-      name        = try(local.d1_resolved[key].name, database.database_name)
-      id          = try(local.d1_resolved[key].uuid, null)
+      name        = cloudflare_d1_database.this[key].name
+      id          = cloudflare_d1_database.this[key].uuid
     }
   }
 }
@@ -27,8 +27,8 @@ output "kv_namespaces" {
     for key, namespace in local.kv_bindings : key => {
       environment = namespace.environment
       binding     = namespace.binding
-      id          = try(local.kv_resolved[key].id, null)
-      title       = try(local.kv_resolved[key].title, namespace.title)
+      id          = cloudflare_workers_kv_namespace.this[key].id
+      title       = cloudflare_workers_kv_namespace.this[key].title
     }
   }
 }

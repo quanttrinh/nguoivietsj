@@ -35,8 +35,25 @@ locals {
     }
   ]...)
 
-  # String-valued zone settings. `security_header` is separate because its value
-  # is an object.
+  queue_bindings = merge([
+    for environment, config in local.wrangler_environments : {
+      for name in distinct(flatten([
+        [for producer in try(config.queues.producers, []) : producer.queue],
+        [for consumer in try(config.queues.consumers, []) : consumer.queue],
+        [
+          for consumer in try(config.queues.consumers, []) :
+          consumer.dead_letter_queue
+          if try(consumer.dead_letter_queue, null) != null
+        ],
+      ])) :
+      "${environment}/${name}" => {
+        environment = environment
+        name        = name
+      }
+    }
+  ]...)
+
+  # `security_header` is separate because its value is an object.
   zone_settings = {
     always_use_https         = "on"
     automatic_https_rewrites = "on"
@@ -47,15 +64,14 @@ locals {
   }
 }
 
-# The zone name comes from the wrangler.json route, so the zone and account IDs
-# do not need to be configured.
+# Zone and account IDs come from the wrangler.json route.
 data "cloudflare_zones" "this" {
   name = local.zone_name
 }
 
 locals {
-  zone_id    = try(one(data.cloudflare_zones.this.result).id, null)
-  account_id = try(one(data.cloudflare_zones.this.result).account.id, null)
+  zone_id    = try(data.cloudflare_zones.this.result[0].id, null)
+  account_id = try(data.cloudflare_zones.this.result[0].account.id, null)
 }
 
 resource "terraform_data" "zone_exists" {
@@ -77,56 +93,37 @@ resource "cloudflare_zone_setting" "this" {
   value      = each.value
 }
 
-data "cloudflare_d1_databases" "this" {
+# prevent_destroy stops a removed binding or destroy plan from deleting data.
+resource "cloudflare_d1_database" "this" {
   for_each = local.d1_bindings
 
   account_id = local.account_id
   name       = each.value.database_name
-}
-
-data "cloudflare_workers_kv_namespaces" "this" {
-  account_id = local.account_id
-}
-
-locals {
-  d1_resolved = {
-    for key, database in data.cloudflare_d1_databases.this : key => one(database.result)
-  }
-
-  kv_resolved = {
-    for key, namespace in local.kv_bindings : key => one([
-      for item in data.cloudflare_workers_kv_namespaces.this.result : item
-      if item.title == namespace.title
-    ])
-  }
-}
-
-# Terraform discovers D1 databases and KV namespaces by name instead of owning
-# them, so a binding declared in wrangler.json can still be missing. These
-# guards fail the plan with the command that creates the missing resource.
-resource "terraform_data" "d1_bindings_exist" {
-  for_each = local.d1_bindings
-
-  input = each.key
 
   lifecycle {
-    precondition {
-      condition     = local.d1_resolved[each.key] != null
-      error_message = "D1 database \"${each.value.database_name}\" for ${each.key} was not found. Create it with: bunx wrangler d1 create ${each.value.database_name}"
-    }
+    prevent_destroy = true
   }
 }
 
-resource "terraform_data" "kv_bindings_exist" {
+resource "cloudflare_workers_kv_namespace" "this" {
   for_each = local.kv_bindings
 
-  input = each.key
+  account_id = local.account_id
+  title      = each.value.title
 
   lifecycle {
-    precondition {
-      condition     = local.kv_resolved[each.key] != null
-      error_message = "KV namespace \"${each.value.title}\" for ${each.key} was not found. Create it with: bunx wrangler kv namespace create ${each.value.title}"
-    }
+    prevent_destroy = true
+  }
+}
+
+resource "cloudflare_queue" "this" {
+  for_each = local.queue_bindings
+
+  account_id = local.account_id
+  queue_name = each.value.name
+
+  lifecycle {
+    prevent_destroy = true
   }
 }
 
@@ -185,9 +182,8 @@ resource "cloudflare_dns_record" "additional" {
 }
 
 resource "cloudflare_ruleset" "challenge" {
-  # Enable this only after the Turnstile widget is applied and the Worker is
-  # deployed with its site key and secret. Applying the challenge before that
-  # can return an HTML challenge to a fetch-based form submission.
+  # Enable only after the Worker is deployed with the Turnstile key. Otherwise
+  # a fetch-based form can receive an HTML challenge.
   count = var.turnstile_preclearance_confirmed ? 1 : 0
 
   zone_id     = local.zone_id
