@@ -1,4 +1,4 @@
-name: Database seed
+name: Database
 
 on:
   pull_request:
@@ -32,5 +32,7 @@ jobs:
       - uses: ./.github/actions/setup-deps
         env:
           DOPPLER_TOKEN: ${{ secrets.DOPPLER_READ_TOKEN }}
-      - name: Database smoke test
-        run: bun run db:smoke
+      - name: Database schema test
+        run: bun run db:schema
+      - name: Database seed test
+        run: bun run db:seed
