@@ -1,42 +1,24 @@
-variable "cloudflare_zone_id" {
-  description = "Zone ID for the apex domain."
-  type        = string
-
-  validation {
-    condition     = can(regex("^[0-9a-fA-F]{32}$", trimspace(var.cloudflare_zone_id)))
-    error_message = "cloudflare_zone_id must be a 32-character hexadecimal Cloudflare zone ID."
-  }
-}
-
-variable "cloudflare_account_id" {
-  description = "Cloudflare account ID that owns the zone."
-  type        = string
-
-  validation {
-    condition     = can(regex("^[0-9a-fA-F]{32}$", trimspace(var.cloudflare_account_id)))
-    error_message = "cloudflare_account_id must be a 32-character hexadecimal Cloudflare account ID."
-  }
-}
-
-variable "public_registration_path_pattern" {
-  description = "Wildcard pattern matching public event registration API paths for the WAF challenge."
-  type        = string
-  default     = "/api/events/*/registrations"
-
-  validation {
-    condition     = length(var.public_registration_path_pattern) > 0
-    error_message = "public_registration_path_pattern must not be empty."
-  }
-}
-
-variable "additional_rate_limit_paths" {
-  description = "Additional wildcard paths covered by the free-plan rate-limit rule."
+variable "challenge_path_patterns" {
+  description = "Wildcard path patterns that receive a Managed Challenge on POST requests."
   type        = list(string)
-  default     = ["/api/events/status/*", "/api/auth/sign-in/*"]
 
   validation {
-    condition     = alltrue([for path in var.additional_rate_limit_paths : startswith(path, "/")])
-    error_message = "additional_rate_limit_paths must contain absolute paths."
+    condition = length(var.challenge_path_patterns) > 0 && alltrue([
+      for path in var.challenge_path_patterns : startswith(path, "/")
+    ])
+    error_message = "challenge_path_patterns must contain absolute path patterns."
+  }
+}
+
+variable "rate_limit_paths" {
+  description = "Wildcard path patterns covered by the zone rate-limit rule."
+  type        = list(string)
+
+  validation {
+    condition = length(var.rate_limit_paths) > 0 && alltrue([
+      for path in var.rate_limit_paths : startswith(path, "/")
+    ])
+    error_message = "rate_limit_paths must contain absolute path patterns."
   }
 }
 
@@ -186,31 +168,18 @@ variable "staging_session_duration" {
   }
 }
 
-variable "allowed_emails" {
-  description = "Default email addresses allowed through the staging Cloudflare Access application."
-  type        = list(string)
-
-  validation {
-    condition     = length(var.allowed_emails) > 0 && length(var.allowed_emails) <= 50
-    error_message = "allowed_emails must contain between 1 and 50 addresses on the Zero Trust Free plan."
-  }
-
-  validation {
-    condition     = alltrue([for email in var.allowed_emails : can(regex("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$", email))])
-    error_message = "allowed_emails contains an invalid email address."
-  }
-}
-
 variable "staging_allowed_emails" {
-  description = "Optional staging-specific Access allow list. Defaults to allowed_emails when empty."
+  description = "Email addresses allowed through the staging Cloudflare Access application."
   type        = list(string)
-  default     = []
 
   validation {
-    condition = length(var.staging_allowed_emails) <= 50 && alltrue([
-      for email in var.staging_allowed_emails : can(regex("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$", email))
-    ])
-    error_message = "staging_allowed_emails must contain no more than 50 valid email addresses."
+    condition     = length(var.staging_allowed_emails) > 0 && length(var.staging_allowed_emails) <= 50
+    error_message = "staging_allowed_emails must contain between 1 and 50 addresses on the Zero Trust Free plan."
+  }
+
+  validation {
+    condition     = alltrue([for email in var.staging_allowed_emails : can(regex("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$", email))])
+    error_message = "staging_allowed_emails contains an invalid email address."
   }
 }
 

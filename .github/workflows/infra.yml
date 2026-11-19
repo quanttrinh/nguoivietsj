@@ -1,18 +1,16 @@
 name: Infrastructure
 
 on:
-  pull_request:
-    paths:
-      - "infra/**"
-      - "wrangler.json"
-      - ".github/workflows/infra.yml"
-  push:
-    branches: [main]
-    paths:
-      - "infra/**"
-      - "wrangler.json"
-      - ".github/workflows/infra.yml"
   workflow_dispatch:
+    inputs:
+      mode:
+        description: "Plan only, or plan and apply the saved plan"
+        type: choice
+        required: true
+        default: plan
+        options:
+          - plan
+          - apply
 
 concurrency:
   group: infra
@@ -20,7 +18,6 @@ concurrency:
 
 permissions:
   contents: read
-  pull-requests: read
 
 jobs:
   validate:
@@ -40,7 +37,6 @@ jobs:
 
   plan:
     needs: validate
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     environment: production
     runs-on: ubuntu-latest
     steps:
@@ -52,7 +48,7 @@ jobs:
         working-directory: infra/cloudflare
         env:
           DOPPLER_TOKEN: ${{ secrets.DOPPLER_READ_TOKEN }}
-        run: doppler secrets get TERRAFORM_TFVARS --plain > terraform.tfvars
+        run: doppler secrets get TERRAFORM_TFVARS --plain > terraform.tfvars.json
       - name: Plan
         working-directory: infra/cloudflare
         env:
@@ -68,7 +64,7 @@ jobs:
 
   apply:
     needs: plan
-    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    if: github.ref == 'refs/heads/main' && inputs.mode == 'apply'
     environment: production
     runs-on: ubuntu-latest
     steps:
