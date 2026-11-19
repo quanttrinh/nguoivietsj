@@ -729,9 +729,7 @@ describe("localized API errors", () => {
   unitTest("appends to an existing vary header", async () => {
     const response = await app.request("/vary-existing?locale=fr");
 
-    // Hono merges the previous response headers over `ctx.res`, so the
-    // middleware's combined value is replaced by the authored one.
-    expect(response.headers.get("vary")).toBe("Origin");
+    expect(response.headers.get("vary")).toBe("Origin, Accept-Language, X-Locale");
   });
 });
 

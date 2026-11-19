@@ -121,8 +121,12 @@ export function localizeApiErrors() {
 
     const vary = headers.get("vary");
     const localeVary = "Accept-Language, X-Locale";
+    const combinedVary = vary === null ? localeVary : `${vary}, ${localeVary}`;
 
-    headers.set("vary", vary === null ? localeVary : `${vary}, ${localeVary}`);
+    headers.set("vary", combinedVary);
+    // Hono's `ctx.res` setter merges the previous headers over the new response,
+    // so update the original response too or the new Vary value is overwritten.
+    response.headers.set("vary", combinedVary);
 
     ctx.res = Response.json(nextBody, {
       status: response.status,
