@@ -112,6 +112,11 @@
     "head_sampling_rate": 0.2,
     "issues": {
       "enabled": true
+    },
+    "traces": {
+      "enabled": true,
+      "head_sampling_rate": 0.2,
+      "persist": true
     }
   },
   "env": {
@@ -217,6 +222,11 @@
         "head_sampling_rate": 0.2,
         "issues": {
           "enabled": true
+        },
+        "traces": {
+          "enabled": true,
+          "head_sampling_rate": 0.2,
+          "persist": true
         }
       }
     }
