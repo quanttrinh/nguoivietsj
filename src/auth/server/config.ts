@@ -88,6 +88,9 @@ export const baseAuthConfig = {
       // Session reads are not a credential-guessing target, and rate limiting
       // them would add a D1 read and write to every admin page load.
       "/get-session": false as const,
+      // The edge rate-limit rule already covers /api/auth/sign-in/*, and the
+      // D1 counter adds two cross-region round trips to every attempt.
+      "/sign-in/email": false as const,
       // Each call sends an email; keep it well below the queue and provider limits.
       "/two-factor/send-otp": { window: 60, max: 3 },
     },
