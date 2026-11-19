@@ -41,6 +41,7 @@ export default defineBackfill({
           "migrations",
           "apply",
           databaseName(db.targetConfig, selected),
+          "--force",
         ]);
       }
     }
