@@ -52,7 +52,7 @@
     "effect": "4.1.4",
     "entities": "9.0.0",
     "hono": "4.13.19",
-    "intlayer": "9.8.1",
+    "intlayer": "9.8.2",
     "jose": "6.2.17",
     "nanostores": "1.5.5",
     "preact": "11.2.0",
