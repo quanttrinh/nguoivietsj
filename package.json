@@ -29,8 +29,6 @@
     "db:generate:events": "drizzle-kit generate --config=drizzle.events.config.ts",
     "db:generate:app": "drizzle-kit generate --config=drizzle.app.config.ts",
     "db:generate:auth": "auth generate --config ./better-auth.config.ts --adapter drizzle --dialect sqlite --output ./src/db/app/schemas/auth-schema.ts -y",
-    "db:schema": "bun manage.ts migrate --target local && bun manage.ts check --target local",
-    "db:smoke": "bun run db:schema && bun run db:seed",
     "db:migrate": "bun manage.ts migrate",
     "db:seed": "bun manage.ts seed",
     "db:check": "bun manage.ts check"
@@ -63,6 +61,7 @@
   "devDependencies": {
     "@astrojs/check": "0.9.12",
     "@astrojs/compiler-rs": "0.5.3",
+    "@cloudflare/workers-types": "5.20261117.1",
     "@pandacss/dev": "2.5.0",
     "@pandacss/eslint-plugin": "2.5.0",
     "@pandacss/preset-base": "2.5.0",
@@ -70,14 +69,19 @@
     "@pandacss/vite": "2.5.0",
     "@quanttrinh/qui-unplugin": "0.4.2",
     "@types/node": "26.6.6",
+    "@vitest/browser": "5.1.1",
+    "@vitest/browser-playwright": "5.1.1",
     "drizzle-kit": "1.0.0-rc.5",
+    "miniflare": "4.20260730.0",
     "oxc-parser": "0.159.0",
     "oxfmt": "0.79.0",
     "oxlint": "1.94.0",
     "oxlint-tsgolint": "7.0.2007",
     "parse5": "8.1.1",
+    "playwright": "1.65.1",
     "typescript": "6.0.3",
     "vitest": "5.1.1",
+    "vitest-browser-preact": "2.0.0",
     "wrangler": "4.164.0"
   },
   "packageManager": "bun@1.4.4"

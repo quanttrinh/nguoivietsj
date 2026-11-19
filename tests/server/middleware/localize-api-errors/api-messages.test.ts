@@ -9,7 +9,7 @@ import {
 import { DEFAULT_LOCALE } from "../../../../src/shared/constants/locales";
 
 function request(url: string, headers?: HeadersInit): Request {
-  return new Request(url, { headers });
+  return new Request(url, headers === undefined ? {} : { headers });
 }
 
 describe("API locale resolution", () => {

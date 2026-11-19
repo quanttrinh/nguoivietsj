@@ -46,7 +46,8 @@ Local values are stored in Doppler. The repository's `doppler.yaml` selects the
 doppler login
 doppler setup
 doppler run -- bun install
-bun run db:smoke
+bun run db:migrate
+bun run db:seed
 bun run dev
 ```
 
@@ -623,13 +624,29 @@ scripts/
   deploy.py                 Deploy-time Wrangler/Doppler validation
 ```
 
+## Tests
+
+Unit tests mirror the source tree under `tests/` (for example
+`tests/auth/server/password.test.ts`). Integration tests live in
+`tests/integration/` and browser tests in `tests/browser/`.
+
+Vitest runs three projects:
+
+- `unit` — Node environment for everything outside `integration` and `browser`.
+- `integration` — Node environment with a real D1 database through Miniflare;
+  applies migrations, compares the schema, and seeds the fixtures.
+- `browser` — Preact components in headless Chromium through Playwright.
+
+`bun run test` runs all three. Use `bunx vitest run --project browser` (or
+`unit` / `integration`) for one. Browser tests need
+`bunx playwright install chromium` once locally.
+
 ## Verification
 
 ```sh
 bun run db:generate:events
 bun run db:generate:app
 git diff --exit-code -- drizzle
-bun run db:schema
 bun run test
 bun run check
 bun run lint
@@ -637,13 +654,14 @@ bun run fmt:check
 bunx astro build
 ```
 
-CI checks that the Drizzle schema generates no migration drift, runs the tests
-(only those affected by changed files on pull requests, the full suite on
-`main`) and type checks, lints, checks formatting, and builds the Worker on pull
-requests and pushes to `main`. The `Database` workflow migrates a fresh local
-D1 database and compares the resulting schema with the Drizzle definitions,
-then seeds it; it runs only when migrations, seed scripts, fixtures, or database
-schemas change.
+CI checks that the Drizzle schema generates no migration drift, runs the unit,
+integration, and browser test projects (only those affected by changed files on
+pull requests, the full suite on `main`), type checks, lints, checks formatting,
+and builds the Worker on pull requests and pushes to `main`. The integration
+project applies every migration to a fresh Miniflare D1 database, compares the
+resulting schema with the Drizzle definitions, and seeds the fixtures, so it
+replaces the old Wrangler-based database smoke test. The browser project runs
+Preact component tests in headless Chromium through Playwright.
 `bun run lint` also runs the `boundary/scopes` Oxlint plugin, which rejects
 imports from client UI modules into server/database modules and vice versa.
 

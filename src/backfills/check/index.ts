@@ -2,8 +2,6 @@
 /* oxlint-disable typescript/no-unsafe-type-assertion -- Wrangler JSON output is parsed at this tooling boundary. */
 import { parseArgs } from "node:util";
 
-import { getTableConfig } from "drizzle-orm/sqlite-core";
-
 import {
   DATABASES,
   TARGET_CONFIGS,
@@ -16,6 +14,7 @@ import {
 import { createD1Context } from "#tooling/d1/d1";
 import { runQuiet, wranglerCommand } from "#tooling/d1/wrangler";
 import { defineBackfill } from "#tooling/manage/backfill";
+import { COLUMNS_SQL, compareColumns, expectedColumns, parseColumns } from "~/db/schema-parity";
 
 import { APP_TABLES, EVENT_TABLES } from "./schema-tables";
 
@@ -47,55 +46,12 @@ async function query(
   return result?.results ?? [];
 }
 
-function expectedTables(database: "app" | "events"): Map<string, string[]> {
-  const tables = database === "app" ? APP_TABLES : EVENT_TABLES;
-  return new Map(
-    tables.map((table) => {
-      const config = getTableConfig(table);
-      return [config.name, config.columns.map((column) => column.name)];
-    }),
-  );
-}
-
 async function checkDatabase(target: TargetName, database: "app" | "events"): Promise<string[]> {
-  const expected = expectedTables(database);
+  const expected = expectedColumns(database === "app" ? APP_TABLES : EVENT_TABLES);
   // One pragma join returns every table and column in a single Wrangler call.
-  const columnRows = await query(
-    target,
-    database,
-    `SELECT m.name AS table_name, p.name AS column_name
-     FROM sqlite_master AS m
-     JOIN pragma_table_info(m.name) AS p
-     WHERE m.type = 'table'
-       AND m.name NOT LIKE 'sqlite_%'
-       AND m.name NOT LIKE '_cf_%'`,
-  );
-  const actual = new Map<string, Set<string>>();
-
-  for (const row of columnRows) {
-    const table = String(row.table_name);
-    const column = String(row.column_name);
-    const columns = actual.get(table) ?? new Set<string>();
-
-    columns.add(column);
-    actual.set(table, columns);
-  }
-
-  const problems: string[] = [];
-
-  for (const [table, columns] of expected) {
-    const actualColumns = actual.get(table);
-
-    if (actualColumns === undefined) {
-      problems.push(`missing table: ${table}`);
-    } else {
-      for (const column of columns) {
-        if (!actualColumns.has(column)) {
-          problems.push(`missing column: ${table}.${column}`);
-        }
-      }
-    }
-  }
+  const columnRows = await query(target, database, COLUMNS_SQL);
+  const actual = parseColumns(columnRows);
+  const problems = compareColumns(expected, actual);
 
   if (database === "events" && !actual.has("registration_search")) {
     problems.push("missing virtual table: registration_search (run events migrations)");
