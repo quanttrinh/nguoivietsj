@@ -7,7 +7,6 @@ import Qui from "@quanttrinh/qui-unplugin";
 import { intlayer } from "astro-intlayer";
 import { defineConfig, envField } from "astro/config";
 
-import { repository } from "./package.json";
 import { betterAuthUrl } from "./plugins/better-auth-url";
 import { CSP_CONFIG } from "./plugins/csp-astro";
 import { modulePreloads } from "./plugins/module-preloads";
@@ -28,11 +27,6 @@ export default defineConfig({
     schema: {
       TURNSTILE_SITE_KEY: envField.string({ context: "client", access: "public" }),
       TURNSTILE_SCRIPT_URL: envField.string({ context: "client", access: "public" }),
-      PUBLIC_REPOSITORY_URL: envField.string({
-        context: "client",
-        access: "public",
-        default: repository.url,
-      }),
       PUBLIC_CLOUDFLARE_ANALYTICS_TOKEN: envField.string({
         context: "client",
         access: "public",

@@ -1,7 +1,6 @@
 ---
 // @boundary astro
 import { useDictionary, useLocale } from "astro-intlayer";
-import { PUBLIC_REPOSITORY_URL } from "astro:env/client";
 import { getLocalizedUrl } from "intlayer";
 
 import SiteLayout from "~/layouts/shared/SiteLayout.astro";
@@ -26,9 +25,8 @@ const messages = useDictionary(siteContent, locale);
   homeHref={getLocalizedUrl("/", locale)}
   skipHref="#main"
   skipLabel={messages.skipToContent.value}
-  adminLabel={messages.adminShortcut.value}
   languageLabel={messages.language.value}
-  repositoryUrl={PUBLIC_REPOSITORY_URL}
+  builtBy={messages.builtBy.value}
   noindex={noindex}
 >
   <Fragment slot="header-actions">
