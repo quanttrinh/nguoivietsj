@@ -86,7 +86,7 @@
     "typescript": "6.0.3",
     "vitest": "5.1.1",
     "vitest-browser-preact": "2.0.0",
-    "wrangler": "4.164.0"
+    "wrangler": "4.165.0"
   },
   "packageManager": "bun@1.4.4"
 }
