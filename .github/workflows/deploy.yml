@@ -145,23 +145,3 @@ jobs:
             doppler run -- bunx astro build
           fi
           doppler run -- bunx wrangler deploy
-
-      - name: Smoke test staging through Cloudflare Access
-        if: env.DEPLOY_ENV == 'staging'
-        env:
-          DOPPLER_TOKEN: ${{ secrets.DOPPLER_READ_TOKEN }}
-        run: |
-          STAGING_URL=$(python3 scripts/deploy.py hostname --env staging --config wrangler.generated.json)
-          export STAGING_URL
-          doppler run -- bash -c '
-            if [ -z "${STAGING_ACCESS_CLIENT_ID:-}" ] || [ -z "${STAGING_ACCESS_CLIENT_SECRET:-}" ]; then
-              echo "Skipping: STAGING_ACCESS_CLIENT_ID/SECRET are not set in Doppler."
-              exit 0
-            fi
-
-            curl --fail --silent --show-error --head \
-              --retry 3 --retry-delay 2 \
-              -H "CF-Access-Client-Id: $STAGING_ACCESS_CLIENT_ID" \
-              -H "CF-Access-Client-Secret: $STAGING_ACCESS_CLIENT_SECRET" \
-              "$STAGING_URL"
-          '

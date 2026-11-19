@@ -496,9 +496,9 @@ OpenTofu under `infra/cloudflare/` manages:
 - WAF registration challenge
 - rate-limiting rule
 - the whole-website Cloudflare Access application for staging
-- staging Access policies and optional service tokens
+- staging Access policies
 - optional DNS records not owned by Wrangler
-- read-only D1/KV discovery from `wrangler.json`
+- D1, KV, and queue resources from `wrangler.json`
 
 Production does not use Cloudflare Access; staff sign in through Better Auth.
 

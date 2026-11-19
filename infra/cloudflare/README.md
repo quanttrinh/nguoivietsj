@@ -112,23 +112,6 @@ staging_allowed_emails = ["organizer@example.com"]
 `staging_allowed_emails` is the whole Access allow list. There is no production
 allow list here.
 
-For automated staging checks, create an Access service token in Zero Trust and
-add its ID:
-
-```hcl
-access_service_token_ids = ["<service-token-id>"]
-```
-
-This creates a **Service Auth** policy (`decision = "non_identity"`). Service
-tokens do not work with an Allow policy containing only email rules. Send the
-token headers as usual:
-
-```sh
-curl -sSI https://staging.nguoivietsj.ca/ \
-  -H "CF-Access-Client-Id: $STAGING_ACCESS_CLIENT_ID" \
-  -H "CF-Access-Client-Secret: $STAGING_ACCESS_CLIENT_SECRET"
-```
-
 If the Access application already exists, import it:
 
 ```sh
@@ -280,7 +263,6 @@ need a copy because there is only one infrastructure root.
 | `GMAIL_CLIENT_ID` / `GMAIL_CLIENT_SECRET` / `GMAIL_REFRESH_TOKEN` | Gmail sender                                     |
 | `MAILTRAP_API_TOKEN`                                              | Optional Mailtrap fallback                       |
 | `BETTER_AUTH_SECRET`                                              | Better Auth signing secret                       |
-| `STAGING_ACCESS_CLIENT_ID` / `STAGING_ACCESS_CLIENT_SECRET`       | Optional staging smoke tests                     |
 | `DOPPLER_READ_TOKEN`                                              | Read-only token for installs, plans, and deploys |
 | `DOPPLER_WRITE_TOKEN`                                             | Read-write token for publishing Turnstile values |
 

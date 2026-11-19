@@ -246,30 +246,16 @@ resource "cloudflare_zero_trust_access_application" "staging" {
   http_only_cookie_attribute = true
   same_site_cookie_attribute = "lax"
 
-  policies = concat(
-    [{
-      name       = "Allow staging team"
-      decision   = "allow"
-      precedence = 1
-      include = [
-        for email in var.staging_allowed_emails : {
-          email = {
-            email = email
-          }
+  policies = [{
+    name       = "Allow staging team"
+    decision   = "allow"
+    precedence = 1
+    include = [
+      for email in var.staging_allowed_emails : {
+        email = {
+          email = email
         }
-      ]
-    }],
-    length(var.access_service_token_ids) > 0 ? [{
-      name       = "Allow service tokens"
-      decision   = "non_identity"
-      precedence = 2
-      include = [
-        for token_id in var.access_service_token_ids : {
-          service_token = {
-            token_id = token_id
-          }
-        }
-      ]
-    }] : [],
-  )
+      }
+    ]
+  }]
 }
