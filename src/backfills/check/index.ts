@@ -59,34 +59,45 @@ function expectedTables(database: "app" | "events"): Map<string, string[]> {
 
 async function checkDatabase(target: TargetName, database: "app" | "events"): Promise<string[]> {
   const expected = expectedTables(database);
-  const tableRows = await query(
+  // One pragma join returns every table and column in a single Wrangler call.
+  const columnRows = await query(
     target,
     database,
-    "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '_cf_%'",
+    `SELECT m.name AS table_name, p.name AS column_name
+     FROM sqlite_master AS m
+     JOIN pragma_table_info(m.name) AS p
+     WHERE m.type = 'table'
+       AND m.name NOT LIKE 'sqlite_%'
+       AND m.name NOT LIKE '_cf_%'`,
   );
-  const actualTables = new Set(tableRows.map((row) => String(row.name)));
+  const actual = new Map<string, Set<string>>();
+
+  for (const row of columnRows) {
+    const table = String(row.table_name);
+    const column = String(row.column_name);
+    const columns = actual.get(table) ?? new Set<string>();
+
+    columns.add(column);
+    actual.set(table, columns);
+  }
+
   const problems: string[] = [];
 
   for (const [table, columns] of expected) {
-    if (actualTables.has(table)) {
-      // oxlint-disable-next-line eslint/no-await-in-loop -- local D1 serializes metadata reads.
-      const columnRows = await query(
-        target,
-        database,
-        `SELECT name FROM pragma_table_info('${table}')`,
-      );
-      const actualColumns = new Set(columnRows.map((row) => String(row.name)));
+    const actualColumns = actual.get(table);
+
+    if (actualColumns === undefined) {
+      problems.push(`missing table: ${table}`);
+    } else {
       for (const column of columns) {
         if (!actualColumns.has(column)) {
           problems.push(`missing column: ${table}.${column}`);
         }
       }
-    } else {
-      problems.push(`missing table: ${table}`);
     }
   }
 
-  if (database === "events" && !actualTables.has("registration_search")) {
+  if (database === "events" && !actual.has("registration_search")) {
     problems.push("missing virtual table: registration_search (run events migrations)");
   }
 
@@ -98,8 +109,9 @@ async function check(targetName: TargetName, database: DatabaseName): Promise<nu
 
   for (const selected of selectedDatabases(database)) {
     console.log(`Checking ${selected} schema on ${targetName}.`);
-    // oxlint-disable-next-line eslint/no-await-in-loop -- commands share one local D1 file.
+    // oxlint-disable-next-line eslint/no-await-in-loop -- Wrangler commands share one local D1 state directory.
     const problems = await checkDatabase(targetName, selected);
+
     if (problems.length === 0) {
       console.log(`  ${selected}: schema is up to date.`);
     } else {
