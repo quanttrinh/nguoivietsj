@@ -26,17 +26,9 @@ const API_CSP_DIRECTIVES = {
 /** Hono app for every request under `/api`. */
 export const api = new Hono<HonoEnv>();
 
-api.use(localizeApiErrors());
-api.use(apiBodyLimit());
-api.use(csrf({ secFetchSite: ["same-origin", "none"] }));
-if (isDev) {
-  api.use(
-    logger((str) => {
-      serverLogger.debug(str);
-    }),
-  );
-}
-api.use(methodNotAllowed({ app: api }));
+// Security headers must be outermost so early rejections (CSRF 403, body
+// limit 413) carry them too. Hono applies them after downstream middleware
+// returns, so registering this first still decorates the final response.
 api.use(
   secureHeaders({
     contentSecurityPolicy: isDev
@@ -52,6 +44,28 @@ api.use(
     },
   }),
 );
+api.use(localizeApiErrors());
+api.use(apiBodyLimit());
+api.use(
+  csrf({
+    secFetchSite: ["same-origin", "none"],
+    // Hono's csrf passes when *either* signal is trusted. A cross-site fetch
+    // must never be accepted just because the request carries a same-origin
+    // Origin header, so veto the origin check in that case.
+    origin: (origin, ctx) =>
+      ctx.req.header("sec-fetch-site") === "cross-site"
+        ? false
+        : origin === new URL(ctx.req.url).origin,
+  }),
+);
+if (isDev) {
+  api.use(
+    logger((str) => {
+      serverLogger.debug(str);
+    }),
+  );
+}
+api.use(methodNotAllowed({ app: api }));
 
 api.use(async (ctx, next) => {
   // oxlint-disable-next-line node/callback-return -- the response is cloned after the downstream handler finishes.

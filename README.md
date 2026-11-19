@@ -666,6 +666,15 @@ then checks the response envelope, the absence of 5xx errors, and that rejected
 requests leave the database unchanged. Failures report a replayable seed.
 `FUZZ_RUNS` overrides the default of 20 runs per property.
 
+### Security
+
+`tests/integration/api/security/` verifies transport controls (secure headers,
+CSRF matrix, method/body handling), session and cookie behavior against real
+app D1 and KV, injection resistance (SQL, HTML, headers, path traversal), and
+abuse throttling (Turnstile, rate limiters, OTP brute-force protection). These
+are deterministic integration tests that assert real response headers and D1/KV
+state after each API call.
+
 ## Verification
 
 ```sh
