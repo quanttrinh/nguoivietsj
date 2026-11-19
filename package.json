@@ -35,7 +35,7 @@
     "test:coverage": "vitest run --project unit --project integration --coverage"
   },
   "dependencies": {
-    "@astrojs/cloudflare": "14.4.8",
+    "@astrojs/cloudflare": "14.4.9",
     "@astrojs/preact": "6.1.6",
     "@better-auth/drizzle-adapter": "1.7.25",
     "@hono/standard-validator": "0.4.1",
@@ -44,8 +44,8 @@
     "@nanostores/query": "0.3.4",
     "@quanttrinh/qui": "0.9.3",
     "arktype": "2.2.10",
-    "astro": "7.4.12",
-    "astro-intlayer": "9.8.1",
+    "astro": "7.4.13",
+    "astro-intlayer": "9.8.2",
     "auth": "1.7.25",
     "better-auth": "1.7.25",
     "drizzle-orm": "1.0.0-rc.5",
