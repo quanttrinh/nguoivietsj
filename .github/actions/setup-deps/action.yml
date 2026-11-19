@@ -1,10 +1,21 @@
 name: Setup dependencies
-description: Install aqua-managed CLIs and project dependencies.
+description: Install aqua-managed CLIs and, when needed, project dependencies.
+
+inputs:
+  install-tools:
+    description: Install the aqua-managed CLIs (tofu, doppler, bun, ...).
+    required: false
+    default: "true"
+  install-dependencies:
+    description: Restore the Bun package cache and run bun install.
+    required: false
+    default: "true"
 
 runs:
   using: composite
   steps:
     - name: Restore aqua cache
+      if: inputs.install-tools == 'true'
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
       with:
         path: ~/.local/share/aquaproj-aqua
@@ -13,6 +24,7 @@ runs:
           aqua-${{ runner.os }}-${{ runner.arch }}-
 
     - name: Install aqua-managed tools
+      if: inputs.install-tools == 'true'
       uses: aquaproj/aqua-installer@611554c6f0137ba41c8dd15aca8bee82504ea461 # v4.1.1
       with:
         aqua_version: v2.66.1
@@ -21,6 +33,7 @@ runs:
         aqua_opts: ""
 
     - name: Restore Bun package cache
+      if: inputs.install-dependencies == 'true'
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
       with:
         path: ~/.bun/install/cache
@@ -29,5 +42,6 @@ runs:
           bun-packages-${{ runner.os }}-${{ runner.arch }}-
 
     - name: Install project dependencies
+      if: inputs.install-dependencies == 'true'
       shell: bash
       run: doppler run -- bun install --frozen-lockfile
