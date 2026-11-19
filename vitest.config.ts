@@ -18,6 +18,9 @@ export default defineConfig({
     reporters: isCi
       ? [
           "default",
+          // Native GitHub annotations on failing tests; the JUnit action below
+          // still publishes the full per-test check run.
+          ["github-actions", { jobSummary: { enabled: false } }],
           ["junit", { outputFile: "reports/junit.xml" }],
           ["html", { outputDir: "reports/html" }],
         ]
@@ -25,20 +28,9 @@ export default defineConfig({
     restoreMocks: true,
     coverage: {
       provider: "v8",
-      // Core API surface covered first; admin routes join after their tests.
-      include: [
-        "src/auth/server/middleware.ts",
-        "src/server/api-response.ts",
-        "src/server/app.ts",
-        "src/server/common-responses.ts",
-        "src/server/middleware/**/*.ts",
-        "src/server/root.ts",
-        "src/server/routes/events/public.ts",
-        "src/server/routes/events/registration-errors.ts",
-        "src/server/routes/events/status.ts",
-        "src/server/routes/health.ts",
-        "src/server/validation-handler.ts",
-      ],
+      // Every API and server-side module is in scope. Paths are relative to
+      // the project root (Vitest 5 matching), so each file must be covered.
+      include: ["src/auth/server/**/*.ts", "src/server/**/*.ts"],
       reporter: ["text"],
       thresholds: {
         branches: 95,

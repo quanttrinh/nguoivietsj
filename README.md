@@ -643,6 +643,20 @@ Vitest runs three projects:
 `unit` / `integration`) for one. Browser tests need
 `bunx playwright install chromium` once locally.
 
+### Coverage
+
+`bun run test:coverage` runs the `unit` and `integration` projects with V8
+coverage. Every module under `src/server/` and `src/auth/server/` is in scope,
+and the run fails unless statements, functions, and lines are all at 100% and
+branches are at 95% or higher. Coverage is collected across both projects so
+pure server helpers are measured from unit tests while routes are measured from
+the API integration tests.
+
+CI also writes JUnit and HTML reports, publishes the per-test results as a
+**Vitest** check run, adds inline annotations for failures, and uploads the
+**vitest-reports** artifact. Open `html/index.html` from that artifact for the
+interactive HTML report.
+
 ## Verification
 
 ```sh

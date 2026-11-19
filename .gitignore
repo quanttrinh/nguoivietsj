@@ -32,5 +32,6 @@ crash.log
 # Local project backups
 /backups/
 
-# Test reports
+# Vitest artifacts and test reports
+.vitest/
 /reports/

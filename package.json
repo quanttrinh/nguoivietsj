@@ -32,7 +32,7 @@
     "db:migrate": "bun manage.ts migrate",
     "db:seed": "bun manage.ts seed",
     "db:check": "bun manage.ts check",
-    "test:coverage": "vitest run --project integration --coverage"
+    "test:coverage": "vitest run --project unit --project integration --coverage"
   },
   "dependencies": {
     "@astrojs/cloudflare": "14.4.8",

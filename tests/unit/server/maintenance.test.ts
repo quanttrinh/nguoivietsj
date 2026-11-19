@@ -37,4 +37,39 @@ describe("runMaintenance", () => {
     ]);
     expect(results.every((result) => result.durationMs >= 0)).toBe(true);
   });
+
+  test("defaults the timestamp to now when none is supplied", async () => {
+    let received: Date | undefined;
+
+    const [result] = await runMaintenance([
+      {
+        name: "default-time",
+        run: (value) => {
+          received = value;
+          return Promise.resolve();
+        },
+      },
+    ]);
+
+    expect(result).toMatchObject({ name: "default-time", ok: true });
+    expect(received).toBeInstanceOf(Date);
+  });
+
+  test.for([
+    { label: "string", thrown: "text failure" },
+    { label: "number", thrown: 42 },
+    { label: "object", thrown: { reason: "nope" } },
+  ])("isolates a non-Error rejection ($label)", async ({ thrown }) => {
+    const results = await runMaintenance([
+      {
+        name: "non-error",
+        // oxlint-disable-next-line typescript/prefer-promise-reject-errors -- verify non-Error failures are isolated and logged.
+        run: () => Promise.reject(thrown),
+      },
+    ]);
+
+    expect(results).toHaveLength(1);
+    expect(results[0]).toMatchObject({ name: "non-error", ok: false });
+    expect(results[0]?.error).toBe(thrown);
+  });
 });
