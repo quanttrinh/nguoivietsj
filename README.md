@@ -626,15 +626,17 @@ scripts/
 
 ## Tests
 
-Unit tests mirror the source tree under `tests/` (for example
-`tests/auth/server/password.test.ts`). Integration tests live in
-`tests/integration/` and browser tests in `tests/browser/`.
+Unit tests live in `tests/unit/` and mirror the source tree (for example
+`tests/unit/auth/server/password.test.ts`). Integration tests live in
+`tests/integration/`: the database tests and the API tests under
+`tests/integration/api/`, which run the Hono app against a real Miniflare D1
+database and Better Auth sessions. Browser tests live in `tests/browser/`.
 
 Vitest runs three projects:
 
-- `unit` — Node environment for everything outside `integration` and `browser`.
-- `integration` — Node environment with a real D1 database through Miniflare;
-  applies migrations, compares the schema, and seeds the fixtures.
+- `unit` — Node environment for pure modules.
+- `integration` — Node environment with a real D1 database through Miniflare,
+  a seeded Better Auth database, and the full API app.
 - `browser` — Preact components in headless Chromium through Playwright.
 
 `bun run test` runs all three. Use `bunx vitest run --project browser` (or

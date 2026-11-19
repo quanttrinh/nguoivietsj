@@ -8,6 +8,7 @@ const shared = {
 
 export default defineConfig({
   test: {
+    restoreMocks: true,
     watchTriggerPatterns: [
       {
         // The seed fixture is read at runtime, so the import graph misses it.
@@ -21,8 +22,7 @@ export default defineConfig({
         test: {
           name: "unit",
           environment: "node",
-          include: ["tests/**/*.test.ts"],
-          exclude: ["tests/integration/**", "tests/browser/**"],
+          include: ["tests/unit/**/*.test.ts"],
         },
       },
       {
@@ -31,6 +31,7 @@ export default defineConfig({
           name: "integration",
           environment: "node",
           include: ["tests/integration/**/*.test.ts"],
+          setupFiles: ["./tests/integration/setup.ts"],
           testTimeout: 30_000,
           hookTimeout: 30_000,
         },
