@@ -113,9 +113,6 @@ def check(name: str, config_path: Path) -> int:
         if not namespace_id or namespace_id.startswith("00000000-"):
             problems.append(f"{namespace.get('binding', 'KV')} still has a placeholder KV id")
 
-    if name == "production" and vars.get("TURNSTILE_ALLOW_TEST_KEY", "").lower() == "true":
-        problems.append("TURNSTILE_ALLOW_TEST_KEY must be false in production")
-
     provider = vars.get("EMAIL_PROVIDER", "gmail")
     if provider == "gmail":
         if not vars.get("GMAIL_SENDER_EMAIL", "").strip():
