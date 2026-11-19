@@ -54,8 +54,8 @@ data "cloudflare_zones" "this" {
 }
 
 locals {
-  zone_id    = try(one(data.cloudflare_zones.this.result).id, null)
-  account_id = try(one(data.cloudflare_zones.this.result).account.id, null)
+  zone_id    = try(data.cloudflare_zones.this.result[0].id, null)
+  account_id = try(data.cloudflare_zones.this.result[0].account.id, null)
 }
 
 resource "terraform_data" "zone_exists" {
