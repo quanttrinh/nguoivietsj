@@ -24,6 +24,11 @@
       "matchUpdateTypes": ["pin"]
     },
     {
+      "description": "Group Bun updates across package.json and aqua.",
+      "groupName": "Bun",
+      "matchPackageNames": ["bun", "oven-sh/bun"]
+    },
+    {
       "description": "Group Astro updates.",
       "groupName": "Astro",
       "matchPackageNames": ["/^astro$/", "/^@astrojs\\//", "/^astro-intlayer$/"]
