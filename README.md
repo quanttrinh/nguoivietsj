@@ -657,6 +657,15 @@ CI also writes JUnit and HTML reports, publishes the per-test results as a
 **vitest-reports** artifact. Open `html/index.html` from that artifact for the
 interactive HTML report.
 
+### Fuzzing
+
+`tests/integration/api/fuzz/` property-tests every API endpoint with
+[`@fast-check/vitest`](https://www.npmjs.com/package/@fast-check/vitest)
+(`fcTest.prop`). Each run generates hostile paths, bodies, queries, and headers,
+then checks the response envelope, the absence of 5xx errors, and that rejected
+requests leave the database unchanged. Failures report a replayable seed.
+`FUZZ_RUNS` overrides the default of 20 runs per property.
+
 ## Verification
 
 ```sh

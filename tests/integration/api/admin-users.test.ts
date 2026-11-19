@@ -219,9 +219,8 @@ describe("admin user creation", () => {
     });
     const body = await parseJson<ErrorData>(response);
 
-    // Better Auth reports named statuses (e.g. "BAD_REQUEST"), which
-    // failureStatus coerces with Number() to NaN and therefore maps to 500.
-    expect(response.status).toBe(500);
+    // Better Auth reports the named status "BAD_REQUEST", which is mapped to 400.
+    expect(response.status).toBe(400);
     expect(body.error?.code).toBe("USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL");
     expect(body.error?.message).toBeTruthy();
   });
@@ -392,7 +391,7 @@ describe("admin user updates", () => {
     expect(body.error?.code).toBe("cannot_change_own_role");
   });
 
-  test("maps a missing user through the fallback", async ({ api }) => {
+  test("maps a missing user to not found", async ({ api }) => {
     const response = await api.request("/api/admin/users/does-not-exist", {
       method: "PATCH",
       headers: JSON_HEADERS,
@@ -400,7 +399,7 @@ describe("admin user updates", () => {
     });
     const body = await parseJson<ErrorData>(response);
 
-    expect(response.status).toBe(500);
+    expect(response.status).toBe(404);
     expect(body.error?.code).toBe("USER_NOT_FOUND");
   });
 
@@ -412,7 +411,7 @@ describe("admin user updates", () => {
         body: JSON.stringify({ email: "admin@example.com" }),
       });
 
-      expect(response.status).toBe(500);
+      expect(response.status).toBe(400);
       const errorBody = await parseJson<ErrorData>(response);
       expect(errorBody.error?.code).toBe("USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL");
     });
@@ -453,7 +452,7 @@ describe("admin user deletion", () => {
     const response = await api.request("/api/admin/users/does-not-exist", { method: "DELETE" });
     const body = await parseJson<ErrorData>(response);
 
-    expect(response.status).toBe(500);
+    expect(response.status).toBe(404);
     expect(body.error?.code).toBe("USER_NOT_FOUND");
   });
 
@@ -462,7 +461,7 @@ describe("admin user deletion", () => {
     const response = await api.request(`/api/admin/users/${adminId}`, { method: "DELETE" });
     const body = await parseJson<ErrorData>(response);
 
-    expect(response.status).toBe(500);
+    expect(response.status).toBe(400);
     expect(body.error?.code).toBe("YOU_CANNOT_REMOVE_YOURSELF");
   });
 });
@@ -683,6 +682,29 @@ describe("admin users defensive error fallbacks", () => {
     const app = await mountMockedRouter({
       createUser: () =>
         Promise.reject(new APIError(418, { code: "teapot", message: "short and stout" })),
+    });
+    const response = await app.request(
+      "http://localhost/api/admin/users",
+      jsonPost({
+        name: "X",
+        email: "x@example.com",
+        password: PASSWORD,
+        role: "user",
+      }),
+    );
+
+    expect(response.status).toBe(500);
+    await expect(response.json()).resolves.toMatchObject({
+      error: { code: "teapot", message: "short and stout" },
+    });
+  });
+
+  test("maps an unrecognized named error status to 500", async () => {
+    const app = await mountMockedRouter({
+      createUser: () =>
+        Promise.reject(
+          new APIError("EXPECTATION_FAILED", { code: "teapot", message: "short and stout" }),
+        ),
     });
     const response = await app.request(
       "http://localhost/api/admin/users",

@@ -43,7 +43,20 @@ const updateUserSchema = type({
   "password?": passwordSchema,
 });
 
-function failureStatus(status: number): 400 | 401 | 403 | 404 | 409 | 500 {
+/** Better Auth throws named statuses (e.g. "NOT_FOUND") as well as numbers. */
+const NAMED_FAILURE_STATUSES: Record<string, 400 | 401 | 403 | 404 | 409> = {
+  BAD_REQUEST: 400,
+  UNAUTHORIZED: 401,
+  FORBIDDEN: 403,
+  NOT_FOUND: 404,
+  CONFLICT: 409,
+};
+
+function failureStatus(status: number | string): 400 | 401 | 403 | 404 | 409 | 500 {
+  if (typeof status === "string") {
+    return NAMED_FAILURE_STATUSES[status] ?? 500;
+  }
+
   switch (status) {
     case 400:
     case 401:
@@ -70,7 +83,7 @@ function userFailure(ctx: Parameters<typeof apiError>[0], error: unknown) {
         : undefined;
 
     return apiError(ctx, code, {
-      status: failureStatus(Number(error.status)),
+      status: failureStatus(error.status),
       ...(message === undefined ? {} : { message }),
     });
   }
