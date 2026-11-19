@@ -182,19 +182,3 @@ variable "staging_allowed_emails" {
     error_message = "staging_allowed_emails contains an invalid email address."
   }
 }
-
-variable "access_service_token_ids" {
-  description = "Optional Access service token IDs allowed through the staging Service Auth policy."
-  type        = list(string)
-  default     = []
-
-  validation {
-    condition = alltrue([
-      for id in var.access_service_token_ids : can(regex(
-        "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
-        id,
-      ))
-    ])
-    error_message = "access_service_token_ids contains an invalid service token ID."
-  }
-}

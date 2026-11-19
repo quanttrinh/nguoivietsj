@@ -48,6 +48,3 @@ staging_session_duration = "8h"
 staging_allowed_emails = [
   "organizer@example.com",
 ]
-
-# Optional Access service token IDs for automated staging checks.
-access_service_token_ids = []
