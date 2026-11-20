@@ -57,7 +57,7 @@ jobs:
           retention-days: 7
       - name: Publish test report
         if: always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
-        uses: mikepenz/action-junit-report@3585e9575db828022551b4231f165eb59a0e74e3 # v5
+        uses: mikepenz/action-junit-report@a16be3a69023e9bd7e748ede768b3282ea7b30ce # v6
         with:
           report_paths: reports/junit.xml
           check_name: Vitest
