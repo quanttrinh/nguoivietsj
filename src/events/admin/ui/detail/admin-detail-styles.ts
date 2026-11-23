@@ -49,7 +49,6 @@ export const styles = {
   }),
   actionsCard: vstack({
     alignItems: "stretch",
-    justifyContent: "center",
     h: "full",
   }),
   actions: wrap({

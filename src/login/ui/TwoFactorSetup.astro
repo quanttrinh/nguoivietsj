@@ -73,9 +73,8 @@ const styles = {
           <div class={styles.qr}>
             <img data-qr alt="" />
           </div>
-          <p class={styles.text}>
-            {content.secretLabel.value} <code data-secret class={styles.secret}></code>
-          </p>
+          <p class={styles.text}>{content.secretLabel.value}</p>
+          <code data-secret class={styles.secret}></code>
           <qui-field>
             <qui-field-label>{content.codeLabel.value}</qui-field-label>
             <qui-input

@@ -1,6 +1,6 @@
 // @boundary client
 import { authClient } from "./client";
-import { clearSharedSession } from "./session";
+import { resetSharedSession } from "./session";
 
 export type SignInResult =
   | { status: "signed-in" }
@@ -37,6 +37,6 @@ export async function signInEmail(input: {
     return { status: "two-factor" };
   }
 
-  clearSharedSession();
+  resetSharedSession();
   return { status: "signed-in" };
 }

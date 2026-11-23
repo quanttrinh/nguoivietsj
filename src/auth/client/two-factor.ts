@@ -2,7 +2,7 @@
 import { encodeQR } from "qr";
 
 import { authClient } from "./client";
-import { clearSharedSession } from "./session";
+import { resetSharedSession } from "./session";
 
 export type TwoFactorMethod = "totp" | "email" | "backup";
 
@@ -34,7 +34,7 @@ export async function verifyTwoFactor(input: {
   const { error } = await VERIFY[input.method](body);
 
   if (error === null) {
-    clearSharedSession();
+    resetSharedSession();
   }
 
   return errorMessage(error);
@@ -75,7 +75,7 @@ export async function confirmEnrollment(code: string): Promise<string | null> {
   const { error } = await authClient.twoFactor.verifyTotp({ code });
 
   if (error === null) {
-    clearSharedSession();
+    resetSharedSession();
   }
 
   return errorMessage(error);

@@ -1,6 +1,7 @@
 // @boundary client
 import { BETTER_AUTH_BASE_PATH } from "~/auth/constants";
 import { setUnauthorizedHandler } from "~/shared/client/api/client";
+import { invalidateKeys } from "~/shared/client/query/client";
 import { isRecord } from "~/shared/utils/records";
 
 export interface SharedSessionUser {
@@ -156,10 +157,16 @@ export async function getSharedSession(): Promise<SharedSessionResult> {
 }
 
 /** Drop the shared session after sign-in or sign-out. */
-export function clearSharedSession(): void {
+function clearSharedSession(): void {
   cached = null;
   pending = null;
   clearSessionHint();
+}
+
+/** Reset everything tied to the previous identity after an auth transition. */
+export function resetSharedSession(): void {
+  clearSharedSession();
+  invalidateKeys(() => true);
 }
 
 /** Revoke the current Better Auth session. */
@@ -175,8 +182,10 @@ export async function signOut(): Promise<string | null> {
     return "Unable to sign out";
   }
 
-  clearSharedSession();
+  resetSharedSession();
   return null;
 }
 
+// A 401 only invalidates the session hint; clearing queries here would make an
+// unauthorized page refetch in a loop, so auth transitions use resetSharedSession().
 setUnauthorizedHandler(clearSharedSession);

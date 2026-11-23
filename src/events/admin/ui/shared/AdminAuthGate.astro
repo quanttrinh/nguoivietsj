@@ -50,35 +50,41 @@ const styles = {
     button.setAttribute("href", `${loginBase}?redirect=${encodeURIComponent(redirect)}`);
   }
 
-  function applyAuthenticated(authenticated: boolean): void {
+  type GateState = "authenticated" | "unauthenticated" | "redirecting";
+
+  /**
+   * `redirecting` shows neither the gate nor protected content: the user is
+   * signed in, so "Sign in required" would be wrong, and the page is about to
+   * be swapped by the enrollment navigation.
+   */
+  function applyState(state: GateState): void {
     const gate = document.querySelector<HTMLElement>("[data-admin-auth-gate]");
 
     if (gate === null) {
       return;
     }
 
-    gate.hidden = authenticated;
+    gate.hidden = state !== "unauthenticated";
 
     for (const element of protectedElements()) {
-      element.hidden = !authenticated;
+      element.hidden = state !== "authenticated";
 
-      if (!authenticated) {
+      if (state === "unauthenticated") {
         element.replaceChildren();
       }
     }
   }
 
-  /** Users who still owe two-factor enrollment are sent there first. */
-  function redirectToEnrollment(user: Record<string, unknown>): boolean {
+  /** Build the enrollment URL, or `null` when no redirect is needed. */
+  function enrollmentRedirectUrl(user: Record<string, unknown>): string | null {
     const loginBase = document.querySelector<HTMLElement>("[data-admin-login]")?.dataset.loginBase;
 
-    if (!requiresTwoFactorEnrollment(user) || loginBase === undefined) {
-      return false;
+    if (loginBase === undefined || !requiresTwoFactorEnrollment(user)) {
+      return null;
     }
 
     const redirect = `${globalThis.location.pathname}${globalThis.location.search}`;
-    void navigate(`${loginBase}/two-factor/?redirect=${encodeURIComponent(redirect)}`);
-    return true;
+    return `${loginBase}/two-factor/?redirect=${encodeURIComponent(redirect)}`;
   }
 
   async function initAdminAuthGate(): Promise<void> {
@@ -89,20 +95,28 @@ const styles = {
     updateLoginHref();
 
     if (hasRecentSessionHint()) {
-      applyAuthenticated(true);
+      applyState("authenticated");
     }
 
     try {
       const result = await getSharedSession();
 
-      if (result.data !== null && redirectToEnrollment(result.data.user)) {
-        applyAuthenticated(false);
+      if (result.data === null) {
+        applyState("unauthenticated");
         return;
       }
 
-      applyAuthenticated(result.data !== null);
+      const redirect = enrollmentRedirectUrl(result.data.user);
+
+      if (redirect !== null) {
+        applyState("redirecting");
+        await navigate(redirect);
+        return;
+      }
+
+      applyState("authenticated");
     } catch {
-      applyAuthenticated(false);
+      applyState("unauthenticated");
     }
   }
 
