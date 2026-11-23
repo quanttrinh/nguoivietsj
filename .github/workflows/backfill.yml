@@ -85,9 +85,10 @@ jobs:
           DOPPLER_TOKEN: ${{ secrets.DOPPLER_INFRA_READ_TOKEN }}
         run: |
           if [ -f "$BACKFILL_LOG" ]; then
-            if ! doppler run --config infra -- bunx wrangler r2 object put \
-              "opentofu/logs/backfill-${{ inputs.target }}.log" \
-              --file "$BACKFILL_LOG" --remote >/dev/null 2>&1; then
+            if ! LOG_FILE="$BACKFILL_LOG" LOG_KEY="backfill-${{ inputs.target }}.log" \
+              doppler run --config infra -- bash -c \
+                'aws s3 cp "$LOG_FILE" "s3://opentofu/logs/$LOG_KEY" --endpoint-url "$AWS_ENDPOINT_URL_S3"' \
+              >/dev/null 2>&1; then
               echo "::warning::Could not upload backfill log to R2"
             fi
           fi
