@@ -1,0 +1,12 @@
+---
+// @boundary astro
+import { locales } from "intlayer";
+
+import RegistrationShell from "~/events/registration/ui/RegistrationShell.astro";
+
+export function getStaticPaths(): { params: { locale: string } }[] {
+  return locales.map((locale) => ({ params: { locale } }));
+}
+---
+
+<RegistrationShell preview />

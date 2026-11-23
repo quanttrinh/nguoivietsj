@@ -1,0 +1,76 @@
+# Zone, hostnames, zone/account IDs, and D1/KV bindings come from wrangler.json
+# and the Cloudflare API. This file only holds values that are specific to the
+# account or policy.
+
+# Challenged path patterns.
+challenge_path_patterns = ["/api/events/*/registrations"]
+rate_limit_paths = [
+  "/api/events/*/registrations",
+  "/api/events/status/*",
+  "/api/auth/sign-in/*",
+  "/api/auth/two-factor/*",
+]
+
+# Free-plan-safe defaults.
+rate_limit_requests            = 10
+rate_limit_period              = 10
+rate_limit_mitigation_timeout  = 10
+
+# Apply the Turnstile widget, deploy the Worker with its site key and secret,
+# then set this to true to create the WAF challenge.
+turnstile_preclearance_confirmed = false
+
+# HSTS is applied at the zone. Enable subdomains only after confirming every
+# subdomain serves HTTPS. Preload requires a max age of at least two years.
+hsts_include_subdomains = false
+hsts_max_age            = 31536000
+hsts_preload            = false
+
+turnstile_widget_name     = "Event registration"
+turnstile_widget_mode     = "managed"
+turnstile_clearance_level = "managed"
+# Additional DNS records not owned by Wrangler custom domains.
+# These are the Mailtrap sending-domain records for nguoivietsj.ca.
+dns_records = {
+  mailtrap_verification = {
+    name    = "mt83"
+    type    = "CNAME"
+    content = "smtp.mailtrap.live"
+    comment = "Mailtrap domain verification"
+  }
+  mailtrap_dkim_1 = {
+    name    = "rwmt1._domainkey"
+    type    = "CNAME"
+    content = "rwmt1.dkim.smtp.mailtrap.live"
+    comment = "Mailtrap DKIM"
+  }
+  mailtrap_dkim_2 = {
+    name    = "rwmt2._domainkey"
+    type    = "CNAME"
+    content = "rwmt2.dkim.smtp.mailtrap.live"
+    comment = "Mailtrap DKIM"
+  }
+  mailtrap_tracking = {
+    name    = "mt-link"
+    type    = "CNAME"
+    content = "t.mailtrap.live"
+    comment = "Mailtrap domain tracking"
+  }
+}
+
+# Cloudflare Access protects the whole staging hostname only. Production staff
+# authentication is handled in-app by Better Auth.
+staging_session_duration = "8h"
+
+# Staging Access allow list.
+staging_allowed_emails = [
+  "organizer@example.com",
+]
+
+# Free-plan bot and AI traffic controls.
+bot_fight_mode_enabled = true
+ai_labyrinth_enabled   = true
+ai_training_policy     = "disallow"
+ai_user_policy         = "block"
+ai_search_policy       = "disabled"
+managed_robots_enabled = true

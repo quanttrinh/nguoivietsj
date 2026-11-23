@@ -1,0 +1,58 @@
+---
+// @boundary astro
+import { useDictionary, useLocale } from "astro-intlayer";
+import { locales } from "intlayer";
+
+import { css } from "styled-system/css";
+import { vstack } from "styled-system/patterns";
+import engineEventsContent from "~/events/content/events.content";
+import EventList from "~/events/list/ui/EventList";
+import BaseLayout from "~/layouts/BaseLayout.astro";
+import Panel from "~/shared/ui/Panel.astro";
+
+export function getStaticPaths(): { params: { locale: string } }[] {
+  return locales.map((locale) => ({ params: { locale } }));
+}
+
+const { locale } = useLocale();
+const content = useDictionary(engineEventsContent, locale);
+
+const messages = {
+  noEvents: content.noEvents.value,
+  unavailable: content.unavailable.value,
+  viewEvent: content.viewEvent.value,
+  register: content.register.value,
+  registrationClosed: content.registrationClosed.value,
+};
+
+const styles = {
+  section: vstack({ alignItems: "stretch", gap: "7", paddingBlockStart: { base: "2", md: "3" } }),
+  heading: vstack({ alignItems: "stretch", gap: "2" }),
+  title: css({
+    margin: "0",
+    fontFamily: "display",
+    fontSize: { base: "4xl", md: "5xl" },
+    lineHeight: "none",
+    letterSpacing: "tight",
+    fontWeight: "bold",
+  }),
+  intro: css({ margin: "0", maxWidth: "2xl", fontSize: "md", color: "onSurfaceVariant" }),
+  empty: css({ margin: "0", fontSize: "sm", color: "onSurfaceVariant" }),
+};
+---
+
+<BaseLayout title={content.meta.title.value} description={content.meta.description.value}>
+  <section class={styles.section}>
+    <div class={styles.heading}>
+      <h1 class={styles.title}>{content.title.value}</h1>
+      <p class={styles.intro}>{content.intro.value}</p>
+    </div>
+
+    <EventList client:load locale={locale} messages={messages} />
+    <noscript>
+      <Panel padding="lg">
+        <p class={styles.empty}>{content.noscript.value}</p>
+      </Panel>
+    </noscript>
+  </section>
+</BaseLayout>

@@ -1,0 +1,29 @@
+---
+// @boundary client
+---
+
+<script>
+  import { eventTitles } from "./event-titles";
+  import { adminQueries } from "./queries";
+
+  function readEventId(): string | null {
+    return new URLSearchParams(globalThis.location.search).get("event");
+  }
+
+  function loadEventTitle(): void {
+    const eventId = readEventId();
+
+    if (eventId === null || eventTitles.get()[eventId] !== undefined) {
+      return;
+    }
+
+    const store = adminQueries.eventTitle(eventId);
+    const unsubscribe = store.subscribe((state) => {
+      if (state.data !== undefined || state.error !== undefined) {
+        queueMicrotask(unsubscribe);
+      }
+    });
+  }
+
+  document.addEventListener("astro:page-load", loadEventTitle);
+</script>

@@ -1,0 +1,24 @@
+---
+// @boundary client
+import { getBasePlugins, getDictionary } from "@intlayer/core/interpreter";
+import type { DeclaredLocales } from "intlayer";
+
+import engineContent from "~/events/content/admin.content";
+import { pick } from "~/shared/content/pick";
+
+import { formEditorLabelKeys } from "./form-labels";
+import FormEditorIsland from "./FormEditor.tsx";
+
+interface Props {
+  locale: DeclaredLocales;
+}
+
+const { locale }: Props = Astro.props;
+
+const labels = pick(
+  getDictionary(engineContent, locale, getBasePlugins(locale)),
+  formEditorLabelKeys,
+);
+---
+
+<FormEditorIsland client:only="preact" locale={locale} labels={labels} />

@@ -1,0 +1,16 @@
+Hi {{full_name}},
+
+We received your registration for {{event_title}}.
+
+Registration ID: {{registration_id}}
+Tickets:
+{{ticket_summary}}
+Amount due: {{amount_due}}
+
+Payment:
+{{payment_instructions}}
+
+View your registration status, payment, and check-in QR code:
+{{status_url}}
+
+This link can be used once. Afterward, request a new verification code from the status page.

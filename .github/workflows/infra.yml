@@ -1,0 +1,101 @@
+name: Infrastructure
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Plan only, or plan and apply the saved plan"
+        type: choice
+        required: true
+        default: plan
+        options:
+          - plan
+          - apply
+
+concurrency:
+  group: infra
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        root: [cloudflare, mailtrap]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: ./.github/actions/setup-deps
+        with:
+          install-dependencies: "false"
+      - name: OpenTofu format check
+        if: matrix.root == 'cloudflare'
+        run: tofu fmt -check -recursive infra
+      - name: OpenTofu validate
+        working-directory: infra/${{ matrix.root }}
+        run: |
+          tofu init -backend=false -input=false
+          tofu validate
+
+  plan_and_apply:
+    needs: validate
+    environment: production
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        root: [cloudflare, mailtrap]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: ./.github/actions/setup-deps
+        with:
+          install-dependencies: "false"
+      - name: Write Terraform variables
+        if: matrix.root == 'cloudflare'
+        working-directory: infra/${{ matrix.root }}
+        env:
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_INFRA_READ_TOKEN }}
+        run: doppler secrets get TERRAFORM_TFVARS --config infra --plain > terraform.tfvars.json
+      - name: Plan
+        working-directory: infra/${{ matrix.root }}
+        env:
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_INFRA_READ_TOKEN }}
+        run: |
+          set +e
+          (
+            set -e
+            printf 'run=%s date=%s root=%s\n' "${{ github.run_id }}" "$(date -u +%FT%TZ)" "${{ matrix.root }}"
+            doppler run --config infra -- tofu init -input=false -no-color
+            doppler run --config infra -- tofu plan -input=false -lock-timeout=5m -no-color \
+              -out=${{ matrix.root }}.tfplan
+          ) > plan.log 2>&1
+          status=$?
+          cd "$GITHUB_WORKSPACE"
+          if ! doppler run --config infra -- bunx wrangler r2 object put \
+            "opentofu/logs/${{ matrix.root }}-plan.log" \
+            --file "infra/${{ matrix.root }}/plan.log" --remote >/dev/null 2>&1; then
+            echo "::warning::Could not upload plan log to R2"
+          fi
+          exit "$status"
+      - name: Apply saved plan
+        if: github.ref == 'refs/heads/main' && inputs.mode == 'apply'
+        working-directory: infra/${{ matrix.root }}
+        env:
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_INFRA_READ_TOKEN }}
+        run: |
+          set +e
+          (
+            set -e
+            printf 'run=%s date=%s root=%s\n' "${{ github.run_id }}" "$(date -u +%FT%TZ)" "${{ matrix.root }}"
+            doppler run --config infra -- tofu apply -input=false -lock-timeout=5m -no-color \
+              ${{ matrix.root }}.tfplan
+          ) > apply.log 2>&1
+          status=$?
+          cd "$GITHUB_WORKSPACE"
+          if ! doppler run --config infra -- bunx wrangler r2 object put \
+            "opentofu/logs/${{ matrix.root }}-apply.log" \
+            --file "infra/${{ matrix.root }}/apply.log" --remote >/dev/null 2>&1; then
+            echo "::warning::Could not upload apply log to R2"
+          fi
+          exit "$status"

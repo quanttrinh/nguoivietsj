@@ -1,0 +1,16 @@
+packages:
+  - type: github_release
+    repo_owner: DopplerHQ
+    repo_name: cli
+    description: Doppler CLI
+    version_constraint: "false"
+    version_overrides:
+      - version_constraint: "true"
+        asset: doppler_{{.Version}}_{{.OS}}_{{.Arch}}.tar.gz
+        format: tar.gz
+        files:
+          - name: doppler
+        checksum:
+          type: github_release
+          asset: checksums.txt
+          algorithm: sha256

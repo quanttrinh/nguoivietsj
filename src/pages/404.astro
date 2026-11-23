@@ -1,0 +1,32 @@
+---
+// @boundary astro
+import { useIntlayer, useLocale } from "astro-intlayer";
+import { getLocalizedUrl } from "intlayer";
+
+import BaseLayout from "~/layouts/BaseLayout.astro";
+import { guardPageStyles as styles } from "~/shared/ui/guard-page-styles";
+
+Astro.response.status = 404;
+
+const { locale } = useLocale();
+const messages = useIntlayer("site");
+---
+
+<BaseLayout
+  title={`${messages.notFound.title.value} · ${messages.brand.value}`}
+  description={messages.notFound.message.value}
+>
+  <section class={styles.section}>
+    <div class={styles.panel}>
+      <h1 class={styles.title}>{messages.notFound.title.value}</h1>
+      <p class={styles.message}>{messages.notFound.message.value}</p>
+      <qui-button href={getLocalizedUrl("/", locale)} variant="filled">
+        {messages.backToHome.value}
+      </qui-button>
+    </div>
+  </section>
+
+  <script>
+    import "virtual:qui/register?components=qui-button";
+  </script>
+</BaseLayout>

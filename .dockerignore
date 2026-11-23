@@ -1,0 +1,45 @@
+# Keep the devcontainer build context small. The Containerfile only installs
+# OS packages today, but these rules keep local artifacts out if it ever copies
+# the workspace.
+
+# VCS and local editor state
+.git/
+.gitignore
+.DS_Store
+*.swp
+
+# Installed dependencies and generated build output
+node_modules/
+dist/
+.astro/
+.wrangler/
+.intlayer/
+styled-system/
+*.tsbuildinfo
+
+# Test and coverage artifacts
+.vitest/
+coverage/
+reports/
+test-results/
+playwright-report/
+__screenshots__/
+__traces__/
+
+# Local secrets and generated deploy config
+.env
+.env.*
+.dev.vars*
+wrangler.generated.json
+
+# Infrastructure state and local backups
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json
+!*.tfvars.example
+/backups/
+
+# Logs
+*.log

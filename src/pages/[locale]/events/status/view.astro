@@ -1,0 +1,29 @@
+---
+// @boundary astro
+import { getBasePlugins, getDictionary } from "@intlayer/core/interpreter";
+import { useDictionary, useLocale } from "astro-intlayer";
+import { locales } from "intlayer";
+
+import engineContent from "~/events/content/admin.content";
+import engineStatusContent from "~/events/content/status.content";
+import { statusViewLabelKeys } from "~/events/status/ui/labels";
+import StatusView from "~/events/status/ui/StatusView";
+import { registrationCardLabelKeys } from "~/events/ui/registration/labels";
+import BaseLayout from "~/layouts/BaseLayout.astro";
+import { pick } from "~/shared/content/pick";
+
+export function getStaticPaths(): { params: { locale: string } }[] {
+  return locales.map((locale) => ({ params: { locale } }));
+}
+
+const { locale } = useLocale();
+const content = useDictionary(engineStatusContent, locale);
+const view = {
+  ...pick(getDictionary(engineContent, locale, getBasePlugins(locale)), registrationCardLabelKeys),
+  ...pick(getDictionary(engineStatusContent, locale, getBasePlugins(locale)), statusViewLabelKeys),
+};
+---
+
+<BaseLayout title={content.metaTitle.value} description={content.metaDescription.value} noindex>
+  <StatusView client:load locale={locale} labels={view} />
+</BaseLayout>

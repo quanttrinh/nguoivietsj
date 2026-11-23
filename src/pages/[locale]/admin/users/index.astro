@@ -1,0 +1,81 @@
+---
+// @boundary astro
+import { getBasePlugins, getDictionary } from "@intlayer/core/interpreter";
+import { useDictionary, useLocale } from "astro-intlayer";
+import { locales } from "intlayer";
+
+import AdminLayout from "~/events/admin/ui/shared/AdminLayout.astro";
+import AdminPageHeader from "~/events/admin/ui/shared/AdminPageHeader.astro";
+import { adminPageStyles } from "~/events/admin/ui/shared/styles/admin-styles";
+import AdminUsers from "~/events/admin/ui/users/AdminUsers";
+import engineContent from "~/events/content/admin.content";
+import { pick } from "~/shared/content/pick";
+
+export function getStaticPaths(): { params: { locale: string } }[] {
+  return locales.map((locale) => ({ params: { locale } }));
+}
+
+const { locale } = useLocale();
+const content = useDictionary(engineContent, locale);
+
+const view = pick(getDictionary(engineContent, locale, getBasePlugins(locale)), [
+  "allRoles",
+  "createUser",
+  "deleteUserConfirm",
+  "editUser",
+  "newPassword",
+  "nextPage",
+  "noUsers",
+  "passwordHelp",
+  "passwordTooShort",
+  "previousPage",
+  "roleAdmin",
+  "roleEventCheckin",
+  "roleEventStaff",
+  "roleUser",
+  "userActions",
+  "userCancel",
+  "userClearFilters",
+  "userClose",
+  "userCreated",
+  "userCreatedAt",
+  "userDelete",
+  "userDeleteFailed",
+  "userDeleted",
+  "userEdit",
+  "userEmail",
+  "userLoadFailed",
+  "userName",
+  "userPassword",
+  "userRequired",
+  "userRole",
+  "userSave",
+  "userSaveFailed",
+  "userSaving",
+  "userSearch",
+  "userSearchAction",
+  "userSearchField",
+  "userSearchPlaceholder",
+  "userUpdated",
+]);
+---
+
+<AdminLayout
+  title={content.manageUsers.value}
+  description={content.userManagementIntro.value}
+  noindex
+>
+  <section class={adminPageStyles.section} id="engine-admin-users">
+    <AdminPageHeader
+      locale={locale}
+      title={content.manageUsers.value}
+      intro={content.userManagementIntro.value}
+    />
+    <AdminUsers
+      client:load
+      locale={locale}
+      labels={view}
+      pageOfParts={content.pageOfParts.map((part: { value: string }) => part.value)}
+    />
+  </section>
+</AdminLayout>

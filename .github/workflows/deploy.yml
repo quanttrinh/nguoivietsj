@@ -1,0 +1,189 @@
+name: Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment
+        required: true
+        default: staging
+        type: choice
+        options:
+          - staging
+          - production
+      pr:
+        description: Staging only - PR number to deploy. Leave blank to deploy main.
+        required: false
+        default: ""
+        type: string
+
+concurrency:
+  group: deploy-${{ inputs.environment }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: ${{ inputs.environment }}
+    env:
+      DEPLOY_ENV: ${{ inputs.environment }}
+      DOPPLER_CONFIG: ${{ inputs.environment == 'staging' && 'stg' || 'prd' }}
+      DEPLOY_LOG: ${{ github.workspace }}/deploy.log
+
+    steps:
+      - name: Resolve deploy ref
+        id: ref
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TARGET: ${{ inputs.environment }}
+          PR_NUMBER: ${{ inputs.pr }}
+        run: |
+          set -euo pipefail
+
+          if [ -n "$PR_NUMBER" ] && [ "$TARGET" != "staging" ]; then
+            echo "::error::PR deploys are staging-only."
+            exit 1
+          fi
+
+          if [ -z "$PR_NUMBER" ]; then
+            echo "ref=main" >> "$GITHUB_OUTPUT"
+            echo "Deploying main to $TARGET."
+            exit 0
+          fi
+
+          data=$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" \
+            --json headRefOid,isCrossRepository,state \
+            --jq '[.headRefOid, .isCrossRepository, .state] | @tsv')
+          IFS=$'\t' read -r sha cross_repository state <<< "$data"
+
+          if [ "$cross_repository" = "true" ]; then
+            echo "::error::Fork PRs cannot be deployed to staging."
+            exit 1
+          fi
+
+          if [ "$state" != "OPEN" ]; then
+            echo "::error::PR #$PR_NUMBER is not open."
+            exit 1
+          fi
+
+          echo "ref=$sha" >> "$GITHUB_OUTPUT"
+          echo "Deploying PR #$PR_NUMBER ($sha) to staging."
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ steps.ref.outputs.ref }}
+
+      - uses: ./.github/actions/setup-deps
+        env:
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_READ_TOKEN }}
+
+      - name: Start deploy log
+        run: printf 'run=%s date=%s env=%s\n' "${{ github.run_id }}" "$(date -u +%FT%TZ)" "${{ inputs.environment }}" > "$DEPLOY_LOG"
+
+      - name: Init OpenTofu
+        env:
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_INFRA_READ_TOKEN }}
+        run: |
+          {
+            doppler run --config infra -- tofu -chdir=infra/cloudflare init -input=false
+            doppler run --config infra -- tofu -chdir=infra/mailtrap init -input=false
+          } >> "$DEPLOY_LOG" 2>&1
+
+      - name: Generate deploy config
+        env:
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_INFRA_READ_TOKEN }}
+        run: |
+          {
+            doppler run --config infra -- tofu -chdir=infra/cloudflare output -json > /tmp/tofu-cloudflare-outputs.json
+            doppler run --config infra -- tofu -chdir=infra/mailtrap output -json > /tmp/tofu-mailtrap-outputs.json
+            python3 scripts/deploy.py render-config \
+              --config wrangler.json \
+              --outputs /tmp/tofu-cloudflare-outputs.json \
+              --outputs /tmp/tofu-mailtrap-outputs.json \
+              --env "$DEPLOY_ENV" \
+              --out wrangler.generated.json
+          } >> "$DEPLOY_LOG" 2>&1
+
+      - name: Publish Turnstile values to Doppler
+        env:
+          DOPPLER_INFRA_READ_TOKEN: ${{ secrets.DOPPLER_INFRA_READ_TOKEN }}
+          DOPPLER_WRITE_TOKEN: ${{ secrets.DOPPLER_WRITE_TOKEN }}
+        run: |
+          {
+            TURNSTILE_SITE_KEY=$(DOPPLER_TOKEN="$DOPPLER_INFRA_READ_TOKEN" doppler run --config infra -- tofu -chdir=infra/cloudflare output -raw turnstile_site_key)
+            TURNSTILE_SECRET=$(DOPPLER_TOKEN="$DOPPLER_INFRA_READ_TOKEN" doppler run --config infra -- tofu -chdir=infra/cloudflare output -raw turnstile_secret)
+            DOPPLER_PROJECT=$(awk '/project:/{print $3; exit}' doppler.yaml)
+            TURNSTILE_SITE_KEY="$TURNSTILE_SITE_KEY" TURNSTILE_SECRET="$TURNSTILE_SECRET" \
+              python3 scripts/deploy.py turnstile > /tmp/turnstile-values.json
+            DOPPLER_TOKEN="$DOPPLER_WRITE_TOKEN" doppler secrets upload \
+              /tmp/turnstile-values.json \
+              --project "$DOPPLER_PROJECT" \
+              --config "$DOPPLER_CONFIG" \
+              --silent
+          } >> "$DEPLOY_LOG" 2>&1
+
+      - name: Sync Worker secrets from Doppler
+        env:
+          DOPPLER_READ_TOKEN: ${{ secrets.DOPPLER_READ_TOKEN }}
+          DOPPLER_INFRA_READ_TOKEN: ${{ secrets.DOPPLER_INFRA_READ_TOKEN }}
+        run: |
+          set -o pipefail
+          if [ "$DEPLOY_ENV" = "staging" ]; then
+            ENV_FLAG="--env $DEPLOY_ENV"
+          else
+            ENV_FLAG=""
+          fi
+          {
+            DOPPLER_TOKEN="$DOPPLER_READ_TOKEN" doppler secrets --json --config "$DOPPLER_CONFIG" \
+              | python3 scripts/deploy.py worker-secrets --env "$DEPLOY_ENV" --config wrangler.generated.json \
+              > /tmp/worker-secrets.json
+            DOPPLER_TOKEN="$DOPPLER_INFRA_READ_TOKEN" doppler run --config infra -- \
+              bunx wrangler secret bulk /tmp/worker-secrets.json --config wrangler.generated.json $ENV_FLAG
+          } >> "$DEPLOY_LOG" 2>&1
+
+      - name: Apply D1 migrations
+        env:
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_INFRA_READ_TOKEN }}
+          WRANGLER_CONFIG: wrangler.generated.json
+        run: doppler run --config infra -- bun run db:migrate --target "$DEPLOY_ENV" >> "$DEPLOY_LOG" 2>&1
+
+      - name: Check deploy configuration
+        run: python3 scripts/deploy.py check --env "$DEPLOY_ENV" --config wrangler.generated.json >> "$DEPLOY_LOG" 2>&1
+
+      - name: Build and deploy
+        env:
+          DOPPLER_READ_TOKEN: ${{ secrets.DOPPLER_READ_TOKEN }}
+          DOPPLER_INFRA_READ_TOKEN: ${{ secrets.DOPPLER_INFRA_READ_TOKEN }}
+          WRANGLER_CONFIG: wrangler.generated.json
+        run: |
+          if [ "$DEPLOY_ENV" = "staging" ]; then
+            ENV_FLAG="--env $DEPLOY_ENV"
+            BUILD_ENV="WORKER_ORIGIN_ENV=$DEPLOY_ENV"
+          else
+            ENV_FLAG=""
+            BUILD_ENV=""
+          fi
+          {
+            env $BUILD_ENV DOPPLER_TOKEN="$DOPPLER_READ_TOKEN" \
+              doppler run --config "$DOPPLER_CONFIG" -- bunx astro build
+            DOPPLER_TOKEN="$DOPPLER_INFRA_READ_TOKEN" doppler run --config infra -- \
+              bunx wrangler deploy $ENV_FLAG
+          } >> "$DEPLOY_LOG" 2>&1
+
+      - name: Upload deploy log to R2
+        if: always()
+        env:
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_INFRA_READ_TOKEN }}
+        run: |
+          if [ -f "$DEPLOY_LOG" ]; then
+            if ! doppler run --config infra -- bunx wrangler r2 object put \
+              "opentofu/logs/deploy-${{ inputs.environment }}.log" \
+              --file "$DEPLOY_LOG" --remote >/dev/null 2>&1; then
+              echo "::warning::Could not upload deploy log to R2"
+            fi
+          fi

@@ -1,0 +1,45 @@
+---
+// @boundary client
+---
+
+<script>
+  const bridgeSubmit = (event: Event): void => {
+    const button = event
+      .composedPath()
+      .find(
+        (node): node is HTMLElement =>
+          node instanceof HTMLElement &&
+          node.localName === "qui-button" &&
+          node.getAttribute("type") === "submit",
+      );
+
+    if (button === undefined) {
+      return;
+    }
+
+    const owner = button.closest("form");
+
+    if (owner === null) {
+      return;
+    }
+
+    event.preventDefault();
+
+    const bridge = document.createElement("button");
+    bridge.type = "submit";
+    bridge.hidden = true;
+
+    for (const attribute of button.attributes) {
+      if (attribute.name !== "id" && attribute.name !== "type") {
+        bridge.setAttribute(attribute.name, attribute.value);
+      }
+    }
+
+    // oxlint-disable-next-line unicorn/prefer-dom-node-append -- Workers types shadow DOM append.
+    owner.appendChild(bridge);
+    bridge.click();
+    bridge.remove();
+  };
+
+  document.addEventListener("click", bridgeSubmit);
+</script>

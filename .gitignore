@@ -1,0 +1,47 @@
+node_modules/
+dist/
+.astro/
+styled-system/
+.intlayer/
+.wrangler/
+src/types/worker-configuration.d.ts
+src/types/worker-env.d.ts
+
+.dev.vars*
+.env
+.env.*
+*.log
+.DS_Store
+
+*.tsbuildinfo
+__pycache__/
+*.pyc
+
+# Generated deploy config (contains resolved binding IDs)
+wrangler.generated.json
+
+# OpenTofu / Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+*.tfvars
+*.tfvars.json
+!*.tfvars.example
+*.tfplan
+plan.log
+apply.log
+deploy.log
+backfill.log
+
+# Local project backups
+/backups/
+
+# Vitest artifacts and test reports
+.vitest/
+/reports/
+coverage/
+test-results/
+playwright-report/
+__screenshots__/
+__traces__/

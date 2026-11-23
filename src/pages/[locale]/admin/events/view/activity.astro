@@ -1,0 +1,53 @@
+---
+// @boundary astro
+import { getBasePlugins, getDictionary } from "@intlayer/core/interpreter";
+import { useDictionary, useLocale } from "astro-intlayer";
+import { locales } from "intlayer";
+
+import AdminActivity from "~/events/admin/ui/catalog/AdminActivity";
+import AdminLayout from "~/events/admin/ui/shared/AdminLayout.astro";
+import AdminPageHeader from "~/events/admin/ui/shared/AdminPageHeader.astro";
+import { adminPageStyles } from "~/events/admin/ui/shared/styles/admin-styles";
+import engineContent from "~/events/content/admin.content";
+import { pick } from "~/shared/content/pick";
+import Panel from "~/shared/ui/Panel.astro";
+
+export function getStaticPaths(): { params: { locale: string } }[] {
+  return locales.map((locale) => ({ params: { locale } }));
+}
+
+const { locale } = useLocale();
+const content = useDictionary(engineContent, locale);
+
+const view = pick(getDictionary(engineContent, locale, getBasePlugins(locale)), [
+  "action",
+  "activity",
+  "actor",
+  "eventNotFound",
+  "loadFailed",
+  "loading",
+  "metadata",
+  "noActivity",
+  "paymentConfirmAction",
+  "paymentUnconfirmAction",
+  "paymentUpdateAction",
+  "target",
+  "time",
+]);
+---
+
+<AdminLayout title={content.activity.value} description={content.activityIntro.value} noindex>
+  <section class={adminPageStyles.section}>
+    <AdminPageHeader
+      locale={locale}
+      title=""
+      titleId="engine-activity-title"
+      preserveTitle
+      intro={content.activityIntro.value}
+    />
+
+    <Panel padding="lg">
+      <AdminActivity client:load locale={locale} labels={view} />
+    </Panel>
+  </section>
+</AdminLayout>

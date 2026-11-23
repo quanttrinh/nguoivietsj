@@ -1,0 +1,112 @@
+---
+// @boundary client
+import { css, cx } from "styled-system/css";
+import { guardPageStyles } from "~/shared/ui/guard-page-styles";
+
+interface Props {
+  required: string;
+  message: string;
+  login: string;
+  loginHref: string;
+}
+
+const { required, message, login, loginHref }: Props = Astro.props;
+
+const styles = {
+  hidden: css({ "&[hidden]": { display: "none !important" } }),
+};
+---
+
+<section data-admin-auth-gate hidden class={cx(guardPageStyles.section, styles.hidden)}>
+  <div class={guardPageStyles.panel} role="alert">
+    <h1 class={guardPageStyles.title}>{required}</h1>
+    <p class={guardPageStyles.message}>{message}</p>
+    <qui-button data-admin-login data-login-base={loginHref} href={loginHref} variant="filled">
+      {login}
+    </qui-button>
+  </div>
+</section>
+
+<script>
+  import "virtual:qui/register?components=qui-button";
+  import { navigate } from "astro:transitions/client";
+
+  import { getSharedSession, hasRecentSessionHint } from "~/auth/client/session";
+  import { requiresTwoFactorEnrollment } from "~/auth/two-factor";
+
+  function protectedElements(): HTMLElement[] {
+    return [...document.querySelectorAll<HTMLElement>("[data-admin-protected]")];
+  }
+
+  function updateLoginHref(): void {
+    const button = document.querySelector<HTMLElement>("[data-admin-login]");
+    const loginBase = button?.dataset.loginBase;
+
+    if (button === null || loginBase === undefined) {
+      return;
+    }
+
+    const redirect = `${globalThis.location.pathname}${globalThis.location.search}`;
+    button.setAttribute("href", `${loginBase}?redirect=${encodeURIComponent(redirect)}`);
+  }
+
+  function applyAuthenticated(authenticated: boolean): void {
+    const gate = document.querySelector<HTMLElement>("[data-admin-auth-gate]");
+
+    if (gate === null) {
+      return;
+    }
+
+    gate.hidden = authenticated;
+
+    for (const element of protectedElements()) {
+      element.hidden = !authenticated;
+
+      if (!authenticated) {
+        element.replaceChildren();
+      }
+    }
+  }
+
+  /** Users who still owe two-factor enrollment are sent there first. */
+  function redirectToEnrollment(user: Record<string, unknown>): boolean {
+    const loginBase = document.querySelector<HTMLElement>("[data-admin-login]")?.dataset.loginBase;
+
+    if (!requiresTwoFactorEnrollment(user) || loginBase === undefined) {
+      return false;
+    }
+
+    const redirect = `${globalThis.location.pathname}${globalThis.location.search}`;
+    void navigate(`${loginBase}/two-factor/?redirect=${encodeURIComponent(redirect)}`);
+    return true;
+  }
+
+  async function initAdminAuthGate(): Promise<void> {
+    if (document.querySelector("[data-admin-auth-gate]") === null) {
+      return;
+    }
+
+    updateLoginHref();
+
+    if (hasRecentSessionHint()) {
+      applyAuthenticated(true);
+    }
+
+    try {
+      const result = await getSharedSession();
+
+      if (result.data !== null && redirectToEnrollment(result.data.user)) {
+        applyAuthenticated(false);
+        return;
+      }
+
+      applyAuthenticated(result.data !== null);
+    } catch {
+      applyAuthenticated(false);
+    }
+  }
+
+  document.addEventListener("astro:page-load", () => {
+    void initAdminAuthGate();
+  });
+</script>

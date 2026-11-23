@@ -1,0 +1,38 @@
+# syntax=docker/dockerfile:1
+FROM debian:trixie-slim
+
+ARG USERNAME=dev
+ARG USER_UID=1000
+ARG USER_GID=$USER_UID
+ENV LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8 \
+    SHELL=/bin/zsh
+
+RUN apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+      ssh \
+      git \
+      zsh \
+      curl \
+      unzip \
+      ca-certificates \
+      python3 \
+      passwd \
+      sudo \
+      ncurses-base \
+      ncurses-bin \
+      ncurses-term \
+      libatomic1 \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN groupadd --gid $USER_GID $USERNAME \
+    && useradd --uid $USER_UID --gid $USER_GID -m -s "$(command -v zsh)" $USERNAME \
+    && mkdir -p /etc/sudoers.d \
+    && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
+    && chmod 0440 /etc/sudoers.d/$USERNAME
+
+RUN echo 'PROMPT="%n:%~%# "' >> /etc/zsh/zshrc
+
+USER $USERNAME
+
+CMD ["/bin/zsh"]

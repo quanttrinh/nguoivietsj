@@ -1,0 +1,12 @@
+---
+// @boundary astro
+import { locales } from "intlayer";
+
+import Login from "~/login/ui/Login.astro";
+
+export function getStaticPaths(): { params: { locale: string } }[] {
+  return locales.map((locale) => ({ params: { locale } }));
+}
+---
+
+<Login />
