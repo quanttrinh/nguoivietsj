@@ -1,12 +1,14 @@
 // @boundary server
 import type { MiddlewareHandler } from "hono";
 import { createMiddleware } from "hono/factory";
+import { routePath } from "hono/route";
 
 import { can, type PermissionRequest } from "~/auth/permissions";
 import { auth } from "~/auth/server/auth";
 import { requiresTwoFactorEnrollment } from "~/auth/two-factor";
 import { apiError } from "~/server/api-response";
 import { forbidden, unauthorized } from "~/server/common-responses";
+import { getTracing, withTracingSpan } from "~/server/tracing";
 
 type AuthSession = ReturnType<typeof auth>["$Infer"]["Session"];
 type AuthEnv = HonoEnv & {
@@ -17,8 +19,14 @@ type AuthEnv = HonoEnv & {
 };
 
 export const requireAuth = createMiddleware<AuthEnv>(async (ctx, next) => {
-  const result = await auth(ctx.env).api.getSession({
-    headers: ctx.req.raw.headers,
+  const result = await withTracingSpan({
+    tracing: getTracing(ctx),
+    name: "auth.get_session",
+    attributes: { "auth.route": routePath(ctx, -1) || ctx.req.path },
+    task: () =>
+      auth(ctx.env).api.getSession({
+        headers: ctx.req.raw.headers,
+      }),
   });
 
   if (!result) {

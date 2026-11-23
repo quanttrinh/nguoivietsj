@@ -1,11 +1,13 @@
 // @boundary server
 import { Hono, type Context } from "hono";
+import { routePath } from "hono/route";
 
 import { auth } from "~/auth/server/auth";
 import { accountKey } from "~/auth/server/rate-limit-keys";
 import { isRecord } from "~/shared/utils/records";
 
 import { bodyEmailKey, clientKey, rateLimit } from "../middleware/rate-limit";
+import { getTracing, withTracingSpan } from "../tracing";
 
 /** The subset of Better Auth's endpoint input this app forwards. */
 type AuthApiCall = (input: {
@@ -40,10 +42,16 @@ function asAuthApiCall(endpoint: unknown): AuthApiCall {
 }
 
 async function callWithBody(ctx: Context<HonoEnv>, endpoint: AuthApiCall): Promise<Response> {
-  return endpoint({
-    headers: ctx.req.raw.headers,
-    body: await readJsonObject(ctx.req.raw),
-    asResponse: true,
+  return withTracingSpan({
+    tracing: getTracing(ctx),
+    name: "auth.endpoint",
+    attributes: { "auth.operation": routePath(ctx, -1) || ctx.req.path },
+    task: async () =>
+      endpoint({
+        headers: ctx.req.raw.headers,
+        body: await readJsonObject(ctx.req.raw),
+        asResponse: true,
+      }),
   });
 }
 
@@ -75,9 +83,15 @@ export const authRoutes = new Hono<HonoEnv>()
   )
   .post("/sign-out", (ctx) => callWithBody(ctx, asAuthApiCall(auth(ctx.env).api.signOut)))
   .get("/get-session", (ctx) =>
-    auth(ctx.env).api.getSession({
-      headers: ctx.req.raw.headers,
-      asResponse: true,
+    withTracingSpan({
+      tracing: getTracing(ctx),
+      name: "auth.endpoint",
+      attributes: { "auth.operation": routePath(ctx, -1) || ctx.req.path },
+      task: () =>
+        auth(ctx.env).api.getSession({
+          headers: ctx.req.raw.headers,
+          asResponse: true,
+        }),
     }),
   )
   .post(

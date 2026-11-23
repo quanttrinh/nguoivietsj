@@ -2,6 +2,7 @@
 import { type as ark } from "arktype";
 import { createMiddleware } from "hono/factory";
 
+import { getTracing, withTracingSpan } from "~/server/tracing";
 import { isRecord } from "~/shared/utils/records";
 
 import { apiMessage, resolveRequestLocale } from "./api-messages";
@@ -83,54 +84,62 @@ export function localizeApiErrors() {
     // oxlint-disable-next-line node/callback-return -- middleware continues after the downstream handler.
     await next();
 
-    const response = ctx.res;
+    await withTracingSpan({
+      tracing: getTracing(ctx),
+      name: "api.localize_errors",
+      task: async (span) => {
+        const response = ctx.res;
 
-    if (
-      !(response.headers.get("content-type")?.toLowerCase().includes("application/json") ?? false)
-    ) {
-      return;
-    }
+        if (
+          !(
+            response.headers.get("content-type")?.toLowerCase().includes("application/json") ??
+            false
+          )
+        ) {
+          return;
+        }
 
-    let body: unknown;
+        let body: unknown;
 
-    try {
-      body = await response.clone().json();
-    } catch {
-      return;
-    }
+        try {
+          body = await response.clone().json();
+        } catch {
+          return;
+        }
 
-    if (!isRecord(body)) {
-      return;
-    }
+        if (!isRecord(body)) {
+          return;
+        }
 
-    const locale = resolveRequestLocale(ctx.req.raw);
-    const localized = localizeEnvelope(body, locale);
-    const legacy =
-      localized === null && response.status >= 400 && response.status !== 207
-        ? localizeLegacy(body, locale, response.status)
-        : null;
-    const nextBody = localized ?? legacy;
+        const locale = resolveRequestLocale(ctx.req.raw);
+        span?.setAttributes({ "localization.locale": locale });
+        const localized = localizeEnvelope(body, locale);
+        const legacy =
+          localized === null && response.status >= 400 && response.status !== 207
+            ? localizeLegacy(body, locale, response.status)
+            : null;
+        const nextBody = localized ?? legacy;
 
-    if (nextBody === null) {
-      return;
-    }
+        if (nextBody === null) {
+          return;
+        }
 
-    const headers = new Headers(response.headers);
-    headers.delete("content-length");
+        const headers = new Headers(response.headers);
+        headers.delete("content-length");
 
-    const vary = headers.get("vary");
-    const localeVary = "Accept-Language, X-Locale";
-    const combinedVary = vary === null ? localeVary : `${vary}, ${localeVary}`;
+        const vary = headers.get("vary");
+        const localeVary = "Accept-Language, X-Locale";
+        const combinedVary = vary === null ? localeVary : `${vary}, ${localeVary}`;
 
-    headers.set("vary", combinedVary);
-    // Hono's `ctx.res` setter merges the previous headers over the new response,
-    // so update the original response too or the new Vary value is overwritten.
-    response.headers.set("vary", combinedVary);
+        headers.set("vary", combinedVary);
+        response.headers.set("vary", combinedVary);
 
-    ctx.res = Response.json(nextBody, {
-      status: response.status,
-      statusText: response.statusText,
-      headers,
+        ctx.res = Response.json(nextBody, {
+          status: response.status,
+          statusText: response.statusText,
+          headers,
+        });
+      },
     });
   });
 }
