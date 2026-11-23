@@ -3,17 +3,14 @@
 
 Commands:
   check          Validate the selected Wrangler environment.
-  hostname       Print the environment's custom-domain URL.
   render-config  Merge OpenTofu outputs (bindings + the mailtrap_templates var map) into a Wrangler config.
   worker-secrets Filter Doppler JSON on stdin to wrangler.json secrets.required.
-  turnstile      Print the Turnstile values as Doppler upload JSON.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
-import os
 import sys
 from pathlib import Path
 
@@ -27,7 +24,7 @@ def load_config(config_path: Path) -> dict:
 
 
 def environment(config: dict, name: str) -> dict | None:
-    if name == "production":
+    if name == "production" or "env" not in config:
         return config
     return config.get("env", {}).get(name)
 
@@ -38,7 +35,10 @@ def output_value(outputs: dict, name: str) -> object:
 
 
 def render_config(
-    env_name: str, config_path: Path, outputs_paths: list[Path], out_path: Path | None
+    env_name: str,
+    config_path: Path,
+    outputs_paths: list[Path],
+    out_path: Path | None,
 ) -> int:
     config = load_config(config_path)
 
@@ -69,6 +69,15 @@ def render_config(
         print(f"unknown environment: {env_name}", file=sys.stderr)
         return 1
 
+    if environment is not config:
+        if environment.get("name") == config.get("name"):
+            print("environment Worker name is the same as production.", file=sys.stderr)
+            return 1
+        for key, value in environment.items():
+            if key != "env":
+                config[key] = value
+        config.pop("env", None)
+
     d1_outputs = output_value(outputs, "d1_databases")
     kv_outputs = output_value(outputs, "kv_namespaces")
 
@@ -76,7 +85,7 @@ def render_config(
         print("OpenTofu outputs are missing d1_databases or kv_namespaces.", file=sys.stderr)
         return 1
 
-    for database in environment.get("d1_databases", []):
+    for database in config.get("d1_databases", []):
         key = f"{env_name}/{database.get('binding')}"
         value = d1_outputs.get(key)
         if not isinstance(value, dict) or not isinstance(value.get("id"), str):
@@ -86,7 +95,7 @@ def render_config(
         if isinstance(value.get("name"), str):
             database["database_name"] = value["name"]
 
-    for namespace in environment.get("kv_namespaces", []):
+    for namespace in config.get("kv_namespaces", []):
         key = f"{env_name}/{namespace.get('binding')}"
         value = kv_outputs.get(key)
         if not isinstance(value, dict) or not isinstance(value.get("id"), str):
@@ -102,7 +111,7 @@ def render_config(
         )
         return 1
 
-    declared_vars = environment.setdefault("vars", {})
+    declared_vars = config.setdefault("vars", {})
     for template_name, template_id in mailtrap_templates.items():
         if not isinstance(template_id, str) or not template_id.strip():
             print(
@@ -158,22 +167,51 @@ def check(name: str, config_path: Path) -> int:
     return 0
 
 
-def hostname(name: str, config_path: Path) -> int:
-    config = load_config(config_path)
-    env = environment(config, name)
+def verify_bindings(
+    expected_config: Path, dry_run_log: Path, dry_run_events: Path
+) -> int:
+    """Assert a wrangler dry-run used our config and resolved its bindings."""
+    config = load_config(expected_config)
+    output = dry_run_log.read_text()
+    problems: list[str] = []
 
-    if env is None:
-        print(f"unknown environment: {name}", file=sys.stderr)
+    events: list[dict] = []
+    for line in dry_run_events.read_text().splitlines():
+        try:
+            events.append(json.loads(line))
+        except json.JSONDecodeError:
+            continue
+
+    deploys = [event for event in events if event.get("type") == "deploy"]
+    if not deploys:
+        problems.append("no deploy event was emitted by wrangler")
+    else:
+        worker_name = deploys[0].get("worker_name")
+        if worker_name != config.get("name"):
+            problems.append(f"wrangler targeted Worker {worker_name}, expected {config.get('name')}")
+        sessions = [event for event in events if event.get("type") == "wrangler-session"]
+        args = sessions[0].get("command_line_args") or [] if sessions else []
+        if "--config" not in args or str(expected_config) not in args:
+            problems.append(f"wrangler did not use {expected_config}")
+
+    for database in config.get("d1_databases", []):
+        name = database.get("database_name")
+        if name and name not in output:
+            problems.append(f"D1 database {name} was not resolved")
+
+    for namespace in config.get("kv_namespaces", []):
+        identifier = namespace.get("id")
+        if identifier and identifier not in output:
+            problems.append(f"KV namespace {identifier} was not resolved")
+
+    if problems:
+        print("Wrangler is not using the generated config:", file=sys.stderr)
+        for problem in problems:
+            print(f"  - {problem}", file=sys.stderr)
         return 1
 
-    for route in env.get("routes", []):
-        pattern = route.get("pattern", "").strip()
-        if route.get("custom_domain") is True and pattern and "*" not in pattern:
-            print(pattern if "://" in pattern else f"https://{pattern}")
-            return 0
-
-    print(f"No enabled custom-domain route for {name} in {config_path}.", file=sys.stderr)
-    return 1
+    print("Wrangler resolved the expected bindings from the generated config.")
+    return 0
 
 
 def worker_secrets(name: str, config_path: Path) -> int:
@@ -214,19 +252,6 @@ def worker_secrets(name: str, config_path: Path) -> int:
     return 0
 
 
-def turnstile() -> int:
-    site = os.environ.get("TURNSTILE_SITE_KEY", "")
-    secret = os.environ.get("TURNSTILE_SECRET", "")
-
-    if not site or not secret:
-        print("Both TURNSTILE_SITE_KEY and TURNSTILE_SECRET are required.", file=sys.stderr)
-        return 1
-
-    json.dump({"TURNSTILE_SITE_KEY": site, "TURNSTILE_SECRET": secret}, sys.stdout)
-    sys.stdout.write("\n")
-    return 0
-
-
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -238,7 +263,7 @@ def main() -> int:
         help="Path to wrangler.json.",
     )
 
-    for command in ("check", "worker-secrets", "hostname"):
+    for command in ("check", "worker-secrets"):
         command_parser = subparsers.add_parser(command, parents=[config_parent])
         command_parser.add_argument("--env", required=True)
 
@@ -256,7 +281,10 @@ def main() -> int:
     )
     render_parser.add_argument("--out", type=Path)
 
-    subparsers.add_parser("turnstile")
+    verify_parser = subparsers.add_parser("verify-bindings")
+    verify_parser.add_argument("--expected-config", type=Path, required=True)
+    verify_parser.add_argument("--dry-run-log", type=Path, required=True)
+    verify_parser.add_argument("--dry-run-events", type=Path, required=True)
 
     args = parser.parse_args()
 
@@ -264,12 +292,10 @@ def main() -> int:
         return check(args.env, args.config)
     if args.command == "worker-secrets":
         return worker_secrets(args.env, args.config)
-    if args.command == "hostname":
-        return hostname(args.env, args.config)
     if args.command == "render-config":
         return render_config(args.env, args.config, args.outputs, args.out)
-    if args.command == "turnstile":
-        return turnstile()
+    if args.command == "verify-bindings":
+        return verify_bindings(args.expected_config, args.dry_run_log, args.dry_run_events)
 
     return 1
 

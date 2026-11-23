@@ -19,6 +19,7 @@ __pycache__/
 
 # Generated deploy config (contains resolved binding IDs)
 wrangler.generated.json
+wrangler.deploy.json
 
 # OpenTofu / Terraform
 .terraform/

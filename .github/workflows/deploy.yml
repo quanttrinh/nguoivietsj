@@ -32,7 +32,7 @@ jobs:
     environment: ${{ inputs.environment }}
     env:
       DEPLOY_ENV: ${{ inputs.environment }}
-      DOPPLER_CONFIG: ${{ inputs.environment == 'staging' && 'stg' || 'prd' }}
+      DOPPLER_CONFIG: ${{ fromJSON('{"staging":"stg","production":"prd"}')[inputs.environment] || inputs.environment }}
       DEPLOY_LOG: ${{ github.workspace }}/deploy.log
 
     steps:
@@ -83,7 +83,7 @@ jobs:
           DOPPLER_TOKEN: ${{ secrets.DOPPLER_READ_TOKEN }}
 
       - name: Start deploy log
-        run: printf 'run=%s date=%s env=%s\n' "${{ github.run_id }}" "$(date -u +%FT%TZ)" "${{ inputs.environment }}" > "$DEPLOY_LOG"
+        run: printf 'run=%s date=%s env=%s\n' "${{ github.run_id }}" "$(date -u +%FT%TZ)" "$DEPLOY_ENV" >> "$DEPLOY_LOG"
 
       - name: Init OpenTofu
         env:
@@ -94,20 +94,23 @@ jobs:
             doppler run --config infra -- tofu -chdir=infra/mailtrap init -input=false
           } >> "$DEPLOY_LOG" 2>&1
 
-      - name: Generate deploy config
+      - name: Read OpenTofu outputs
         env:
           DOPPLER_TOKEN: ${{ secrets.DOPPLER_INFRA_READ_TOKEN }}
         run: |
           {
             doppler run --config infra -- tofu -chdir=infra/cloudflare output -json > /tmp/tofu-cloudflare-outputs.json
             doppler run --config infra -- tofu -chdir=infra/mailtrap output -json > /tmp/tofu-mailtrap-outputs.json
-            python3 scripts/deploy.py render-config \
-              --config wrangler.json \
-              --outputs /tmp/tofu-cloudflare-outputs.json \
-              --outputs /tmp/tofu-mailtrap-outputs.json \
-              --env "$DEPLOY_ENV" \
-              --out wrangler.generated.json
           } >> "$DEPLOY_LOG" 2>&1
+
+      - name: Render deploy config
+        run: |
+          python3 scripts/deploy.py render-config \
+            --config wrangler.json \
+            --outputs /tmp/tofu-cloudflare-outputs.json \
+            --outputs /tmp/tofu-mailtrap-outputs.json \
+            --env "$DEPLOY_ENV" \
+            --out wrangler.deploy.json >> "$DEPLOY_LOG" 2>&1
 
       - name: Publish Turnstile values to Doppler
         env:
@@ -118,8 +121,11 @@ jobs:
             TURNSTILE_SITE_KEY=$(DOPPLER_TOKEN="$DOPPLER_INFRA_READ_TOKEN" doppler run --config infra -- tofu -chdir=infra/cloudflare output -raw turnstile_site_key)
             TURNSTILE_SECRET=$(DOPPLER_TOKEN="$DOPPLER_INFRA_READ_TOKEN" doppler run --config infra -- tofu -chdir=infra/cloudflare output -raw turnstile_secret)
             DOPPLER_PROJECT=$(awk '/project:/{print $3; exit}' doppler.yaml)
-            TURNSTILE_SITE_KEY="$TURNSTILE_SITE_KEY" TURNSTILE_SECRET="$TURNSTILE_SECRET" \
-              python3 scripts/deploy.py turnstile > /tmp/turnstile-values.json
+            jq -n \
+              --arg site "$TURNSTILE_SITE_KEY" \
+              --arg secret "$TURNSTILE_SECRET" \
+              '{TURNSTILE_SITE_KEY: $site, TURNSTILE_SECRET: $secret}' \
+              > /tmp/turnstile-values.json
             DOPPLER_TOKEN="$DOPPLER_WRITE_TOKEN" doppler secrets upload \
               /tmp/turnstile-values.json \
               --project "$DOPPLER_PROJECT" \
@@ -134,38 +140,50 @@ jobs:
           set -o pipefail
           {
             DOPPLER_TOKEN="$DOPPLER_READ_TOKEN" doppler secrets --json --config "$DOPPLER_CONFIG" \
-              | python3 scripts/deploy.py worker-secrets --env "$DEPLOY_ENV" --config wrangler.generated.json \
+              | python3 scripts/deploy.py worker-secrets --env "$DEPLOY_ENV" --config wrangler.json \
               > /tmp/worker-secrets.json
           } >> "$DEPLOY_LOG" 2>&1
 
       - name: Apply D1 migrations
         env:
           DOPPLER_TOKEN: ${{ secrets.DOPPLER_INFRA_READ_TOKEN }}
-          WRANGLER_CONFIG: wrangler.generated.json
         run: doppler run --config infra -- bun run db:migrate --target "$DEPLOY_ENV" >> "$DEPLOY_LOG" 2>&1
 
-      - name: Check deploy configuration
-        run: python3 scripts/deploy.py check --env "$DEPLOY_ENV" --config wrangler.generated.json >> "$DEPLOY_LOG" 2>&1
-
-      - name: Build and deploy
+      - name: Build Worker
         env:
           DOPPLER_READ_TOKEN: ${{ secrets.DOPPLER_READ_TOKEN }}
-          DOPPLER_INFRA_READ_TOKEN: ${{ secrets.DOPPLER_INFRA_READ_TOKEN }}
-          WRANGLER_CONFIG: wrangler.generated.json
+          WRANGLER_CONFIG: wrangler.deploy.json
         run: |
-          if [ "$DEPLOY_ENV" = "staging" ]; then
-            ENV_FLAG="--env $DEPLOY_ENV"
-            BUILD_ENV="WORKER_ORIGIN_ENV=$DEPLOY_ENV"
-          else
-            ENV_FLAG=""
-            BUILD_ENV=""
-          fi
           {
-            env $BUILD_ENV DOPPLER_TOKEN="$DOPPLER_READ_TOKEN" \
+            DOPPLER_TOKEN="$DOPPLER_READ_TOKEN" \
               doppler run --config "$DOPPLER_CONFIG" -- bunx astro build
-            DOPPLER_TOKEN="$DOPPLER_INFRA_READ_TOKEN" doppler run --config infra -- \
-              bunx wrangler deploy $ENV_FLAG --secrets-file /tmp/worker-secrets.json
           } >> "$DEPLOY_LOG" 2>&1
+
+      - name: Verify deploy config
+        env:
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_INFRA_READ_TOKEN }}
+        run: |
+          python3 scripts/deploy.py check \
+            --env "$DEPLOY_ENV" --config dist/server/wrangler.json >> "$DEPLOY_LOG" 2>&1
+          {
+            WRANGLER_OUTPUT_FILE_PATH=/tmp/wrangler-verify.ndjson \
+              DOPPLER_TOKEN="$DOPPLER_TOKEN" doppler run --config infra -- \
+              bunx wrangler deploy \
+              --config dist/server/wrangler.json --env="" \
+              --dry-run --outdir /tmp/wrangler-verify > /tmp/wrangler-verify.log 2>&1
+            python3 scripts/deploy.py verify-bindings \
+              --expected-config dist/server/wrangler.json \
+              --dry-run-log /tmp/wrangler-verify.log \
+              --dry-run-events /tmp/wrangler-verify.ndjson
+          } >> "$DEPLOY_LOG" 2>&1
+
+      - name: Deploy Worker
+        env:
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_INFRA_READ_TOKEN }}
+        run: |
+          doppler run --config infra -- bunx wrangler deploy \
+            --config dist/server/wrangler.json --env="" \
+            --secrets-file /tmp/worker-secrets.json >> "$DEPLOY_LOG" 2>&1
 
       - name: Upload deploy log to R2
         if: always()
