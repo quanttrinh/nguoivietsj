@@ -31,7 +31,12 @@
     {
       "description": "Group Astro updates.",
       "groupName": "Astro",
-      "matchPackageNames": ["/^astro$/", "/^@astrojs\\//", "/^astro-intlayer$/"]
+      "matchPackageNames": ["/^astro$/", "/^@astrojs\\//"]
+    },
+    {
+      "description": "Group Intlayer updates.",
+      "groupName": "Intlayer",
+      "matchPackageNames": ["/^intlayer$/", "/^@intlayer\\//", "/^astro-intlayer$/"]
     },
     {
       "description": "Group Panda CSS updates.",
