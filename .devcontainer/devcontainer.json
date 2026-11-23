@@ -28,7 +28,7 @@
       "description": "Optional Doppler service token for web/dev_personal. The host Doppler login is used when this is not set."
     }
   },
-  "postCreateCommand": "export PATH=\"$HOME/.local/share/aquaproj-aqua/bin:$PATH\" && (cd aqua && aqua policy allow aqua-policy.yaml && aqua i) && doppler run -- bun install --frozen-lockfile && doppler run -- bun manage.ts migrate --target local && doppler run -- bun manage.ts seed",
+  "postCreateCommand": "export PATH=\"$HOME/.local/share/aquaproj-aqua/bin:$PATH\" && (cd aqua && aqua policy allow aqua-policy.yaml && aqua i) && doppler run -- bun install --frozen-lockfile && bunx astro telemetry disable && doppler run -- bun manage.ts migrate --target local && doppler run -- bun manage.ts seed",
   "forwardPorts": [
     4321
   ],
