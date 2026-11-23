@@ -39,7 +39,7 @@
     "@astrojs/preact": "6.1.6",
     "@better-auth/drizzle-adapter": "1.7.27",
     "@hono/standard-validator": "0.4.1",
-    "@intlayer/core": "9.8.1",
+    "@intlayer/core": "9.8.2",
     "@nanostores/preact": "1.1.1",
     "@nanostores/query": "0.3.4",
     "@quanttrinh/qui": "0.9.3",
