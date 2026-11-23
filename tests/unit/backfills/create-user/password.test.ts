@@ -51,4 +51,18 @@ describe("create-user password", () => {
     expect(hash).toBeDefined();
     await expect(verifyPassword({ hash: hash ?? "", password: PASSWORD })).resolves.toBe(true);
   });
+
+  test("binds the credential account_id to the user id so sign-in finds it", async () => {
+    const statements = await credentialStatements({
+      email: EMAIL,
+      password: PASSWORD,
+      accountId: "account-1",
+      now: new Date("2026-01-01T00:00:00Z"),
+    });
+
+    const sql = statements.join("\n");
+    expect(sql).toContain(
+      `insert into "account" (id, account_id, provider_id, user_id, password, created_at, updated_at) select 'account-1', "user"."id", 'credential', "user"."id",`,
+    );
+  });
 });

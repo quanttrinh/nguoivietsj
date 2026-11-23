@@ -73,7 +73,7 @@ export async function credentialStatements(input: CredentialInput): Promise<stri
   return [
     toSqlStatement(updateQuery.getSQL()),
     toSqlStatement(
-      sql`insert into ${account} (id, account_id, provider_id, user_id, password, created_at, updated_at) select ${accountId}, ${accountId}, ${"credential"}, ${user.id}, ${passwordHash}, ${timestamp}, ${timestamp} from ${user} where ${user.email} = ${email} and not exists (select 1 from ${account} where ${account.userId} = ${user.id} and ${account.providerId} = ${"credential"})`,
+      sql`insert into ${account} (id, account_id, provider_id, user_id, password, created_at, updated_at) select ${accountId}, ${user.id}, ${"credential"}, ${user.id}, ${passwordHash}, ${timestamp}, ${timestamp} from ${user} where ${user.email} = ${email} and not exists (select 1 from ${account} where ${account.userId} = ${user.id} and ${account.providerId} = ${"credential"})`,
     ),
   ];
 }
