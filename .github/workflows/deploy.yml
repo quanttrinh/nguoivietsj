@@ -127,23 +127,15 @@ jobs:
               --silent
           } >> "$DEPLOY_LOG" 2>&1
 
-      - name: Sync Worker secrets from Doppler
+      - name: Prepare Worker secrets from Doppler
         env:
           DOPPLER_READ_TOKEN: ${{ secrets.DOPPLER_READ_TOKEN }}
-          DOPPLER_INFRA_READ_TOKEN: ${{ secrets.DOPPLER_INFRA_READ_TOKEN }}
         run: |
           set -o pipefail
-          if [ "$DEPLOY_ENV" = "staging" ]; then
-            ENV_FLAG="--env $DEPLOY_ENV"
-          else
-            ENV_FLAG=""
-          fi
           {
             DOPPLER_TOKEN="$DOPPLER_READ_TOKEN" doppler secrets --json --config "$DOPPLER_CONFIG" \
               | python3 scripts/deploy.py worker-secrets --env "$DEPLOY_ENV" --config wrangler.generated.json \
               > /tmp/worker-secrets.json
-            DOPPLER_TOKEN="$DOPPLER_INFRA_READ_TOKEN" doppler run --config infra -- \
-              bunx wrangler secret bulk /tmp/worker-secrets.json --config wrangler.generated.json $ENV_FLAG
           } >> "$DEPLOY_LOG" 2>&1
 
       - name: Apply D1 migrations
@@ -172,7 +164,7 @@ jobs:
             env $BUILD_ENV DOPPLER_TOKEN="$DOPPLER_READ_TOKEN" \
               doppler run --config "$DOPPLER_CONFIG" -- bunx astro build
             DOPPLER_TOKEN="$DOPPLER_INFRA_READ_TOKEN" doppler run --config infra -- \
-              bunx wrangler deploy $ENV_FLAG
+              bunx wrangler deploy $ENV_FLAG --secrets-file /tmp/worker-secrets.json
           } >> "$DEPLOY_LOG" 2>&1
 
       - name: Upload deploy log to R2
