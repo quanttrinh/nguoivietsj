@@ -1,0 +1,41 @@
+{
+  "form": {
+    "title": "Enregistrement à l'événement",
+    "description": "Scannez les codes QR pour enregistrer les participants"
+  },
+  "scanner": {
+    "start": "Commencer la numérisation",
+    "stop": "Arrêter la numérisation",
+    "no_camera": "Pas d'accès à la caméra",
+    "camera_permission_denied": "Permission de caméra refusée. Veuillez autoriser l'accès à la caméra pour scanner les codes QR."
+  },
+  "errors": {
+    "unknown_error": "Une erreur inconnue est survenue.",
+    "invalid_qr": "Code QR invalide.",
+    "query_error": "Erreur lors de la récupération des informations du participant.",
+    "already_checked_in": "Ce participant a déjà été enregistré.",
+    "check_in_failed": "Échec de l'enregistrement."
+  },
+  "attendee_info": {
+    "title": "Informations sur le participant",
+    "first_name": "Prénom",
+    "last_name": "Nom de famille",
+    "phone": "Téléphone",
+    "notes": "Notes",
+    "child_tickets": "Billets pour enfants",
+    "adult_tickets": "Billets pour adultes",
+    "registration_date": "Date d'inscription",
+    "checked_in_date": "Date d'enregistrement"
+  },
+  "dialog_buttons": {
+    "close": "Fermer",
+    "ok": "OK",
+    "retry": "Réessayer",
+    "checkin": "Enregistrer",
+    "already_checked_in": "Enregistré"
+  },
+  "messages": {
+    "check_in_successful": "Enregistrement réussi !"
+  },
+  "made_with_love": "Fait avec ❤️ par {{name}}"
+}

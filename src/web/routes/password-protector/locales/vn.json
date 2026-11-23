@@ -1,0 +1,14 @@
+{
+  "form": {
+    "title": "Trang được bảo vệ",
+    "description": "Vui lòng nhập mật khẩu để truy cập trang này."
+  },
+  "password": {
+    "label": "Mật khẩu",
+    "placeholder": "Nhập mật khẩu"
+  },
+  "submit": "Xác nhận",
+  "password_field_required": "Mật khẩu là bắt buộc",
+  "password_incorrect": "Mật khẩu bạn nhập không chính xác.",
+  "made_with_love": "Được làm với ❤️ bởi {{name}}"
+}

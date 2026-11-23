@@ -1,0 +1,14 @@
+{
+  "form": {
+    "title": "Password Protected",
+    "description": "Please enter the password to access this page."
+  },
+  "password": {
+    "label": "Password",
+    "placeholder": "Enter password"
+  },
+  "submit": "Submit",
+  "password_field_required": "Password is required",
+  "password_incorrect": "The password you entered is incorrect.",
+  "made_with_love": "Made with ❤️ by {{name}}"
+}

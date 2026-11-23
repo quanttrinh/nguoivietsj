@@ -1,0 +1,4 @@
+package-lock.json
+.clasp.json
+dist
+node_modules

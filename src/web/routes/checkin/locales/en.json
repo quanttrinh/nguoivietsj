@@ -1,0 +1,41 @@
+{
+  "form": {
+    "title": "Event Check-In",
+    "description": "Scan QR codes to check in attendees"
+  },
+  "scanner": {
+    "start": "Start Scanning",
+    "stop": "Stop Scanning",
+    "no_camera": "No camera access",
+    "camera_permission_denied": "Camera permission denied. Please allow camera access to scan QR codes."
+  },
+  "errors": {
+    "unknown_error": "An unknown error occurred.",
+    "invalid_qr": "Invalid QR code.",
+    "query_error": "Error retrieving attendee information.",
+    "already_checked_in": "This attendee has already been checked in.",
+    "check_in_failed": "Check-in failed."
+  },
+  "attendee_info": {
+    "title": "Attendee Information",
+    "first_name": "First Name",
+    "last_name": "Last Name",
+    "phone": "Phone",
+    "notes": "Notes",
+    "child_tickets": "Child Tickets",
+    "adult_tickets": "Adult Tickets",
+    "registration_date": "Registration Date",
+    "checked_in_date": "Checked In Date"
+  },
+  "dialog_buttons": {
+    "close": "Close",
+    "ok": "OK",
+    "retry": "Retry",
+    "checkin": "Check In",
+    "already_checked_in": "Checked In"
+  },
+  "messages": {
+    "check_in_successful": "Check-in successful!"
+  },
+  "made_with_love": "Made with ❤️ by {{name}}"
+}
