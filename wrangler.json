@@ -260,14 +260,14 @@
       ],
       "observability": {
         "enabled": true,
-        "head_sampling_rate": 0.2,
+        "head_sampling_rate": 1,
         "redact_query_string": true,
         "issues": {
           "enabled": true
         },
         "traces": {
           "enabled": true,
-          "head_sampling_rate": 0.2,
+          "head_sampling_rate": 1,
           "persist": true
         }
       }
