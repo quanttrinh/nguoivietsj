@@ -8,7 +8,7 @@ import { defineBackfill } from "#tooling/manage/backfill";
 
 export default defineBackfill({
   description: "Run PRAGMA optimize on the selected D1 databases.",
-  usage: "bun manage.ts optimize --target local -- --database all",
+  usage: "node manage.ts optimize --target local -- --database all",
   run: async (context, args) => {
     const { values } = parseArgs({
       args,

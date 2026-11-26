@@ -24,9 +24,9 @@
       "matchUpdateTypes": ["pin"]
     },
     {
-      "description": "Group Bun updates across package.json and aqua.",
-      "groupName": "Bun",
-      "matchPackageNames": ["bun", "oven-sh/bun"]
+      "description": "Group Yarn and Node updates across package.json and aqua.",
+      "groupName": "Node toolchain",
+      "matchPackageNames": ["node", "nodejs/node", "yarn", "yarnpkg/zpm"]
     },
     {
       "description": "Group Astro updates.",

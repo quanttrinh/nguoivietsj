@@ -32,7 +32,7 @@ const db = drizzle({
 
 export default defineBackfill({
   description: "Create or update a staff/admin account for passwordless email OTP sign-in.",
-  usage: "bun manage.ts create-user --target local -- <email> [--role event_staff|admin]",
+  usage: "node manage.ts create-user --target local -- <email> [--role event_staff|admin]",
   run: async (context, args) => {
     const { values, positionals } = parseArgs({
       args,

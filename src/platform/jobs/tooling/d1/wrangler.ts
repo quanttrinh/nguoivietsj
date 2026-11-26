@@ -53,7 +53,7 @@ export async function wranglerCommand(): Promise<string[]> {
   }
 
   const runners = await Promise.all(
-    ["bunx", "npx"].map(async (runner) => {
+    ["yarn", "npx"].map(async (runner) => {
       const executable = await findExecutable(runner);
       return executable === null ? null : [executable, "wrangler"];
     }),
@@ -64,7 +64,7 @@ export async function wranglerCommand(): Promise<string[]> {
     return runner;
   }
 
-  throw new Error("Wrangler is not installed. Run `bun install` first.");
+  throw new Error("Wrangler is not installed. Run `yarn install` first.");
 }
 
 function spawnChild(command: string[], stdio: "inherit" | "pipe"): ReturnType<typeof spawn> {

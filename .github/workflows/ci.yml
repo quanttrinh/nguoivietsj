@@ -29,26 +29,26 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+          key: playwright-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
           restore-keys: |
             playwright-${{ runner.os }}-
       - name: Install Playwright Chromium
-        run: bunx playwright install --with-deps chromium
+        run: yarn playwright install --with-deps chromium
       - name: Schema drift
         run: |
-          bun run auth:schema
-          bun run db:migrations:app
-          bun run db:migrations:events
+          yarn auth:schema
+          yarn db:migrations:app
+          yarn db:migrations:events
           git diff --exit-code -- drizzle
           git diff --exit-code -- src/platform/server/db/app/schemas/auth-schema.ts
-          bun x drizzle-kit check --config=drizzle.events.config.ts
-          bun x drizzle-kit check --config=drizzle.app.config.ts
+          yarn drizzle-kit check --config=drizzle.events.config.ts
+          yarn drizzle-kit check --config=drizzle.app.config.ts
       - name: Test
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
-            bunx vitest run --changed "${{ github.event.pull_request.base.sha }}"
+            yarn vitest run --changed "${{ github.event.pull_request.base.sha }}"
           else
-            bun run test
+            yarn test
           fi
       - name: Upload test reports
         if: always()
@@ -74,11 +74,11 @@ jobs:
             echo "- Download the **vitest-reports** artifact and open \`html/index.html\` for the HTML report."
           } >> "$GITHUB_STEP_SUMMARY"
       - name: Check
-        run: bun run check
+        run: yarn check
       - name: Lint
-        run: bun run lint
+        run: yarn lint
       - name: Format check
-        run: bun run fmt:check
+        run: yarn fmt:check
       - name: OpenTofu format check
         run: tofu fmt -check -recursive infra
       - name: OpenTofu validate (Cloudflare)

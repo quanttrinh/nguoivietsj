@@ -11,8 +11,8 @@
       "algorithm": "sha256"
     },
     {
-      "id": "github_release/github.com/oven-sh/bun/bun-v1.4.4/bun-linux-x64.zip",
-      "checksum": "BF8CCBFB2B0B80159E0F9A6D15C55317ADD8077534DBC6130A3EDB52FCCB395C",
+      "id": "http/github.com/yarnpkg/zpm/releases/download/v6.0.0-rc.23/yarn-x86_64-unknown-linux-musl.zip",
+      "checksum": "7AD2EB4960738721C375A25986F652B12BEFEA0B8309440229FE9252C97D3849",
       "algorithm": "sha256"
     },
     {

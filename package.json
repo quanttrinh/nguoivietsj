@@ -21,17 +21,17 @@
     "lint:fix": "oxlint --fix",
     "fmt": "oxfmt",
     "fmt:check": "oxfmt --check",
-    "codegen": "bun -e 'import { i18nConfig } from \"./i18n.config\"; import { generateI18n } from \"./plugins/i18n\"; await generateI18n(i18nConfig)' && panda codegen && node node_modules/wrangler/bin/wrangler.js types src/types/worker-configuration.d.ts",
-    "postinstall": "bun run codegen",
+    "codegen": "node --input-type=module -e 'import { i18nConfig } from \"./i18n.config.ts\"; import { generateI18n } from \"./plugins/i18n.ts\"; await generateI18n(i18nConfig)' && panda codegen && node node_modules/wrangler/bin/wrangler.js types src/types/worker-configuration.d.ts",
+    "postinstall": "yarn codegen",
     "doppler:setup": "doppler setup",
     "test": "vitest run",
     "test:watch": "vitest",
     "db:migrations:events": "drizzle-kit generate --config=drizzle.events.config.ts",
     "db:migrations:app": "drizzle-kit generate --config=drizzle.app.config.ts",
-    "auth:schema": "auth generate --config ./better-auth.config.ts --dialect sqlite --output ./src/platform/server/db/app/schemas/auth-schema.ts -y && bunx oxfmt src/platform/server/db/app/schemas/auth-schema.ts",
-    "db:migrate": "bun manage.ts migrate",
-    "db:seed": "bun manage.ts seed",
-    "db:check": "bun manage.ts check",
+    "auth:schema": "auth generate --config ./better-auth.config.ts --dialect sqlite --output ./src/platform/server/db/app/schemas/auth-schema.ts -y && oxfmt src/platform/server/db/app/schemas/auth-schema.ts",
+    "db:migrate": "node manage.ts migrate",
+    "db:seed": "node manage.ts seed",
+    "db:check": "node manage.ts check",
     "test:coverage": "vitest run --project unit --project integration --coverage"
   },
   "dependencies": {
@@ -82,7 +82,13 @@
     "typescript": "6.0.3",
     "vitest": "5.1.1",
     "vitest-browser-preact": "2.0.0",
-    "wrangler": "4.165.0"
+    "wrangler": "4.168.0"
   },
-  "packageManager": "bun@1.4.5"
+  "resolutions": {
+    "fast-check": "4.10.3"
+  },
+  "engines": {
+    "node": ">=26.0.0"
+  },
+  "packageManager": "yarn@6.0.0-rc.23"
 }

@@ -10,7 +10,8 @@ registries:
     type: local
     path: registry.yaml
 packages:
-  - name: oven-sh/bun@bun-v1.4.5
+  - name: yarnpkg/zpm@6.0.0-rc.23
+    registry: local
   - name: nodejs/node@v26.13.1
   - name: opentofu/opentofu@v1.13.9
   - name: DopplerHQ/cli@3.77.1

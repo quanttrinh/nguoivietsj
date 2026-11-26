@@ -71,7 +71,7 @@ jobs:
           (
             set -e
             mapfile -t backfill_args < <(jq -r '.[]' <<< "$ARGS")
-            command=(bun manage.ts backfill "$BACKFILL" --target "$TARGET")
+            command=(node manage.ts backfill "$BACKFILL" --target "$TARGET")
             if [ "$DRY_RUN" = "true" ]; then
               command+=(--dry-run)
             fi

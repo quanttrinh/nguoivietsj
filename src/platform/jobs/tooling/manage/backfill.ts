@@ -17,9 +17,9 @@ export interface BackfillContext {
 
 /** A command that can be discovered and run by `manage.ts`. */
 export interface Backfill {
-  /** One-line summary shown by `bun manage.ts list`. */
+  /** One-line summary shown by `node manage.ts list`. */
   description: string;
-  /** Optional CLI synopsis shown by `bun manage.ts help <name>`. */
+  /** Optional CLI synopsis shown by `node manage.ts help <name>`. */
   usage?: string;
   /** Receives only arguments after the `--` separator. */
   run: (context: BackfillContext, args: string[]) => Promise<void> | void;

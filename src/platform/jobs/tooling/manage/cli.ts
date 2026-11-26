@@ -15,7 +15,7 @@ class CliError extends Error {
 }
 
 function printHelp() {
-  console.log(`Usage: bun manage.ts <command> [options] [-- <backfill args>]
+  console.log(`Usage: node manage.ts <command> [options] [-- <backfill args>]
 
 Commands:
   list                  List available backfills
@@ -30,8 +30,8 @@ Options:
 
 Arguments after "--" are passed to the backfill:
 
-  bun manage.ts backfill create-user --target production -- admin@example.com --role admin --password "$CREATE_USER_PASSWORD"
-  bun manage.ts backfill registration-stats --target staging --dry-run
+  node manage.ts backfill create-user --target production -- admin@example.com --role admin --password "$CREATE_USER_PASSWORD"
+  node manage.ts backfill registration-stats --target staging --dry-run
 
 Each backfill is a root-level folder:
 
@@ -134,7 +134,7 @@ export async function main(argv: string[]): Promise<number> {
     const backfill = backfills.get(backfillName(requested));
 
     if (backfill === undefined) {
-      throw new CliError(`manage: unknown backfill: ${requested}\nRun "bun manage.ts list".`);
+      throw new CliError(`manage: unknown backfill: ${requested}\nRun "node manage.ts list".`);
     }
 
     if (values.help) {

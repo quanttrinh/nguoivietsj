@@ -50,7 +50,7 @@ export default defineConfig({
     "playwright-report/",
     "worker-configuration.d.ts",
     "wrangler.json",
-    "bun.lock",
+    "yarn.lock",
     // Drizzle Kit generates these files; formatting them causes churn.
     "drizzle/**/snapshot.json",
     "drizzle/**/migration.sql",

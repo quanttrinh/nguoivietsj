@@ -1,13 +1,13 @@
 name: Setup dependencies
-description: Install aqua-managed CLIs and, when needed, project dependencies.
+description: Install the aqua-managed CLIs and, when needed, project dependencies.
 
 inputs:
   install-tools:
-    description: Install the aqua-managed CLIs (tofu, doppler, bun, ...).
+    description: Install the aqua-managed CLIs (tofu, doppler, node, yarn, ...).
     required: false
     default: "true"
   install-dependencies:
-    description: Restore the Bun package cache and run bun install.
+    description: Restore the Yarn package cache and run yarn install.
     required: false
     default: "true"
 
@@ -32,16 +32,16 @@ runs:
         policy_allow: aqua-policy.yaml
         aqua_opts: ""
 
-    - name: Restore Bun package cache
+    - name: Restore Yarn package cache
       if: inputs.install-dependencies == 'true'
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
       with:
-        path: ~/.bun/install/cache
-        key: bun-packages-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('bun.lock') }}
+        path: .yarn/cache
+        key: yarn-packages-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('yarn.lock') }}
         restore-keys: |
-          bun-packages-${{ runner.os }}-${{ runner.arch }}-
+          yarn-packages-${{ runner.os }}-${{ runner.arch }}-
 
     - name: Install project dependencies
       if: inputs.install-dependencies == 'true'
       shell: bash
-      run: doppler run -- bun install --frozen-lockfile
+      run: doppler run -- yarn install --immutable
