@@ -202,8 +202,12 @@ describe("session cookie is the only client credential", () => {
     // On an https baseURL the same cookie would be `__Secure-` prefixed and Secure.
     expect(sessionCookie).not.toMatch(/;\s*Secure(?:;|$)/iu);
 
-    // `storeSessionInDatabase=false` and no cookie cache: KV is the sole authority.
-    expect(setCookies.some((value) => value.startsWith("better-auth.session_data="))).toBe(false);
+    // The compact cookie cache is short-lived; KV remains the authoritative
+    // session store and admin reads explicitly bypass the cache.
+    const sessionDataCookie = expectRow(
+      setCookies.find((value) => value.startsWith("better-auth.session_data=")),
+    );
+    expect(sessionDataCookie).toMatch(/;\s*Max-Age=60(?:;|$)/iu);
     expect(await api.db.kv.get(signIn.token)).not.toBeNull();
 
     expect(signIn.token).toMatch(/^[A-Za-z0-9_-]{32,}$/u);
@@ -264,6 +268,43 @@ describe("session cookie is the only client credential", () => {
 });
 
 describe("privilege and enrollment changes are authoritative on the next request", () => {
+  test("a demotion revokes admin access even inside the cookieCache window", async ({ api }) => {
+    const admin = clientFor(api, adminCookie);
+    const email = `sec-demote-${crypto.randomUUID()}@example.com`;
+    const created = await createUser(admin, email, "admin");
+    onTestFinished(() => cleanupUser(api, created.id, email));
+
+    const signed = await signInRaw(api, email);
+    expect(signed.response.status).toBe(200);
+    expect(signed.cookie).toContain("better-auth.session_data=");
+    const asAdmin = clientFor(api, signed.cookie);
+    const allowed = await asAdmin("/api/admin/users");
+    expect(allowed.status).toBe(200);
+
+    const demote = await admin(`/api/admin/users/${created.id}`, {
+      method: "PATCH",
+      headers: JSON_HEADERS,
+      body: JSON.stringify({ role: "user" }),
+    });
+    expect(demote.status).toBe(200);
+
+    // The role change revokes the session in KV, but the client's compact
+    // cookie cache is still valid for up to 60 seconds.
+    expect(await api.db.kv.get(signed.token)).toBeNull();
+
+    // `requireAuth` reads through KV, so the cached admin role cannot authorize.
+    const after = await asAdmin("/api/admin/users");
+    expect(after.status).toBe(401);
+    await expect(after.json()).resolves.toMatchObject({ error: { code: "unauthorized" } });
+
+    // /get-session still serves the cached session by design — this proves the
+    // cache window is real and that the 401 above comes from disableCookieCache.
+    const cached = await asAdmin("/api/auth/get-session");
+    expect(cached.status).toBe(200);
+    await expect(cached.json()).resolves.toMatchObject({ user: { role: "admin" } });
+    expect(await userRowFor(api, created.id)).toMatchObject({ role: "user" });
+  });
+
   test.skip("promotion and demotion immediately revoke the user's existing sessions", async ({
     api,
   }) => {

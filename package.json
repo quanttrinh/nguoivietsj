@@ -48,7 +48,6 @@
     "better-auth": "1.7.27",
     "drizzle-orm": "1.0.0-rc.6",
     "effect": "4.1.4",
-    "entities": "9.0.0",
     "hono": "4.13.19",
     "jose": "6.2.18",
     "nanostores": "1.5.5",

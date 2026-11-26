@@ -63,12 +63,6 @@ if (isDev) {
 }
 api.use(methodNotAllowed({ app: api }));
 
-api.use(async (ctx, next) => {
-  // oxlint-disable-next-line node/callback-return -- the response is cloned after the downstream handler finishes.
-  await next();
-  ctx.res = new Response(ctx.res.body, ctx.res);
-});
-
 /** Route chain only — the RPC contract deliberately excludes middleware and 404 catch-alls. */
 const routes = new Hono<HonoEnv>()
   .route("/api/health", health)

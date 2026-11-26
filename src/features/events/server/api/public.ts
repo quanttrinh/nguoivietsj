@@ -98,7 +98,9 @@ export const publicEvents = new Hono<HonoEnv>()
       cacheName: "event-list",
       cacheControl: "public, max-age=60, s-maxage=300",
       keyGenerator: (ctx) => eventCacheKey(ctx, "/api/events"),
-      wait: true,
+      // Fire-and-forget: Hono passes cache.put() to ctx.waitUntil() when false,
+      // so the write is still performed but no longer blocks the response.
+      wait: false,
     }),
     async (context) => {
       const events = await getEventRepository(context.env.EVENT_ENGINE_DB).listPublicSummaries(
@@ -124,7 +126,9 @@ export const publicEvents = new Hono<HonoEnv>()
       cacheControl: "public, max-age=60, s-maxage=300",
       keyGenerator: (ctx) =>
         eventCacheKey(ctx, `/api/events/${encodeURIComponent(ctx.req.param("slug") ?? "")}`),
-      wait: true,
+      // Fire-and-forget: Hono passes cache.put() to ctx.waitUntil() when false,
+      // so the write is still performed but no longer blocks the response.
+      wait: false,
     }),
     async (ctx) => {
       const { slug } = ctx.req.valid("param");

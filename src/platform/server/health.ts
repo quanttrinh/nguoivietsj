@@ -12,8 +12,14 @@ export const health = new Hono<HonoEnv>().get("/", async (ctx) => {
       ctx.env.EVENT_ENGINE_DB.prepare("SELECT 1").first(),
     ]);
   } catch {
-    return ctx.json({ ok: false, app: false, events: false }, 503);
+    return ctx.json(
+      { ok: false, app: false, events: false },
+      { status: 503, headers: { "cache-control": "no-store" } },
+    );
   }
 
-  return ctx.json({ ok: true, app: true, events: true });
+  return ctx.json(
+    { ok: true, app: true, events: true },
+    { status: 200, headers: { "cache-control": "no-store" } },
+  );
 });

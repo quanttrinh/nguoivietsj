@@ -1,7 +1,20 @@
 // @boundary server
-/* oxlint-disable eslint/max-lines-per-function -- Registration queries share one repository. */
+/* oxlint-disable eslint/max-lines, eslint/max-lines-per-function -- Registration queries share one repository. */
 /* oxlint-disable unicorn/max-nested-calls -- Drizzle query builders are nested by design. */
-import { and, asc, desc, eq, exists, gte, inArray, not, or, sql, type SQL } from "drizzle-orm";
+import {
+  and,
+  asc,
+  desc,
+  eq,
+  exists,
+  getTableColumns,
+  gte,
+  inArray,
+  not,
+  or,
+  sql,
+  type SQL,
+} from "drizzle-orm";
 import type { BatchItem } from "drizzle-orm/batch";
 
 import { CONTACT_KIND, FORM_VERSION_STATUS } from "~/features/events/domain/constants";
@@ -18,6 +31,7 @@ import { newId } from "~/platform/utils/uuid";
 
 import { toFormVersion } from "./form-versions";
 import { databaseSingleton, type EngineOrm } from "./orm";
+import { cached } from "./prepared";
 import {
   checkins,
   eventFormVersions,
@@ -48,7 +62,32 @@ function toRegistrationCursor(row: { id: string; createdAt: string }): Registrat
   return { createdAt: row.createdAt, id: row.id };
 }
 
-function toContactRecord(contact: ContactRow): RegistrationContactRecord {
+/** Fields needed by `toContactRecord`; the prepared list decodes them from JSON. */
+type ContactSummaryRow = Pick<
+  ContactRow,
+  | "id"
+  | "kind"
+  | "label"
+  | "isPrimary"
+  | "isConfirmationMethod"
+  | "emailAddress"
+  | "phoneNumber"
+  | "addressLine1"
+  | "addressLine2"
+  | "city"
+  | "province"
+  | "postalCode"
+  | "country"
+  | "valueJson"
+>;
+
+/** Fields needed by `toTicketRecord`; the prepared list decodes them from JSON. */
+type TicketSummaryRow = Pick<
+  TicketRow,
+  "ticketTypeKey" | "quantity" | "unitPriceMinor" | "currency" | "labelSnapshotJson"
+>;
+
+function toContactRecord(contact: ContactSummaryRow): RegistrationContactRecord {
   const base = {
     id: contact.id,
     label: contact.label,
@@ -101,7 +140,7 @@ function toContactRecord(contact: ContactRow): RegistrationContactRecord {
   };
 }
 
-function toTicketRecord(ticket: TicketRow): RegistrationTicketRecord {
+function toTicketRecord(ticket: TicketSummaryRow): RegistrationTicketRecord {
   return {
     key: ticket.ticketTypeKey,
     quantity: ticket.quantity,
@@ -112,15 +151,37 @@ function toTicketRecord(ticket: TicketRow): RegistrationTicketRecord {
 }
 
 type RegistrationWithDetails = RegistrationRow & {
-  contacts: ContactRow[];
-  tickets: TicketRow[];
+  contacts: ContactSummaryRow[];
+  tickets: TicketSummaryRow[];
 };
 
 type RegistrationWithAnswers = RegistrationWithDetails & {
   answers: AnswerRow[];
 };
 
-function toRegistrationSummary(row: RegistrationWithDetails): RegistrationSummary {
+type JsonContactRow = Omit<ContactSummaryRow, "isPrimary" | "isConfirmationMethod"> & {
+  isPrimary: number;
+  isConfirmationMethod: number;
+};
+
+function parseContacts(value: string): ContactSummaryRow[] {
+  // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- JSON decoded from SQLite.
+  const rows = JSON.parse(value) as JsonContactRow[];
+
+  return rows.map((row) =>
+    Object.assign(row, {
+      isPrimary: row.isPrimary === 1,
+      isConfirmationMethod: row.isConfirmationMethod === 1,
+    }),
+  );
+}
+
+function parseTickets(value: string): TicketSummaryRow[] {
+  // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- JSON decoded from SQLite.
+  return JSON.parse(value) as TicketSummaryRow[];
+}
+
+export function toRegistrationSummary(row: RegistrationWithDetails): RegistrationSummary {
   return {
     id: row.id,
     eventId: row.eventId,
@@ -238,6 +299,50 @@ function formVersionCondition(eventId: string, formVersion: number | null): SQL 
 }
 
 function createRegistrationRepository(orm: EngineOrm): RegistrationRepository {
+  // Static-shape hot read: one prepare per D1 binding, parameters via placeholders.
+  const summaryStatement = cached(orm, "registrations.listSummariesByEvent", () =>
+    orm
+      .select({
+        ...getTableColumns(registrations),
+        contacts: sql<string>`(
+          select json_group_array(json_object(
+            'id', ${registrationContacts.id},
+            'kind', ${registrationContacts.kind},
+            'label', ${registrationContacts.label},
+            'isPrimary', ${registrationContacts.isPrimary},
+            'isConfirmationMethod', ${registrationContacts.isConfirmationMethod},
+            'emailAddress', ${registrationContacts.emailAddress},
+            'phoneNumber', ${registrationContacts.phoneNumber},
+            'addressLine1', ${registrationContacts.addressLine1},
+            'addressLine2', ${registrationContacts.addressLine2},
+            'city', ${registrationContacts.city},
+            'province', ${registrationContacts.province},
+            'postalCode', ${registrationContacts.postalCode},
+            'country', ${registrationContacts.country},
+            'valueJson', json(${registrationContacts.valueJson})
+          ))
+          from ${registrationContacts}
+          where ${registrationContacts.registrationId} = ${registrations.id}
+        )`.mapWith(parseContacts),
+        tickets: sql<string>`(
+          select json_group_array(json_object(
+            'ticketTypeKey', ${registrationTickets.ticketTypeKey},
+            'quantity', ${registrationTickets.quantity},
+            'unitPriceMinor', ${registrationTickets.unitPriceMinor},
+            'currency', ${registrationTickets.currency},
+            'labelSnapshotJson', json(${registrationTickets.labelSnapshotJson})
+          ))
+          from ${registrationTickets}
+          where ${registrationTickets.registrationId} = ${registrations.id}
+        )`.mapWith(parseTickets),
+      })
+      .from(registrations)
+      .where(eq(registrations.eventId, sql.placeholder("eventId")))
+      .orderBy(desc(registrations.createdAt), desc(registrations.id))
+      .limit(sql.placeholder("limit"))
+      .prepare(),
+  );
+
   return {
     async findCreateContext(eventId, formVersion, identity) {
       const formQuery = orm
@@ -429,12 +534,7 @@ function createRegistrationRepository(orm: EngineOrm): RegistrationRepository {
     },
 
     async listSummariesByEvent(eventId, limit) {
-      const rows = await orm.query.registrations.findMany({
-        where: { eventId },
-        with: { contacts: true, tickets: true },
-        orderBy: { createdAt: "desc", id: "desc" },
-        limit,
-      });
+      const rows = await summaryStatement.all({ eventId, limit });
 
       return rows.map((row) => toRegistrationSummary(row));
     },

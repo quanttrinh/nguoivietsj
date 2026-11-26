@@ -1,6 +1,6 @@
 // @boundary server
 /* oxlint-disable unicorn/max-nested-calls, eslint/max-lines-per-function -- Drizzle query builders are nested by design and the catalog repository keeps related reads/writes together. */
-import { and, asc, eq, gt, inArray, isNull, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, getTableColumns, gt, inArray, isNull, or, sql } from "drizzle-orm";
 import type { BatchItem } from "drizzle-orm/batch";
 
 import { EVENT_STATUS } from "~/features/events/domain/constants";
@@ -16,13 +16,14 @@ import type {
 import { newId } from "~/platform/utils/uuid";
 
 import { databaseSingleton, type EngineOrm } from "./orm";
+import { cached } from "./prepared";
 import {
   eventAliases,
   eventSlugClaims,
   eventTicketLimits,
   eventTicketTypes,
   events,
-  type registrationStats,
+  registrationStats,
 } from "./schemas";
 import { ticketTypeInsertValues, toTicketTypeRecord } from "./ticket-types";
 
@@ -40,12 +41,24 @@ type EventDetailRow = EventRow & {
   ticketTypes: TicketTypeDetailRow[];
 };
 
-function toEventRecord(
-  row: EventRow & {
-    aliases?: AliasRow[];
-    stats?: StatsRow | null;
-  },
-): EventRecord {
+/** The prepared list select returns alias names and a stats subset as JSON. */
+type EventStats = Pick<StatsRow, "registrationCount" | "ticketsTotal">;
+type EventRecordRow = EventRow & {
+  aliases?: (AliasRow | string)[];
+  stats?: EventStats | null;
+};
+
+function parseAliases(value: string): string[] {
+  // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- JSON decoded from SQLite.
+  return JSON.parse(value) as string[];
+}
+
+function parseStats(value: string): EventStats {
+  // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- JSON decoded from SQLite.
+  return JSON.parse(value) as EventStats;
+}
+
+export function toEventRecord(row: EventRecordRow): EventRecord {
   const event = row;
 
   return {
@@ -54,7 +67,9 @@ function toEventRecord(
     eventType: event.eventType,
     editionYear: event.editionYear,
     defaultLocale: event.defaultLocale,
-    aliases: (row.aliases ?? []).map((alias) => alias.alias).toSorted(),
+    aliases: (row.aliases ?? [])
+      .map((alias) => (typeof alias === "string" ? alias : alias.alias))
+      .toSorted(),
     status: event.status,
     enabled: event.enabled,
     registrationOpen: event.registrationOpen,
@@ -98,9 +113,7 @@ function toLimits(row: LimitsRow | null | undefined): EventTicketLimits {
 }
 
 function toEventWithLimits(
-  row: EventRow & {
-    aliases?: AliasRow[];
-    stats?: StatsRow | null;
+  row: EventRecordRow & {
     limits?: LimitsRow | null;
   },
 ): EventWithLimits {
@@ -142,6 +155,39 @@ export interface EventRepository {
 }
 
 function createEventRepository(orm: EngineOrm): EventRepository {
+  // Static-shape hot reads: one prepare per D1 binding, parameters via placeholders.
+  const listStatement = cached(orm, "events.list", () =>
+    orm
+      .select({
+        ...getTableColumns(events),
+        total: sql<number>`count(*) over ()`,
+        aliases: sql<string>`(
+          select json_group_array(${eventAliases.alias})
+          from ${eventAliases}
+          where ${eventAliases.eventId} = ${events.id}
+        )`.mapWith(parseAliases),
+        stats: sql<string | null>`(
+          select json_object(
+            'registrationCount', ${registrationStats.registrationCount},
+            'ticketsTotal', ${registrationStats.ticketsTotal}
+          )
+          from ${registrationStats}
+          where ${registrationStats.eventId} = ${events.id}
+        )`.mapWith(parseStats),
+      })
+      .from(events)
+      .orderBy(desc(events.createdAt), desc(events.id))
+      .limit(sql.placeholder("limit"))
+      .offset(sql.placeholder("offset"))
+      .prepare(),
+  );
+  const countStatement = cached(orm, "events.list.count", () =>
+    orm
+      .select({ total: sql<number>`count(*)`.mapWith(Number) })
+      .from(events)
+      .prepare(),
+  );
+
   async function findEvent(id: string): Promise<EventWithLimits | null> {
     const row = await orm.query.events.findFirst({
       where: { id },
@@ -170,17 +216,12 @@ function createEventRepository(orm: EngineOrm): EventRepository {
 
   return {
     async list(options) {
-      const rows = await orm.query.events.findMany({
-        with: { aliases: true, stats: true },
-        orderBy: { createdAt: "desc", id: "desc" },
-        limit: options.limit,
-        offset: options.offset,
-        extras: { total: sql<number>`count(*) over ()` },
-      });
+      const rows = await listStatement.all({ limit: options.limit, offset: options.offset });
       let total = rows[0]?.total ?? 0;
 
       if (rows.length === 0) {
-        total = await orm.$count(events);
+        const count = await countStatement.get();
+        total = count?.total ?? 0;
       }
 
       return { events: rows.map((row) => toEventRecord(row)), total };

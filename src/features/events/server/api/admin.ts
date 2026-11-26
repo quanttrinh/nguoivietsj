@@ -596,16 +596,17 @@ export const adminEvents = new Hono<HonoEnv>()
       const { eventId, registrationId } = ctx.req.valid("param");
       const engineDb = ctx.env.EVENT_ENGINE_DB;
 
-      const [eventExists, registration, payment] = await Promise.all([
-        getEventRepository(engineDb).existsById(eventId),
+      const [registration, payment] = await Promise.all([
         getRegistrationRepository(engineDb).findById(eventId, registrationId),
         getPaymentRepository(engineDb).findByRegistrationId(registrationId),
       ]);
 
-      if (!eventExists) {
-        return eventNotFound(ctx);
-      }
       if (registration === null) {
+        // Only distinguish the two 404s on the miss path; a hit proves the event exists.
+        if (!(await getEventRepository(engineDb).existsById(eventId))) {
+          return eventNotFound(ctx);
+        }
+
         return registrationNotFound(ctx);
       }
       if (!isRegistrationPaid(payment, registrationAmountDue(registration))) {
@@ -930,19 +931,17 @@ export const adminEvents = new Hono<HonoEnv>()
 
       const engineDb = ctx.env.EVENT_ENGINE_DB;
 
-      const [eventExists, existing] = await Promise.all([
-        getEventRepository(engineDb).existsById(eventId),
-        getTicketTypeRepository(engineDb).findByKey(eventId, ticketType.key),
-      ]);
-
-      if (!eventExists) {
-        return eventNotFound(ctx);
-      }
+      const existing = await getTicketTypeRepository(engineDb).findByKey(eventId, ticketType.key);
 
       if (existing !== null) {
         return eventApiError(ctx, "event_ticket_type_exists", {
           status: 409,
         });
+      }
+
+      // A key hit proves the event exists; only a miss needs the event check.
+      if (!(await getEventRepository(engineDb).existsById(eventId))) {
+        return eventNotFound(ctx);
       }
 
       try {
@@ -969,16 +968,14 @@ export const adminEvents = new Hono<HonoEnv>()
       const body = ctx.req.valid("json");
       const engineDb = ctx.env.EVENT_ENGINE_DB;
 
-      const [eventExists, current] = await Promise.all([
-        getEventRepository(engineDb).existsById(eventId),
-        getTicketTypeRepository(engineDb).findByKey(eventId, key),
-      ]);
-
-      if (!eventExists) {
-        return eventNotFound(ctx);
-      }
+      const current = await getTicketTypeRepository(engineDb).findByKey(eventId, key);
 
       if (current === null) {
+        // Only distinguish the two 404s on the miss path; a hit proves the event exists.
+        if (!(await getEventRepository(engineDb).existsById(eventId))) {
+          return eventNotFound(ctx);
+        }
+
         return eventApiError(ctx, "event_ticket_type_not_found", {
           status: 404,
         });

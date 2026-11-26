@@ -34,8 +34,6 @@ import {
 import {
   contactSchema,
   type ManualRegistrationInput,
-  manualRegistrationSchema,
-  registrationSchema,
 } from "~/features/events/server/schemas/registration";
 import { makeStatusToken } from "~/features/events/server/services/status";
 import {
@@ -111,17 +109,6 @@ const answerValuesSchema = ark.Record(
   answerKeySchema,
   ark("unknown").narrow((value) => jsonByteLength(value) <= LIMITS.registration.answerBytes),
 );
-
-function validationFields(errors: ark.errors): string[] {
-  const fields = new Set<string>();
-
-  for (const error of errors) {
-    const field = String(error.path[0] ?? "payload");
-    fields.add(field);
-  }
-
-  return [...fields];
-}
 
 function registrationFailureFromDatabase(error: DatabaseError): RegistrationFailureCode {
   switch (error.code) {
@@ -425,15 +412,9 @@ export async function createRegistration({
     throw new RegistrationFailureError(REGISTRATION_FAILURE.eventUnavailable);
   }
 
-  const parsedRegistration = registrationSchema(registration);
-
-  if (parsedRegistration instanceof ark.errors) {
-    throw new RegistrationFailureError(REGISTRATION_FAILURE.invalidPayload, {
-      fields: validationFields(parsedRegistration),
-    });
-  }
-
-  const fullName = parsedRegistration.fullName.trim();
+  // The route's sValidator already ran registrationSchema (including its
+  // defaults). Only the narrower D1 byte-length checks below run again here.
+  const fullName = registration.fullName.trim();
   const fullNameResult = fullNameSchema(fullName);
 
   if (fullNameResult instanceof ark.errors) {
@@ -442,7 +423,7 @@ export async function createRegistration({
     });
   }
 
-  const metadataResult = metadataSchema(parsedRegistration.metadata);
+  const metadataResult = metadataSchema(registration.metadata);
 
   if (metadataResult instanceof ark.errors) {
     throw new RegistrationFailureError(REGISTRATION_FAILURE.invalidPayload, {
@@ -450,7 +431,7 @@ export async function createRegistration({
     });
   }
 
-  const contactsResult = serviceContactsSchema(parsedRegistration.contacts);
+  const contactsResult = serviceContactsSchema(registration.contacts);
 
   if (contactsResult instanceof ark.errors) {
     throw new RegistrationFailureError(REGISTRATION_FAILURE.invalidPayload, {
@@ -458,7 +439,7 @@ export async function createRegistration({
     });
   }
 
-  const ticketResult = prepareTickets(event, parsedRegistration);
+  const ticketResult = prepareTickets(event, registration);
 
   const confirmation = contactsResult.find((contact) => contact.isConfirmation);
   const primaryContacts = contactsResult.filter((contact) => contact.isPrimary);
@@ -519,7 +500,7 @@ export async function createRegistration({
   }
 
   const answers = prepareAnswers({
-    ...parsedRegistration,
+    ...registration,
     answers: formValidation.answers,
   });
 
@@ -534,7 +515,7 @@ export async function createRegistration({
     fullName,
     fullNameNormalized,
     consentAt: new Date().toISOString(),
-    metadata: parsedRegistration.metadata,
+    metadata: registration.metadata,
     contacts: normalizedContacts,
     tickets: ticketResult.tickets,
     answers,
@@ -583,15 +564,9 @@ export async function createManualRegistration({
   event,
   registration,
 }: CreateManualRegistrationInput): Promise<RegistrationResult> {
-  const parsedRegistration = manualRegistrationSchema(registration);
-
-  if (parsedRegistration instanceof ark.errors) {
-    throw new RegistrationFailureError(REGISTRATION_FAILURE.invalidPayload, {
-      fields: validationFields(parsedRegistration),
-    });
-  }
-
-  const fullName = parsedRegistration.fullName.trim();
+  // The route's sValidator already ran manualRegistrationSchema (including
+  // its defaults). Only the narrower checks below run again here.
+  const fullName = registration.fullName.trim();
   const fullNameResult = fullNameSchema(fullName);
 
   if (fullNameResult instanceof ark.errors) {
@@ -600,7 +575,7 @@ export async function createManualRegistration({
     });
   }
 
-  const metadataResult = metadataSchema(parsedRegistration.metadata);
+  const metadataResult = metadataSchema(registration.metadata);
 
   if (metadataResult instanceof ark.errors) {
     throw new RegistrationFailureError(REGISTRATION_FAILURE.invalidPayload, {
@@ -608,7 +583,7 @@ export async function createManualRegistration({
     });
   }
 
-  const contactsResult = parsedRegistration.contacts;
+  const contactsResult = registration.contacts;
 
   if (contactsResult.length > 1) {
     const primaryCount = contactsResult.filter((contact) => contact.isPrimary).length;
@@ -634,10 +609,10 @@ export async function createManualRegistration({
     }
   }
 
-  const ticketResult = prepareManualTickets(event, parsedRegistration);
+  const ticketResult = prepareManualTickets(event, registration);
   const answers = prepareAnswers({
-    formVersion: parsedRegistration.formVersion,
-    answers: parsedRegistration.answers,
+    formVersion: registration.formVersion,
+    answers: registration.answers,
   });
   const normalizedContacts: PreparedContact[] = [];
   const hasPrimary = contactsResult.some((contact) => contact.isPrimary);
@@ -655,12 +630,12 @@ export async function createManualRegistration({
     eventId: event.id,
     statusTokenHash: statusToken.hash,
     statusTokenExpiresAt: statusToken.expiresAt,
-    formVersion: parsedRegistration.formVersion,
+    formVersion: registration.formVersion,
     manual: true,
     fullName,
     fullNameNormalized,
     consentAt: new Date().toISOString(),
-    metadata: { ...parsedRegistration.metadata, manual: true },
+    metadata: { ...registration.metadata, manual: true },
     contacts: normalizedContacts,
     tickets: ticketResult.tickets,
     answers,

@@ -355,6 +355,53 @@ describe("public events API", () => {
     expect(body.error?.issues?.length).toBeGreaterThan(0);
   });
 
+  // The route validator runs registrationSchema once; the service keeps only
+  // the narrower D1 byte-length checks below and must still map them to the
+  // same invalid-payload code and field.
+  test.for([
+    {
+      label: "metadata",
+      email: "oversized-metadata@example.com",
+      overrides: { metadata: { blob: "x".repeat(17 * 1024) } },
+      field: "metadata",
+    },
+    {
+      label: "contact value",
+      email: "oversized-contact@example.com",
+      overrides: {
+        contacts: [
+          {
+            kind: "email",
+            email: "oversized-contact@example.com",
+            isConfirmation: true,
+            value: { blob: "x".repeat(5 * 1024) },
+          },
+        ],
+      },
+      field: "contacts",
+    },
+    {
+      label: "answer",
+      email: "oversized-answer@example.com",
+      overrides: { answers: { company: "x".repeat(5 * 1024) } },
+      field: "answers",
+    },
+  ])(
+    "rejects an oversized $label with the D1 byte-limit error",
+    async ({ email, overrides, field }, { api }) => {
+      const response = await postRegistration(
+        api,
+        REGISTRATION_SLUG,
+        registrationBody(email, overrides),
+      );
+      const body = await responseBody(response);
+
+      expect(response.status).toBe(400);
+      expect(body.error?.code).toBe("event_invalid_payload");
+      expect(body.error?.fields).toEqual([field]);
+    },
+  );
+
   test("rate limits a registration email separately from the IP", async ({ api }) => {
     const original = api.env.EVENT_ENGINE_REGISTRATION_RATE_LIMITER;
     let calls = 0;

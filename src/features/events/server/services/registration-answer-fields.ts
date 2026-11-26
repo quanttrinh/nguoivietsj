@@ -17,10 +17,13 @@ export interface AnswerFieldView {
  * used instead. The cap bounds memory to the small set of published versions.
  */
 const ANSWER_FIELDS_CACHE_LIMIT = 128;
-const answerFieldsCache = new Map<string, AnswerFieldView[]>();
+const answerFieldsCache = new Map<string, readonly AnswerFieldView[]>();
 
-function remember(key: string, fields: AnswerFieldView[]): AnswerFieldView[] {
-  answerFieldsCache.set(key, fields);
+function remember(key: string, fields: AnswerFieldView[]): readonly AnswerFieldView[] {
+  // Callers only serialize these fields, so share one frozen array instead of
+  // copying it on every cache hit.
+  const shared = Object.freeze(fields);
+  answerFieldsCache.set(key, shared);
 
   if (answerFieldsCache.size > ANSWER_FIELDS_CACHE_LIMIT) {
     const oldest = answerFieldsCache.keys().next().value;
@@ -30,20 +33,21 @@ function remember(key: string, fields: AnswerFieldView[]): AnswerFieldView[] {
     }
   }
 
-  // Callers own their array; never hand out the cached instance itself.
-  return [...fields];
+  return shared;
 }
 
 /**
  * Extract answer field labels from a stored form schema using the canonical
  * schema validator, tolerating invalid schemas by returning an empty list.
  */
-export function answerFieldsFromSchema(schema: Record<string, unknown>): AnswerFieldView[] {
+export function answerFieldsFromSchema(
+  schema: Record<string, unknown>,
+): readonly AnswerFieldView[] {
   const cacheKey = JSON.stringify(schema);
   const cached = answerFieldsCache.get(cacheKey);
 
   if (cached !== undefined) {
-    return [...cached];
+    return cached;
   }
 
   const result = formSchemaSchema(schema);

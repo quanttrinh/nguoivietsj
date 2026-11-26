@@ -17,15 +17,26 @@ type AuthEnv = HonoEnv & {
 };
 
 export const requireAuth = createMiddleware<AuthEnv>(async (ctx, next) => {
-  const result = await withTracingSpan({
-    tracing: getTracing(ctx),
-    name: "auth.get_session",
-    attributes: { "auth.route": routePath(ctx, -1) || ctx.req.path },
-    task: () =>
-      auth(ctx.env).api.getSession({
-        headers: ctx.req.raw.headers,
-      }),
-  });
+  const task = () =>
+    auth(ctx.env).api.getSession({
+      headers: ctx.req.raw.headers,
+      // Admin reads must be authoritative: a cached role or a session
+      // revoked inside the 60s cookieCache window must not authorize.
+      query: { disableCookieCache: true },
+    });
+  const tracing = getTracing(ctx);
+
+  // Keep the span for diagnostics, but only compute route attributes when
+  // tracing is available — otherwise unsampled requests pay for routePath.
+  const result =
+    tracing === undefined
+      ? await task()
+      : await withTracingSpan({
+          tracing,
+          name: "auth.get_session",
+          attributes: { "auth.route": routePath(ctx, -1) || ctx.req.path },
+          task,
+        });
 
   if (!result) {
     return unauthorized(ctx);

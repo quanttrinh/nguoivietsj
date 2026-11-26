@@ -264,7 +264,7 @@ export function RegistrationAnswersCard({
   labels,
 }: {
   answers: Record<string, unknown>;
-  answerFields: AnswerFieldView[];
+  answerFields: readonly AnswerFieldView[];
   locale: DeclaredLocales;
   defaultLocale: string;
   labels: AllLabels;

@@ -44,6 +44,10 @@ export const baseAuthConfig = {
   session: {
     // KV is the session store; session checks should not read or write D1.
     storeSessionInDatabase: false,
+    // Short-lived compact cookie cache skips the KV/D1 round trip on most
+    // getSession calls. Better Auth disables `refreshCache` for stateful
+    // deployments (ours has D1 + KV), so do not set it here.
+    cookieCache: { enabled: true, maxAge: 60, strategy: "compact", version: "1" },
   },
 
   verification: {

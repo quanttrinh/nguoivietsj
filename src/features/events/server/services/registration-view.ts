@@ -32,7 +32,7 @@ export interface RegistrationView {
   amountDue: number;
   currency: string;
   due: { amountMinor: number; currency: string };
-  answerFields: AnswerFieldView[];
+  answerFields: readonly AnswerFieldView[];
   paid: boolean;
 }
 

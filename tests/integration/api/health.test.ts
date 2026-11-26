@@ -10,6 +10,8 @@ describe("health API", () => {
 
     expect(response.status).toBe(200);
     expect(body).toEqual({ ok: true, app: true, events: true });
+    // A live DB check must never be served from cache.
+    expect(response.headers.get("cache-control")).toBe("no-store");
   });
 
   // Register the restore where the test double is installed so cleanup cannot
@@ -32,6 +34,7 @@ describe("health API", () => {
 
     expect(response.status).toBe(503);
     expect(body).toEqual({ ok: false, app: false, events: false });
+    expect(response.headers.get("cache-control")).toBe("no-store");
   });
 
   test("returns 503 when the event engine query fails", async ({ api }) => {

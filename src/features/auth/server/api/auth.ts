@@ -98,17 +98,25 @@ function asAuthApiCall(endpoint: unknown): AuthApiCall {
 }
 
 async function callWithBody(ctx: Context<HonoEnv>, endpoint: AuthApiCall): Promise<Response> {
-  const response = await withTracingSpan({
-    tracing: getTracing(ctx),
-    name: "auth.endpoint",
-    attributes: { "auth.operation": routePath(ctx, -1) || ctx.req.path },
-    task: async () =>
-      endpoint({
-        headers: ctx.req.raw.headers,
-        body: await readJsonObject(ctx.req.raw),
-        asResponse: true,
-      }),
-  });
+  const task = async () =>
+    endpoint({
+      headers: ctx.req.raw.headers,
+      body: await readJsonObject(ctx.req.raw),
+      asResponse: true,
+    });
+  const tracing = getTracing(ctx);
+
+  // Route attributes are only needed for a live span; computing them when
+  // tracing is unavailable would spend CPU on every unsampled auth request.
+  const response =
+    tracing === undefined
+      ? await task()
+      : await withTracingSpan({
+          tracing,
+          name: "auth.endpoint",
+          attributes: { "auth.operation": routePath(ctx, -1) || ctx.req.path },
+          task,
+        });
 
   return localizeAuthResponse(response, ctx.req.raw);
 }
@@ -155,15 +163,20 @@ export const authRoutes = new Hono<HonoEnv>()
     (ctx) => callWithBody(ctx, asAuthApiCall(auth(ctx.env).api.signInEmailOTP)),
   )
   .post("/sign-out", (ctx) => callWithBody(ctx, asAuthApiCall(auth(ctx.env).api.signOut)))
-  .get("/get-session", (ctx) =>
-    withTracingSpan({
-      tracing: getTracing(ctx),
-      name: "auth.endpoint",
-      attributes: { "auth.operation": routePath(ctx, -1) || ctx.req.path },
-      task: () =>
-        auth(ctx.env).api.getSession({
-          headers: ctx.req.raw.headers,
-          asResponse: true,
-        }),
-    }),
-  );
+  .get("/get-session", (ctx) => {
+    const task = () =>
+      auth(ctx.env).api.getSession({
+        headers: ctx.req.raw.headers,
+        asResponse: true,
+      });
+    const tracing = getTracing(ctx);
+
+    return tracing === undefined
+      ? task()
+      : withTracingSpan({
+          tracing,
+          name: "auth.endpoint",
+          attributes: { "auth.operation": routePath(ctx, -1) || ctx.req.path },
+          task,
+        });
+  });
