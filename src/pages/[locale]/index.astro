@@ -1,8 +1,7 @@
 ---
 // @boundary astro
-import { locales } from "intlayer";
-
 import HomePage from "~/home/ui/HomePage.astro";
+import { locales } from "~/shared/i18n";
 
 export function getStaticPaths(): { params: { locale: string } }[] {
   return locales.map((locale) => ({ params: { locale } }));

@@ -1,34 +1,23 @@
 // @boundary server
 import { drizzleAdapter } from "@better-auth/drizzle-adapter/relations-v2";
-import { betterAuth } from "better-auth";
 import type { SecondaryStorage } from "better-auth/db";
+import { betterAuth } from "better-auth/minimal";
 import { drizzle } from "drizzle-orm/d1";
 
 import { BETTER_AUTH_BASE_PATH } from "~/auth/constants";
 import { resolveAuthBaseUrl } from "~/auth/server/base-url";
 import { authPlugins, baseAuthConfig } from "~/auth/server/config";
 import { enqueueTwoFactorCodeEmail } from "~/auth/server/email/two-factor";
-import { createPasswordHashers, parsePasswordHashConfig } from "~/auth/server/password";
-import {
-  account,
-  authRelations,
-  session,
-  twoFactor,
-  user,
-  verification,
-} from "~/db/app/schemas/auth-schema";
+import { account, authRelations, session, user, verification } from "~/db/app/schemas/auth-schema";
 import { drizzleLogger } from "~/db/logger";
 
-const authSchema = { account, session, twoFactor, user, verification };
+const authSchema = { account, session, user, verification };
 
 const authInstances = new WeakMap<Env, ReturnType<typeof createAuth>>();
 
 function createAuth(env: Env) {
   const db = drizzle(env.APP_DB, { relations: authRelations, logger: drizzleLogger });
   const authKV = env.AUTH_SESSION_KV;
-  const { hashPassword, verifyPassword } = createPasswordHashers(
-    parsePasswordHashConfig(env.AUTH_PASSWORD_CONFIG),
-  );
 
   // Keep the optional guard for older deployments that predate the KV binding.
   // oxlint-disable-next-line typescript/no-unnecessary-condition, typescript/strict-boolean-expressions -- Env types cannot express an older deployment without the binding.
@@ -54,31 +43,32 @@ function createAuth(env: Env) {
   return betterAuth({
     ...baseAuthConfig,
 
-    emailAndPassword: {
-      ...baseAuthConfig.emailAndPassword,
-      password: {
-        hash: hashPassword,
-        verify: verifyPassword,
+    plugins: authPlugins(
+      async ({ email, otp }) => {
+        const queued = await enqueueTwoFactorCodeEmail(env, {
+          email,
+          code: otp,
+          expiresMinutes: 10,
+        });
+
+        if (!queued) {
+          throw new Error("Sign-in code email could not be queued");
+        }
       },
-    },
-
-    plugins: authPlugins(async ({ user: recipient, otp }) => {
-      const queued = await enqueueTwoFactorCodeEmail(env, {
-        email: recipient.email,
-        code: otp,
-        // Better Auth's default OTP period.
-        expiresMinutes: 3,
-      });
-
-      if (!queued) {
-        throw new Error("Two-factor email could not be queued");
-      }
-    }),
+      import.meta.env.MODE === "test" ? () => "123456" : undefined,
+    ),
 
     database: drizzleAdapter(db, {
       provider: "sqlite",
       schema: authSchema,
     }),
+
+    advanced: {
+      ...baseAuthConfig.advanced,
+      database: {
+        validateSchema: !import.meta.env.PROD,
+      },
+    },
 
     // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- Better Auth requires the full interface.
     ...(kvStorage ? { secondaryStorage: kvStorage as SecondaryStorage } : {}),

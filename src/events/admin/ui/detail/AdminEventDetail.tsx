@@ -7,13 +7,19 @@ import { can } from "~/auth/permissions";
 import { adminQueries, adminRefresh } from "~/events/admin/ui/shared/queries";
 import { adminCatalogUrl } from "~/events/admin/ui/shared/routes";
 import { localized } from "~/events/domain/localized";
+import type { AdminEventDetailLabels } from "~/generated/client/AdminEventDetail";
 import { apiClient, apiErrorMessage, readApiJson } from "~/shared/client/api/client";
 import { useQuery } from "~/shared/client/query/use-query";
+import type { Locale as DeclaredLocales } from "~/shared/i18n";
 
 import { styles } from "./admin-detail-styles";
-import type { Props } from "./admin-detail-types";
 import { EventDetailHeader } from "./EventDetailHeader";
 import { TicketTypesPanel } from "./TicketTypesPanel";
+
+interface Props {
+  locale: DeclaredLocales;
+  labels: AdminEventDetailLabels;
+}
 
 export default function AdminEventDetail({ locale, labels }: Props): JSX.Element | null {
   const [eventId, setEventId] = useState<string | null | undefined>();
@@ -35,9 +41,9 @@ export default function AdminEventDetail({ locale, labels }: Props): JSX.Element
   let error: string | null = null;
 
   if (eventId === null) {
-    error = labels.eventNotFound;
+    error = labels.engineAdmin.eventNotFound;
   } else if (queryError !== null) {
-    error = apiErrorMessage(queryError, labels.loadFailed);
+    error = apiErrorMessage(queryError, labels.engineAdmin.loadFailed);
   }
 
   useEffect(() => {
@@ -45,12 +51,12 @@ export default function AdminEventDetail({ locale, labels }: Props): JSX.Element
       return;
     }
 
-    document.title = `${labels.event}: ${localized(current.title, locale, current.slug)}`;
-  }, [current, labels.event, locale]);
+    document.title = `${labels.shared.event}: ${localized(current.title, locale, current.slug)}`;
+  }, [current, labels.shared.event, locale]);
 
   async function archiveEvent(): Promise<void> {
     // oxlint-disable-next-line eslint/no-alert -- Admin-only destructive confirmation is sufficient.
-    if (current === null || !globalThis.confirm(labels.archiveEventConfirm)) {
+    if (current === null || !globalThis.confirm(labels.engineAdmin.archiveEventConfirm)) {
       return;
     }
     setNotice(null);
@@ -68,7 +74,7 @@ export default function AdminEventDetail({ locale, labels }: Props): JSX.Element
       adminRefresh.afterArchive(current.id);
       await navigate(adminCatalogUrl(locale));
     } catch (archiveError) {
-      setNotice(apiErrorMessage(archiveError, labels.archiveEventFailed));
+      setNotice(apiErrorMessage(archiveError, labels.engineAdmin.archiveEventFailed));
     }
   }
   if (eventId === undefined || loading) {

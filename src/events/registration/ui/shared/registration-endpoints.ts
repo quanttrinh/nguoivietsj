@@ -1,5 +1,11 @@
 // @boundary client
-import type { Props } from "./registration-types";
+import type { PublicRegistrationConfig } from "./registration-types";
+
+interface Props {
+  config: PublicRegistrationConfig;
+  preview?: boolean;
+  staff?: boolean;
+}
 
 export type RegistrationRequest =
   | { kind: "public"; slug: string; locale: string }

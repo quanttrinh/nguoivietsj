@@ -3,8 +3,8 @@ import { type } from "arktype";
 import type { Context, MiddlewareHandler } from "hono";
 import { createMiddleware } from "hono/factory";
 
-import { apiError } from "~/server/api-response";
-import { internalServerError } from "~/server/common-responses";
+import { internalServerError } from "~/server/helpers/responses/common-responses";
+import { sharedApiError } from "~/server/helpers/responses/shared-api-error";
 import { serverLogger } from "~/shared/server/logger";
 import { coalesceString } from "~/shared/utils/string";
 
@@ -55,7 +55,7 @@ async function verifyTurnstile(
 }
 
 function challengeRequired(ctx: Context<HonoEnv>): Response {
-  return apiError(ctx, "turnstile_required", { status: 403 });
+  return sharedApiError(ctx, "turnstile_required", { status: 403 });
 }
 
 export function requireTurnstile(expectedAction?: string): MiddlewareHandler<HonoEnv> {
@@ -84,7 +84,7 @@ export function requireTurnstile(expectedAction?: string): MiddlewareHandler<Hon
       });
     } catch (error) {
       serverLogger.error(error);
-      return apiError(ctx, "turnstile_verification_failed", { status: 500 });
+      return sharedApiError(ctx, "turnstile_verification_failed", { status: 500 });
     }
 
     if (!result.success) {
@@ -95,14 +95,14 @@ export function requireTurnstile(expectedAction?: string): MiddlewareHandler<Hon
     // those checks only for local dev and preview builds.
     const allowTestKey = import.meta.env.DEV || import.meta.env.MODE === "preview";
     if (expectedAction !== undefined && !allowTestKey && result.action !== expectedAction) {
-      return apiError(ctx, "turnstile_failed", { status: 403 });
+      return sharedApiError(ctx, "turnstile_failed", { status: 403 });
     }
 
     // A token solved for this widget on another hostname must not be reusable
     // here. Cloudflare always returns the hostname on successful verification.
     const requestHostname = new URL(ctx.req.url).hostname;
     if (!allowTestKey && result.hostname !== requestHostname) {
-      return apiError(ctx, "turnstile_failed", { status: 403 });
+      return sharedApiError(ctx, "turnstile_failed", { status: 403 });
     }
 
     return next();

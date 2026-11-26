@@ -1,5 +1,4 @@
 // @boundary client
-import type { DeclaredLocales } from "intlayer";
 /* oxlint-disable eslint/max-lines-per-function -- Scanner keeps camera, manual entry, and result flow together. */
 import type { JSX } from "preact";
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
@@ -7,8 +6,8 @@ import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import { css } from "styled-system/css";
 import { vstack } from "styled-system/patterns";
 import { adminRefresh } from "~/events/admin/ui/shared/queries";
-import type { CheckinContentValues } from "~/events/content/checkin.content";
 import { ticketSummary } from "~/events/domain/presentation";
+import type { AdminCheckinScannerLabels as AdminCheckinLabels } from "~/generated/client/AdminCheckinScanner";
 import {
   apiClient,
   apiErrorMessage,
@@ -17,32 +16,10 @@ import {
 } from "~/shared/client/api/client";
 import { focusControl, readFormValue } from "~/shared/client/form-controls";
 import { clientLogger } from "~/shared/client/logger";
-import { DEFAULT_LOCALE } from "~/shared/constants/locales";
+import { DEFAULT_LOCALE, type Locale as DeclaredLocales } from "~/shared/i18n";
 import { noticeStyles } from "~/shared/ui/notice-styles";
 import { dateTimeFormatter } from "~/shared/utils/format";
 import { isUuidV7 } from "~/shared/utils/uuid";
-
-type AdminCheckinLabels = Pick<
-  CheckinContentValues,
-  | "checkedInAt"
-  | "scannerTitle"
-  | "scannerHelp"
-  | "startCamera"
-  | "stopCamera"
-  | "registrationId"
-  | "manualPlaceholder"
-  | "lookUp"
-  | "undo"
-  | "scanAgain"
-  | "cameraError"
-  | "cameraUnsupported"
-  | "invalidCode"
-  | "checkinSuccess"
-  | "alreadyCheckedIn"
-  | "checkinFailed"
-  | "undoSuccess"
-  | "undoFailed"
->;
 
 interface AdminCheckinProps {
   labels: AdminCheckinLabels;
@@ -217,12 +194,12 @@ export default function AdminCheckinScanner({ labels }: AdminCheckinProps): JSX.
     const registrationId = extractRegistrationId(value);
 
     if (registrationId === null) {
-      show(labels.invalidCode, "error");
+      show(labels.engineCheckin.invalidCode, "error");
       return;
     }
 
     if (eventId == null) {
-      show(labels.checkinFailed, "error");
+      show(labels.engineCheckin.checkinFailed, "error");
       return;
     }
 
@@ -239,7 +216,7 @@ export default function AdminCheckinScanner({ labels }: AdminCheckinProps): JSX.
       if (!response.ok) {
         const body = await response.json();
 
-        show(apiResponseMessage(body, labels.checkinFailed), "error");
+        show(apiResponseMessage(body, labels.engineCheckin.checkinFailed), "error");
         return;
       }
 
@@ -254,7 +231,7 @@ export default function AdminCheckinScanner({ labels }: AdminCheckinProps): JSX.
       adminRefresh.afterCheckinWrite(eventId);
     } catch (error) {
       clientLogger.error(error);
-      show(apiErrorMessage(error, labels.checkinFailed), "error");
+      show(apiErrorMessage(error, labels.engineCheckin.checkinFailed), "error");
     } finally {
       setBusy(false);
     }
@@ -267,7 +244,7 @@ export default function AdminCheckinScanner({ labels }: AdminCheckinProps): JSX.
 
     // oxlint-disable-next-line typescript/no-unnecessary-condition -- omitted on insecure origins, despite lib.dom.
     if (navigator.mediaDevices?.getUserMedia === undefined) {
-      show(labels.cameraUnsupported, "error");
+      show(labels.engineCheckin.cameraUnsupported, "error");
       focusControl(manualInputRef.current);
       return;
     }
@@ -349,7 +326,7 @@ export default function AdminCheckinScanner({ labels }: AdminCheckinProps): JSX.
       }
 
       setScanning(false);
-      show(labels.cameraError, "error");
+      show(labels.engineCheckin.cameraError, "error");
       focusControl(manualInputRef.current);
     }
   }
@@ -373,11 +350,11 @@ export default function AdminCheckinScanner({ labels }: AdminCheckinProps): JSX.
       );
 
       setResult(null);
-      show(labels.undoSuccess, "success");
+      show(labels.engineCheckin.undoSuccess, "success");
       adminRefresh.afterCheckinWrite(eventId);
     } catch (error) {
       clientLogger.error(error);
-      show(apiErrorMessage(error, labels.undoFailed), "error");
+      show(apiErrorMessage(error, labels.engineCheckin.undoFailed), "error");
     } finally {
       setBusy(false);
     }
@@ -396,8 +373,8 @@ export default function AdminCheckinScanner({ labels }: AdminCheckinProps): JSX.
 
   return (
     <div class={styles.scanner}>
-      <h2 class={styles.sectionTitle}>{labels.scannerTitle}</h2>
-      <p class={styles.sectionDescription}>{labels.scannerHelp}</p>
+      <h2 class={styles.sectionTitle}>{labels.engineCheckin.scannerTitle}</h2>
+      <p class={styles.sectionDescription}>{labels.engineCheckin.scannerHelp}</p>
 
       <div
         ref={noticeRef}
@@ -421,10 +398,10 @@ export default function AdminCheckinScanner({ labels }: AdminCheckinProps): JSX.
             void startCamera();
           }}
         >
-          {labels.startCamera}
+          {labels.engineCheckin.startCamera}
         </qui-button>
         <qui-button type="button" variant="outlined" disabled={!scanning} onClick={stopCamera}>
-          {labels.stopCamera}
+          {labels.engineCheckin.stopCamera}
         </qui-button>
       </div>
 
@@ -438,17 +415,17 @@ export default function AdminCheckinScanner({ labels }: AdminCheckinProps): JSX.
         }}
       >
         <qui-field class={styles.field}>
-          <qui-field-label>{labels.registrationId}</qui-field-label>
+          <qui-field-label>{labels.shared.registrationID}</qui-field-label>
           <qui-input
             ref={manualInputRef}
             name="registrationId"
-            placeholder={labels.manualPlaceholder}
+            placeholder={labels.engineCheckin.manualPlaceholder}
             autocomplete="off"
           />
         </qui-field>
         <div class={styles.actions}>
           <qui-button type="submit" variant="outlined">
-            {labels.lookUp}
+            {labels.engineCheckin.lookUp}
           </qui-button>
         </div>
       </form>
@@ -457,10 +434,12 @@ export default function AdminCheckinScanner({ labels }: AdminCheckinProps): JSX.
         <div ref={resultRef} class={styles.result} tabIndex={-1}>
           <h2 class={styles.resultName}>{result.registration.fullName}</h2>
           <p class={styles.resultText}>
-            {result.alreadyCheckedIn ? labels.alreadyCheckedIn : labels.checkinSuccess}
+            {result.alreadyCheckedIn
+              ? labels.engineCheckin.alreadyCheckedIn
+              : labels.engineCheckin.checkinSuccess}
           </p>
           <p class={styles.resultText}>
-            {labels.checkedInAt}: {formatDate(result.checkin.checkedInAt)}
+            {labels.shared.checkedInAt}: {formatDate(result.checkin.checkedInAt)}
           </p>
           <p class={styles.resultTickets}>{ticketSummary(result.registration.tickets)}</p>
           <div class={styles.actions}>
@@ -472,10 +451,10 @@ export default function AdminCheckinScanner({ labels }: AdminCheckinProps): JSX.
                 void undo();
               }}
             >
-              {labels.undo}
+              {labels.engineCheckin.undo}
             </qui-button>
             <qui-button type="button" variant="filled" onClick={scanAgain}>
-              {labels.scanAgain}
+              {labels.engineCheckin.scanAgain}
             </qui-button>
           </div>
         </div>

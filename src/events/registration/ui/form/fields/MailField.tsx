@@ -40,7 +40,7 @@ function mailSubfields(
   config: PublicRegistrationConfig,
   required: boolean,
 ): MailSubfieldDefinition[] {
-  const mail = config.labels.mail;
+  const mail = config.labels.engineRegistration.mail;
 
   return [
     {
@@ -65,7 +65,7 @@ function mailSubfields(
     },
     {
       name: FORM_MAIL_SUBFIELD.city,
-      label: mail.city,
+      label: config.labels.shared.city,
       autocomplete: "address-level2",
       placeholder: mail.cityPlaceholder,
       maxLength: MAX_CITY_LENGTH,
@@ -92,7 +92,7 @@ function mailSubfields(
     },
     {
       name: FORM_MAIL_SUBFIELD.country,
-      label: mail.country,
+      label: config.labels.shared.country,
       autocomplete: "country",
       placeholder: mail.countryPlaceholder,
       maxLength: 2,
@@ -150,7 +150,7 @@ export function MailField({ field, config, required, errors }: MailFieldProps): 
             key={subfield.name}
             subfield={subfield}
             error={errors[mailFieldName(subfield.name)]}
-            fallbackError={config.labels.errors.required}
+            fallbackError={config.labels.engineRegistration.errors.required}
           />
         ))}
       </div>

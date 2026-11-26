@@ -1,12 +1,10 @@
 ---
 // @boundary client
-import { getBasePlugins, getDictionary } from "@intlayer/core/interpreter";
-import { useDictionary, useLocale } from "astro-intlayer";
-
 import { css, cx } from "styled-system/css";
-import adminBreadcrumbsContent from "~/events/content/admin-breadcrumbs.content";
-import engineAdminContent from "~/events/content/admin.content";
+import { localized as breadcrumbLocalized } from "~/generated/client/AdminBreadcrumbs";
+import { localized as all } from "~/generated/client/all";
 import BaseLayout from "~/layouts/BaseLayout.astro";
+import { useLocale } from "~/shared/i18n";
 
 import AdminAuthGate from "./AdminAuthGate.astro";
 import AdminBreadcrumbs from "./AdminBreadcrumbs";
@@ -20,9 +18,9 @@ interface Props {
 }
 
 const { title, description, noindex = false }: Props = Astro.props;
-const { locale } = useLocale();
-const content = useDictionary(engineAdminContent, locale);
-const breadcrumbLabels = getDictionary(adminBreadcrumbsContent, locale, getBasePlugins(locale));
+const { locale } = useLocale(Astro.url);
+const content = all(locale);
+const breadcrumbLabels = breadcrumbLocalized(locale);
 
 const styles = {
   headerActions: css({ display: "flex", alignItems: "center", gap: "3" }),
@@ -35,7 +33,7 @@ const styles = {
 <BaseLayout title={title} description={description} noindex={noindex}>
   <Fragment slot="header-actions">
     <div data-admin-protected hidden class={cx(styles.headerActions, styles.protectedContent)}>
-      <AdminRefresh label={content.refresh.value} />
+      <AdminRefresh label={content.engineAdmin.refresh} />
       <AdminLogout locale={locale} />
     </div>
   </Fragment>
@@ -46,9 +44,9 @@ const styles = {
     <slot />
   </div>
   <AdminAuthGate
-    required={content.authRequired.value}
-    message={content.authRequiredMessage.value}
-    login={content.login.value}
+    required={content.engineAdmin.authRequired}
+    message={content.engineAdmin.authRequiredMessage}
+    login={content.engineAdmin.login}
     loginHref={`/${locale}/login`}
   />
   <script>

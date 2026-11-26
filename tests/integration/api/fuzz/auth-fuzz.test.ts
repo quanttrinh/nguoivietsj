@@ -36,10 +36,10 @@ afterAll(async () => {
  */
 
 fcTest.prop([jsonBody], FUZZ_PARAMS)(
-  "POST /api/auth/sign-in/email survives arbitrary JSON bodies",
+  "POST /api/auth/sign-in/email-otp survives arbitrary JSON bodies",
   async (body) => {
     const response = await api.request(
-      "/api/auth/sign-in/email",
+      "/api/auth/sign-in/email-otp",
       fuzzInit({ method: "POST", body }),
     );
 

@@ -1,8 +1,7 @@
 // @boundary shared
 import { type } from "arktype";
 
-import { localeSchema } from "~/shared/constants/locale-schema";
-import { DEFAULT_LOCALE } from "~/shared/constants/locales";
+import { DEFAULT_LOCALE, locales } from "~/shared/i18n";
 
 import { EVENT_STATUS } from "../constants";
 import { DEFAULT_TIMEZONE } from "../defaults";
@@ -17,6 +16,8 @@ import {
 } from "./common";
 import { eventNotesSchema } from "./notes";
 import { ticketTypeSchema } from "./tickets";
+
+const localeSchema = type.enumerated(...locales);
 
 export const eventSlugSchema = patternStringSchema(EVENT_SLUG_REGEX, LIMITS.event.slug);
 

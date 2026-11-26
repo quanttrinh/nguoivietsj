@@ -1,17 +1,17 @@
 // @boundary client
 import { navigate } from "astro:transitions/client";
-import type { DeclaredLocales } from "intlayer";
 import type { JSX } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 
 import { adminQueries, adminRefresh } from "~/events/admin/ui/shared/queries";
 import { adminEventUrl } from "~/events/admin/ui/shared/routes";
 import { adminStyles as styles } from "~/events/admin/ui/shared/styles/admin-styles";
+import type { TicketTypeFormLabels } from "~/generated/client/TicketTypeForm";
 import { apiClient, apiResponseMessage, readApiJson } from "~/shared/client/api/client";
 import { clientLogger } from "~/shared/client/logger";
 import { useQuery } from "~/shared/client/query/use-query";
+import type { Locale as DeclaredLocales } from "~/shared/i18n";
 
-import type { TicketTypeFormLabels } from "./form-labels";
 import {
   TicketTypeFields,
   emptyTicketDraft,
@@ -85,7 +85,7 @@ export function TicketTypeForm({
   if (query.eventId === null || (mode === "edit" && (error !== null || draft === null))) {
     return (
       <p class={styles.notice} data-tone="error" role="alert">
-        {labels.loadFailed}
+        {labels.engineAdmin.loadFailed}
       </p>
     );
   }
@@ -109,7 +109,7 @@ export function TicketTypeForm({
     const ticket = ticketInput(current, mode === "create");
 
     if (ticket === null) {
-      setNotice({ message: labels.invalidPayload, tone: "error" });
+      setNotice({ message: labels.engineAdmin.invalidPayload, tone: "error" });
       return;
     }
 
@@ -138,7 +138,7 @@ export function TicketTypeForm({
               : [];
           const fieldSuffix = fields.length > 0 ? ` (${fields.join(", ")})` : "";
           setNotice({
-            message: `${apiResponseMessage(body, labels.ticketSaveFailed)}${fieldSuffix}`,
+            message: `${apiResponseMessage(body, labels.engineAdmin.ticketSaveFailed)}${fieldSuffix}`,
             tone: "error",
           });
           return;
@@ -148,7 +148,7 @@ export function TicketTypeForm({
         await navigate(detailUrl);
       } catch (error_) {
         clientLogger.error(error_);
-        setNotice({ message: labels.ticketSaveFailed, tone: "error" });
+        setNotice({ message: labels.engineAdmin.ticketSaveFailed, tone: "error" });
       } finally {
         setSaving(false);
       }
@@ -157,7 +157,7 @@ export function TicketTypeForm({
 
   const archive = (): void => {
     // oxlint-disable-next-line eslint/no-alert -- Native confirmation is sufficient for this admin-only destructive action.
-    if (!globalThis.confirm(labels.archiveTicketConfirm)) {
+    if (!globalThis.confirm(labels.engineAdmin.archiveTicketConfirm)) {
       return;
     }
 
@@ -176,7 +176,7 @@ export function TicketTypeForm({
         await navigate(detailUrl);
       } catch (error_) {
         clientLogger.error(error_);
-        setNotice({ message: labels.saveFailed, tone: "error" });
+        setNotice({ message: labels.engineAdmin.saveFailed, tone: "error" });
       } finally {
         setSaving(false);
       }
@@ -185,10 +185,10 @@ export function TicketTypeForm({
 
   const submitLabel = (): string => {
     if (saving) {
-      return labels.saving;
+      return labels.shared.saving;
     }
 
-    return mode === "create" ? labels.addTicketType : labels.save;
+    return mode === "create" ? labels.engineAdmin.addTicketType : labels.engineAdmin.save;
   };
   return (
     <form
@@ -212,9 +212,9 @@ export function TicketTypeForm({
 
       <div class={styles.panel}>
         <h2 class={styles.sectionTitle}>
-          {mode === "create" ? labels.newTicketType : labels.editTicketType}
+          {mode === "create" ? labels.shared.newTicketType : labels.shared.editTicketType}
         </h2>
-        <p class={styles.sectionDescription}>{labels.ticketTypeIntro}</p>
+        <p class={styles.sectionDescription}>{labels.engineAdmin.ticketTypeIntro}</p>
         <div class={styles.sectionBody}>
           <TicketTypeFields
             draft={current}
@@ -231,11 +231,11 @@ export function TicketTypeForm({
         </qui-button>
         {mode === "edit" && current.active ? (
           <qui-button variant="outlined" disabled={saving} onClick={archive}>
-            {labels.archiveTicketType}
+            {labels.engineAdmin.archiveTicketType}
           </qui-button>
         ) : null}
         <qui-button href={detailUrl} variant="outlined">
-          {labels.cancel}
+          {labels.shared.cancel}
         </qui-button>
       </div>
     </form>

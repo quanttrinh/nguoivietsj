@@ -22,7 +22,7 @@ export function ContactField({ field, config, required, error }: ContactFieldPro
       required={required}
       help={field.help}
       error={error}
-      fallbackError={config.labels.errors.required}
+      fallbackError={config.labels.engineRegistration.errors.required}
     >
       <qui-input
         name={contactFieldName(field.contact)}

@@ -3,38 +3,44 @@ import { authClient } from "./client";
 import { resetSharedSession } from "./session";
 
 export type SignInResult =
+  | { status: "code-sent" }
   | { status: "signed-in" }
-  | { status: "two-factor" }
   | { status: "error"; message: string };
 
-/**
- * Sign in with email and password through the Better-auth client.
- *
- * Accounts with two-factor authentication return `two-factor`; finish with
- * `verifyTwoFactor`. Transport failures (offline, 5xx) are rethrown so callers
- * can show an "unavailable" notice.
- */
-export async function signInEmail(input: {
+function localeOptions(locale?: string) {
+  return locale === undefined ? {} : { fetchOptions: { headers: { "x-locale": locale } } };
+}
+
+/** Request a one-time sign-in code for an existing staff email. */
+export async function sendSignInCode(input: {
   email: string;
-  password: string;
-  rememberMe?: boolean;
   locale?: string;
 }): Promise<SignInResult> {
-  const { data, error } = await authClient.signIn.email({
+  const { error } = await authClient.emailOtp.sendVerificationOtp({
     email: input.email,
-    password: input.password,
-    rememberMe: input.rememberMe,
-    ...(input.locale === undefined
-      ? {}
-      : { fetchOptions: { headers: { "x-locale": input.locale } } }),
+    type: "sign-in",
+    ...localeOptions(input.locale),
   });
 
-  if (error) {
-    return { status: "error", message: error.message ?? "Unable to sign in" };
-  }
+  return error === null
+    ? { status: "code-sent" }
+    : { status: "error", message: error.message ?? "Unable to send sign-in code" };
+}
 
-  if ("twoFactorRedirect" in data && data.twoFactorRedirect === true) {
-    return { status: "two-factor" };
+/** Finish sign-in with the emailed one-time code. */
+export async function signInWithCode(input: {
+  email: string;
+  code: string;
+  locale?: string;
+}): Promise<SignInResult> {
+  const { error } = await authClient.signIn.emailOtp({
+    email: input.email,
+    otp: input.code,
+    ...localeOptions(input.locale),
+  });
+
+  if (error !== null) {
+    return { status: "error", message: error.message ?? "Unable to sign in" };
   }
 
   resetSharedSession();

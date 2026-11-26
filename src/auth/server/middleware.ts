@@ -5,10 +5,8 @@ import { routePath } from "hono/route";
 
 import { can, type PermissionRequest } from "~/auth/permissions";
 import { auth } from "~/auth/server/auth";
-import { requiresTwoFactorEnrollment } from "~/auth/two-factor";
-import { apiError } from "~/server/api-response";
-import { forbidden, unauthorized } from "~/server/common-responses";
-import { getTracing, withTracingSpan } from "~/server/tracing";
+import { forbidden, unauthorized } from "~/server/helpers/responses/common-responses";
+import { getTracing, withTracingSpan } from "~/server/helpers/tracing";
 
 type AuthSession = ReturnType<typeof auth>["$Infer"]["Session"];
 type AuthEnv = HonoEnv & {
@@ -31,10 +29,6 @@ export const requireAuth = createMiddleware<AuthEnv>(async (ctx, next) => {
 
   if (!result) {
     return unauthorized(ctx);
-  }
-
-  if (requiresTwoFactorEnrollment(result.user)) {
-    return apiError(ctx, "two_factor_required", { status: 403 });
   }
 
   ctx.set("user", result.user);

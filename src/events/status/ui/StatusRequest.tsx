@@ -1,32 +1,22 @@
 // @boundary client
 import { navigate } from "astro:transitions/client";
-import type { DeclaredLocales } from "intlayer";
 import type { JSX } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 
 import { css, cx } from "styled-system/css";
 import { vstack } from "styled-system/patterns";
-import type { StatusContentValues } from "~/events/content/status.content";
 import { EMAIL_PATTERN } from "~/events/domain/patterns";
 import { STATUS_OTP_CODE_LENGTH } from "~/events/domain/status";
 import { statusViewPath } from "~/events/domain/status-paths";
+import type { StatusRequestLabels } from "~/generated/client/StatusRequest";
 import { apiClient, apiErrorMessage, readApiJson } from "~/shared/client/api/client";
 import { focusControl, readControlValue } from "~/shared/client/form-controls";
 import { clientLogger } from "~/shared/client/logger";
+import type { Locale as DeclaredLocales } from "~/shared/i18n";
 import { noticeStyles } from "~/shared/ui/notice-styles";
 
 interface StatusRequestProps {
-  labels: Pick<
-    StatusContentValues,
-    | "codeInvalid"
-    | "codeLabel"
-    | "codeSent"
-    | "codeUnavailable"
-    | "emailLabel"
-    | "registrationId"
-    | "requestCode"
-    | "verifyCode"
-  >;
+  labels: StatusRequestLabels;
   locale: DeclaredLocales;
 }
 
@@ -89,7 +79,7 @@ export default function StatusRequest({ locale, labels }: StatusRequestProps): J
     const email = emailValue.trim();
 
     if (id.length === 0 || email.length === 0) {
-      show(labels.codeInvalid, "error");
+      show(labels.engineRegistrationStatus.codeInvalid, "error");
       return;
     }
 
@@ -100,7 +90,7 @@ export default function StatusRequest({ locale, labels }: StatusRequestProps): J
         }),
       );
 
-      show(labels.codeSent, "success");
+      show(labels.engineRegistrationStatus.codeSent, "success");
       setRegistrationId(id);
       setCodeVisible(true);
       requestAnimationFrame(() => {
@@ -108,7 +98,7 @@ export default function StatusRequest({ locale, labels }: StatusRequestProps): J
       });
     } catch (error) {
       clientLogger.error(error);
-      show(apiErrorMessage(error, labels.codeUnavailable), "error");
+      show(apiErrorMessage(error, labels.engineRegistrationStatus.codeUnavailable), "error");
     }
   }
 
@@ -118,7 +108,7 @@ export default function StatusRequest({ locale, labels }: StatusRequestProps): J
     const code = codeValue.trim();
 
     if (registrationId.length === 0 || code.length === 0) {
-      show(labels.codeInvalid, "error");
+      show(labels.engineRegistrationStatus.codeInvalid, "error");
       return;
     }
 
@@ -132,7 +122,7 @@ export default function StatusRequest({ locale, labels }: StatusRequestProps): J
       await navigate(statusViewPath(locale));
     } catch (error) {
       clientLogger.error(error);
-      show(labels.codeUnavailable, "error");
+      show(labels.engineRegistrationStatus.codeUnavailable, "error");
     }
   }
 
@@ -158,7 +148,7 @@ export default function StatusRequest({ locale, labels }: StatusRequestProps): J
         }}
       >
         <qui-field>
-          <qui-field-label>{labels.registrationId}</qui-field-label>
+          <qui-field-label>{labels.shared.registrationID}</qui-field-label>
           <qui-input
             ref={registrationInput}
             id="status-registration-id"
@@ -168,7 +158,7 @@ export default function StatusRequest({ locale, labels }: StatusRequestProps): J
           />
         </qui-field>
         <qui-field>
-          <qui-field-label>{labels.emailLabel}</qui-field-label>
+          <qui-field-label>{labels.engineRegistrationStatus.emailLabel}</qui-field-label>
           <qui-input
             ref={emailInput}
             id="status-email"
@@ -181,7 +171,7 @@ export default function StatusRequest({ locale, labels }: StatusRequestProps): J
           />
         </qui-field>
         <qui-button type="submit" variant="filled">
-          {labels.requestCode}
+          {labels.engineRegistrationStatus.requestCode}
         </qui-button>
       </form>
 
@@ -194,7 +184,7 @@ export default function StatusRequest({ locale, labels }: StatusRequestProps): J
         }}
       >
         <qui-field>
-          <qui-field-label>{labels.codeLabel}</qui-field-label>
+          <qui-field-label>{labels.engineRegistrationStatus.codeLabel}</qui-field-label>
           <qui-input
             ref={codeInput}
             id="status-code"
@@ -207,7 +197,7 @@ export default function StatusRequest({ locale, labels }: StatusRequestProps): J
           />
         </qui-field>
         <qui-button type="submit" variant="filled">
-          {labels.verifyCode}
+          {labels.engineRegistrationStatus.verifyCode}
         </qui-button>
       </form>
     </>

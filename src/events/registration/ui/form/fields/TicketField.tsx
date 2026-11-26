@@ -18,15 +18,15 @@ type TicketFieldProps = FieldProps<ResolvedTicketField>;
 function ticketHelper(ticket: ResolvedTicketType, config: PublicRegistrationConfig) {
   const parts = [
     ticket.priceMinor === 0
-      ? config.labels.event.free
+      ? config.labels.engineRegistration.event.free
       : formatMoney(ticket.priceMinor, config.locale, ticket.currency),
   ];
 
   if (ticket.remaining !== null) {
     parts.push(
       ticket.remaining === 0
-        ? config.labels.event.soldOut
-        : `${config.labels.event.remainingParts[0] ?? ""}${ticket.remaining}${config.labels.event.remainingParts[1] ?? ""}`,
+        ? config.labels.engineRegistration.event.soldOut
+        : `${config.labels.engineRegistration.event.remainingParts[0]}${ticket.remaining}${config.labels.engineRegistration.event.remainingParts[1]}`,
     );
   }
 
@@ -58,7 +58,7 @@ export function TicketField({ field, config, error }: TicketFieldProps): JSX.Ele
       defaultValue={String(ticket.defaultQuantity)}
       help={ticketHelper(ticket, config)}
       error={error}
-      fallbackError={config.labels.errors.required}
+      fallbackError={config.labels.engineRegistration.errors.required}
     />
   );
 }

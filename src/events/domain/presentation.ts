@@ -2,6 +2,7 @@
 import { CONTACT_KIND } from "~/events/domain/constants";
 import { isRegistrationPaid } from "~/events/domain/payment";
 import type { RegistrationContactRecord, RegistrationRecord } from "~/events/domain/types";
+import type { Messages, Widen } from "~/generated/i18n-types";
 
 /** Convert a schema default value to the text used by form controls. */
 export function defaultValueText(value: unknown): string {
@@ -40,16 +41,15 @@ export function ticketSummary(tickets: readonly { key: string; quantity: number 
   return tickets.map((ticket) => `${ticket.key} × ${ticket.quantity}`).join(", ");
 }
 
+export type PaymentMethodLabels = Widen<Pick<Messages["shared"], "cash" | "eTransfer" | "other">>;
+
 /** Localized label for a payment method. */
-export function paymentMethodLabel(
-  method: string,
-  labels: { cash: string; etransfer: string; other: string },
-): string {
+export function paymentMethodLabel(method: string, labels: PaymentMethodLabels): string {
   if (method === "cash") {
     return labels.cash;
   }
 
-  return method === "etransfer" ? labels.etransfer : labels.other;
+  return method === "etransfer" ? labels.eTransfer : labels.other;
 }
 
 export function indexByRegistrationId<TItem extends { registrationId: string }>(

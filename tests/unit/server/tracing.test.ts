@@ -5,7 +5,7 @@ import {
   withTracingSpan,
   type TracingLike,
   type TracingSpanLike,
-} from "../../../src/server/tracing";
+} from "../../../src/server/helpers/tracing";
 
 function createFakeTracing() {
   const calls: string[] = [];

@@ -20,8 +20,9 @@ import {
   createRegistration,
   RegistrationFailureError,
 } from "~/events/services/registration-service";
-import { apiSuccess } from "~/server/api-response";
-import { notFound, rateLimited } from "~/server/common-responses";
+import { apiSuccess } from "~/server/helpers/responses/api-response";
+import { notFound, rateLimited } from "~/server/helpers/responses/common-responses";
+import { defaultValidationHandler } from "~/server/helpers/validation/validation-handler";
 import { apiBodyLimit } from "~/server/middleware/body-limit";
 import {
   checkRateLimit,
@@ -32,8 +33,7 @@ import {
 } from "~/server/middleware/rate-limit";
 import { requireTurnstile } from "~/server/middleware/turnstle";
 import { registrationFailureResponse } from "~/server/routes/events/registration-errors";
-import { defaultValidationHandler } from "~/server/validation-handler";
-import { SUPPORTED_LOCALES } from "~/shared/constants/locales";
+import { SUPPORTED_LOCALES } from "~/shared/i18n";
 
 const eventsParamSchema = type({
   slug: eventSlugSchema,

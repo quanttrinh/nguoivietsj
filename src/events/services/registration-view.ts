@@ -15,7 +15,10 @@ import type {
   PaymentRecord,
   RegistrationRecord,
 } from "~/events/domain/types";
-import { answerFieldsFromSchema, type AnswerFieldView } from "~/server/registration/answer-fields";
+import {
+  answerFieldsFromSchema,
+  type AnswerFieldView,
+} from "~/events/services/registration/answer-fields";
 
 /** Everything the staff detail, check-in QR, and attendee status views assemble. */
 export interface RegistrationView {

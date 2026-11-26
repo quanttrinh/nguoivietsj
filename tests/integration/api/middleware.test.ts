@@ -3,11 +3,6 @@
 import { Hono } from "hono";
 import { describe, expect, test as unitTest, vi } from "vitest";
 
-import { localizeApiErrors } from "../../../src/server/middleware/localize-api-errors";
-import {
-  apiMessage,
-  resolveRequestLocale,
-} from "../../../src/server/middleware/localize-api-errors/api-messages";
 import {
   bodyEmailKey,
   checkRateLimit,
@@ -18,7 +13,8 @@ import {
   type RateLimitSettings,
 } from "../../../src/server/middleware/rate-limit";
 import { requireTurnstile } from "../../../src/server/middleware/turnstle";
-import { DEFAULT_LOCALE } from "../../../src/shared/constants/locales";
+import { authMessage, resolveAuthLocale } from "../../../src/server/routes/auth";
+import { DEFAULT_LOCALE } from "../../../src/shared/i18n";
 import { test } from "./harness";
 
 interface LimiterBinding {
@@ -524,233 +520,24 @@ describe("turnstile middleware", () => {
   });
 });
 
-describe("localized API errors", () => {
-  const app = new Hono()
-    .use(localizeApiErrors())
-    .get("/envelope", (ctx) =>
-      ctx.json({ status: "error", data: null, error: { code: "not_found" }, meta: {} }, 404),
-    )
-    .get("/envelope-empty-message", (ctx) =>
-      ctx.json(
-        { status: "error", data: null, error: { code: "not_found", message: "" }, meta: {} },
-        404,
-      ),
-    )
-    .get("/envelope-custom", (ctx) =>
-      ctx.json(
-        { status: "error", data: null, error: { code: "not_found", message: "Custom" }, meta: {} },
-        404,
-      ),
-    )
-    .get("/envelope-no-code", (ctx) =>
-      ctx.json({ status: "error", data: null, error: { message: "Custom" }, meta: {} }, 400),
-    )
-    .get("/envelope-bad-error", (ctx) =>
-      ctx.json({ status: "error", data: null, error: "nope", meta: {} }, 500),
-    )
-    .get("/partial", (ctx) =>
-      ctx.json({ status: "partial", data: {}, error: { code: "rate_limited" }, meta: {} }, 207),
-    )
-    .get("/warnings", (ctx) =>
-      ctx.json({
-        status: "success",
-        data: {},
-        error: null,
-        meta: {
-          warnings: [
-            { code: "not_found" },
-            { code: "unauthorized", message: "Custom" },
-            "plain",
-            { message: "No code" },
-          ],
-        },
-      }),
-    )
-    .get("/warnings-custom", (ctx) =>
-      ctx.json({
-        status: "success",
-        data: {},
-        error: null,
-        meta: { warnings: [{ code: "not_found", message: "Custom" }] },
-      }),
-    )
-    .get("/warnings-not-array", (ctx) =>
-      ctx.json({ status: "success", data: {}, error: null, meta: { warnings: "no" } }),
-    )
-    .get("/legacy-code", (ctx) => ctx.json({ code: "INVALID_EMAIL_OR_PASSWORD" }, 401))
-    .get("/legacy-error", (ctx) => ctx.json({ error: "not_found" }, 404))
-    .get("/legacy-error-message", (ctx) => ctx.json({ error: "not_found", message: "Custom" }, 404))
-    .get("/legacy-both", (ctx) => ctx.json({ code: "not_found", message: "Custom" }, 400))
-    .get("/legacy-invalid", (ctx) => ctx.json({ code: 42 }, 400))
-    .get("/legacy-message-429", (ctx) => ctx.json({ message: "Too many" }, 429))
-    .get("/legacy-empty-400", (ctx) => ctx.json({}, 400))
-    .get("/legacy-207", (ctx) => ctx.json({ code: "not_found" }, 207))
-    .get("/legacy-ok", (ctx) => ctx.json({ code: "not_found" }))
-    .get("/non-record", (ctx) => ctx.json([1, 2]))
-    .get("/non-json", () => new Response("plain", { headers: { "content-type": "text/plain" } }))
-    .get("/missing-content-type", () => new Response("plain"))
-    .get(
-      "/invalid-json",
-      () => new Response("{", { headers: { "content-type": "application/json" } }),
-    )
-    .get("/vary-existing", (ctx) => {
-      ctx.header("vary", "Origin");
-
-      return ctx.json({ status: "error", data: null, error: { code: "not_found" }, meta: {} }, 404);
-    });
-
-  unitTest("localizes an error envelope without a message", async () => {
-    const response = await app.request("/envelope?locale=fr");
-
-    await expect(response.json()).resolves.toMatchObject({
-      error: { code: "not_found", message: "Introuvable." },
-    });
-    expect(response.headers.get("vary")).toContain("Accept-Language");
-  });
-
-  unitTest("localizes an empty error message", async () => {
-    const response = await app.request("/envelope-empty-message?locale=fr");
-
-    await expect(response.json()).resolves.toMatchObject({
-      error: { message: "Introuvable." },
-    });
-  });
-
-  unitTest("keeps an authored error message", async () => {
-    const response = await app.request("/envelope-custom?locale=fr");
-
-    await expect(response.json()).resolves.toMatchObject({ error: { message: "Custom" } });
-  });
-
-  unitTest("skips envelopes without a usable error code", async () => {
-    const noCode = await app.request("/envelope-no-code");
-    const badError = await app.request("/envelope-bad-error");
-
-    await expect(noCode.json()).resolves.toMatchObject({ error: { message: "Custom" } });
-    await expect(badError.json()).resolves.toMatchObject({ error: "nope" });
-  });
-
-  unitTest("localizes a partial error envelope", async () => {
-    const response = await app.request("/partial?locale=fr");
-
-    await expect(response.json()).resolves.toMatchObject({
-      status: "partial",
-      error: { message: "Trop de requêtes. Réessayez plus tard." },
-    });
-  });
-
-  unitTest("localizes warning codes and keeps other warnings", async () => {
-    const response = await app.request("/warnings?locale=fr");
-    const body = (await response.json()) as {
-      meta?: { warnings?: ({ code?: string; message?: string } | string)[] };
-    };
-
-    expect(body.meta?.warnings?.[0]).toEqual({ code: "not_found", message: "Introuvable." });
-    expect(body.meta?.warnings?.[1]).toEqual({
-      code: "unauthorized",
-      message: "Custom",
-    });
-    expect(body.meta?.warnings?.[2]).toBe("plain");
-    expect(body.meta?.warnings?.[3]).toEqual({ message: "No code" });
-  });
-
-  unitTest("leaves warnings untouched when they already have messages", async () => {
-    const response = await app.request("/warnings-custom?locale=fr");
-
-    await expect(response.json()).resolves.toMatchObject({
-      meta: { warnings: [{ code: "not_found", message: "Custom" }] },
-    });
-  });
-
-  unitTest("ignores a non-array warnings value", async () => {
-    const response = await app.request("/warnings-not-array?locale=fr");
-
-    await expect(response.json()).resolves.toMatchObject({ meta: { warnings: "no" } });
-  });
-
-  unitTest("localizes a legacy code body", async () => {
-    const response = await app.request("/legacy-code?locale=fr");
-
-    await expect(response.json()).resolves.toEqual({
-      code: "INVALID_EMAIL_OR_PASSWORD",
-      message: "Courriel ou mot de passe incorrect.",
-    });
-  });
-
-  unitTest("localizes a legacy error field and a bare 429", async () => {
-    const errorField = await app.request("/legacy-error?locale=fr");
-    const rateLimited = await app.request("/legacy-message-429?locale=fr");
-
-    await expect(errorField.json()).resolves.toEqual({
-      error: "not_found",
-      message: "Introuvable.",
-    });
-    await expect(rateLimited.json()).resolves.toEqual({
-      message: "Trop de requêtes. Réessayez plus tard.",
-    });
-  });
-
-  unitTest("leaves a legacy error with its own message untouched", async () => {
-    const response = await app.request("/legacy-error-message?locale=fr");
-
-    await expect(response.json()).resolves.toEqual({ error: "not_found", message: "Custom" });
-  });
-
-  unitTest("localizes legacy code bodies even with a message", async () => {
-    const both = await app.request("/legacy-both?locale=fr");
-    const empty = await app.request("/legacy-empty-400?locale=fr");
-
-    await expect(both.json()).resolves.toEqual({ code: "not_found", message: "Introuvable." });
-    await expect(empty.json()).resolves.toEqual({});
-  });
-
-  unitTest("ignores invalid legacy bodies, 207 responses, and success responses", async () => {
-    const invalid = await app.request("/legacy-invalid?locale=fr");
-    const partial = await app.request("/legacy-207?locale=fr");
-    const success = await app.request("/legacy-ok?locale=fr");
-
-    await expect(invalid.json()).resolves.toEqual({ code: 42 });
-    await expect(partial.json()).resolves.toEqual({ code: "not_found" });
-    await expect(success.json()).resolves.toEqual({ code: "not_found" });
-  });
-
-  unitTest("ignores bodies without a JSON content type or with invalid JSON", async () => {
-    const nonJson = await app.request("/non-json");
-    const missingType = await app.request("/missing-content-type");
-    const invalidJson = await app.request("/invalid-json");
-    const nonRecord = await app.request("/non-record");
-
-    await expect(nonJson.text()).resolves.toBe("plain");
-    await expect(missingType.text()).resolves.toBe("plain");
-    await expect(invalidJson.text()).resolves.toBe("{");
-    await expect(nonRecord.json()).resolves.toEqual([1, 2]);
-  });
-
-  unitTest("appends to an existing vary header", async () => {
-    const response = await app.request("/vary-existing?locale=fr");
-
-    expect(response.headers.get("vary")).toBe("Origin, Accept-Language, X-Locale");
-  });
-});
-
 describe("API locale resolution", () => {
   unitTest("prefers a supported query locale", () => {
-    expect(resolveRequestLocale(testRequest("/?locale=fr"))).toBe("fr");
+    expect(resolveAuthLocale(testRequest("/?locale=fr"))).toBe("fr");
   });
 
   unitTest("falls back to the X-Locale header", () => {
-    expect(resolveRequestLocale(testRequest("/", { headers: { "x-locale": "vi" } }))).toBe("vi");
+    expect(resolveAuthLocale(testRequest("/", { headers: { "x-locale": "vi" } }))).toBe("vi");
   });
 
   unitTest("uses Accept-Language with regional fallback", () => {
     expect(
-      resolveRequestLocale(testRequest("/", { headers: { "accept-language": "fr-CA,en;q=0.8" } })),
+      resolveAuthLocale(testRequest("/", { headers: { "accept-language": "fr-CA,en;q=0.8" } })),
     ).toBe("fr");
   });
 
   unitTest("skips unsupported locales and defaults", () => {
     expect(
-      resolveRequestLocale(
+      resolveAuthLocale(
         testRequest("/?locale=de", {
           headers: { "x-locale": "de", "accept-language": "de,es;q=0.5" },
         }),
@@ -759,9 +546,9 @@ describe("API locale resolution", () => {
   });
 
   unitTest("localizes known, unknown, and unsupported locale codes", () => {
-    expect(apiMessage("not_found", "fr")).toBe("Introuvable.");
-    expect(apiMessage("unknown_code", "fr")).toBe("Une erreur est survenue.");
-    expect(apiMessage("not_found", "de")).toBe("Not found.");
+    expect(authMessage("not_found", "fr")).toBe("Introuvable.");
+    expect(authMessage("unknown_code", "fr")).toBe("Une erreur est survenue.");
+    expect(authMessage("not_found", "de")).toBe("Not found.");
   });
 
   unitTest("falls back through every message catalog level", async () => {
@@ -774,23 +561,25 @@ describe("API locale resolution", () => {
 
     for (const [fr, en, code, expected] of cases) {
       vi.resetModules();
-      vi.doMock("intlayer", async () => {
-        const actual = await vi.importActual<typeof import("intlayer")>("intlayer");
-
-        return {
-          ...actual,
-          getDictionary: (_content: unknown, locale: string) => (locale === "en" ? en : fr),
-        };
-      });
+      vi.doMock("~/generated/server/sharedApiMessages", () => ({
+        localized: (locale: string) => ({
+          // oxlint-disable-next-line no-nested-ternary -- catalog fallback fixture.
+          sharedApiMessages: locale === "fr" ? fr : locale === "en" ? en : {},
+        }),
+      }));
+      vi.doMock("~/generated/server/engineApiMessages", () => ({
+        localized: () => ({ engineApiMessages: {} }),
+      }));
 
       try {
         const module =
           // oxlint-disable-next-line eslint/no-await-in-loop -- each case loads a freshly mocked module.
-          await import("../../../src/server/middleware/localize-api-errors/api-messages");
+          await import("../../../src/server/routes/auth");
 
-        expect(module.apiMessage(code, "fr")).toBe(expected);
+        expect(module.authMessage(code, "fr")).toBe(expected);
       } finally {
-        vi.doUnmock("intlayer");
+        vi.doUnmock("~/generated/server/sharedApiMessages");
+        vi.doUnmock("~/generated/server/engineApiMessages");
       }
     }
 
@@ -800,7 +589,7 @@ describe("API locale resolution", () => {
 
 describe("body limit middleware", () => {
   test("rejects oversized API payloads", async ({ api }) => {
-    const response = await api.request("/api/auth/sign-in/email", {
+    const response = await api.request("/api/auth/sign-in/email-otp", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ email: "a@example.com", password: "x".repeat(1024 * 1024) }),

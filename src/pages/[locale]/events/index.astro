@@ -1,28 +1,26 @@
 ---
 // @boundary astro
-import { useDictionary, useLocale } from "astro-intlayer";
-import { locales } from "intlayer";
-
 import { css } from "styled-system/css";
 import { vstack } from "styled-system/patterns";
-import engineEventsContent from "~/events/content/events.content";
 import EventList from "~/events/list/ui/EventList";
+import { localized as all } from "~/generated/client/all";
 import BaseLayout from "~/layouts/BaseLayout.astro";
+import { locales, useLocale } from "~/shared/i18n";
 import Panel from "~/shared/ui/Panel.astro";
 
 export function getStaticPaths(): { params: { locale: string } }[] {
   return locales.map((locale) => ({ params: { locale } }));
 }
 
-const { locale } = useLocale();
-const content = useDictionary(engineEventsContent, locale);
+const { locale } = useLocale(Astro.url);
+const content = all(locale);
 
 const messages = {
-  noEvents: content.noEvents.value,
-  unavailable: content.unavailable.value,
-  viewEvent: content.viewEvent.value,
-  register: content.register.value,
-  registrationClosed: content.registrationClosed.value,
+  noEvents: content.engineEvents.noEvents,
+  unavailable: content.engineEvents.unavailable,
+  viewEvent: content.engineEvents.viewEvent,
+  register: content.shared.register,
+  registrationClosed: content.engineEvents.registrationClosed,
 };
 
 const styles = {
@@ -41,17 +39,20 @@ const styles = {
 };
 ---
 
-<BaseLayout title={content.meta.title.value} description={content.meta.description.value}>
+<BaseLayout
+  title={content.engineEvents.meta.title}
+  description={content.engineEvents.meta.description}
+>
   <section class={styles.section}>
     <div class={styles.heading}>
-      <h1 class={styles.title}>{content.title.value}</h1>
-      <p class={styles.intro}>{content.intro.value}</p>
+      <h1 class={styles.title}>{content.shared.events}</h1>
+      <p class={styles.intro}>{content.engineEvents.intro}</p>
     </div>
 
     <EventList client:load locale={locale} messages={messages} />
     <noscript>
       <Panel padding="lg">
-        <p class={styles.empty}>{content.noscript.value}</p>
+        <p class={styles.empty}>{content.engineEvents.noscript}</p>
       </Panel>
     </noscript>
   </section>

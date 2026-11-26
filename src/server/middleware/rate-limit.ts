@@ -3,7 +3,7 @@ import type { MiddlewareHandler } from "hono";
 import { createMiddleware } from "hono/factory";
 
 import { normalizeEmail } from "~/events/domain/normalize";
-import { rateLimited } from "~/server/common-responses";
+import { rateLimited } from "~/server/helpers/responses/common-responses";
 import { serverLogger } from "~/shared/server/logger";
 import { isRecord } from "~/shared/utils/records";
 

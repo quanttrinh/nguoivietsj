@@ -5,14 +5,8 @@ import path from "node:path";
 type Scope = "astro" | "client" | "server" | "shared";
 
 interface RuleOptions {
-  /** Repo root the path scopes are computed from. Defaults to the lint cwd. */
+  /** Repo root used to resolve import specifiers. Defaults to the lint cwd. */
   root?: string;
-  /** Path segments that make a file server-only. */
-  serverSegments?: string[];
-  /** Path segments that make a file client-only. */
-  clientSegments?: string[];
-  /** Path segments that make a file an Astro entrypoint. */
-  astroSegments?: string[];
   /** Files with no boundary rules at all, repo-relative. */
   exempt?: string[];
   /** Files whose marker is checked but whose imports are not, repo-relative. */
@@ -33,7 +27,7 @@ interface RuleContext {
   sourceCode: { getText: () => string };
   report: (descriptor: {
     node: NodeLike;
-    messageId: "forbidden" | "mismatch" | "missing";
+    messageId: "forbidden" | "missing";
     data: Record<string, string>;
   }) => void;
 }
@@ -50,15 +44,13 @@ interface Rule {
 
 interface Settings {
   root: string;
-  serverSegments: ReadonlySet<string>;
-  clientSegments: ReadonlySet<string>;
-  astroSegments: ReadonlySet<string>;
   exempt: ReadonlySet<string>;
   importExempt: ReadonlySet<string>;
   allowedServerTypes: readonly string[];
 }
 
 const frontmatterCache = new Map<string, string | null>();
+const markerCache = new Map<string, Scope | null>();
 const reportedWithoutFrontmatter = new Set<string>();
 
 function isOptions(value: unknown): value is RuleOptions {
@@ -71,9 +63,6 @@ function settingsOf(context: RuleContext): Settings {
 
   return {
     root: path.resolve(context.cwd, options.root ?? "."),
-    serverSegments: new Set(options.serverSegments),
-    clientSegments: new Set(options.clientSegments),
-    astroSegments: new Set(options.astroSegments),
     exempt: new Set(options.exempt),
     importExempt: new Set(options.importExempt),
     allowedServerTypes: options.allowedServerTypes ?? [],
@@ -91,29 +80,23 @@ function sourceFile(filename: string, root: string): string | null {
   return relative.startsWith("src/") ? relative : null;
 }
 
-function scopeOf(file: string, settings: Settings): Scope {
-  const segments = file.split("/");
-  const scopeRoot = segments[1];
+/** Frontmatter text of an Astro file, normalized the way Oxlint extracts it. */
+function frontmatterOf(filename: string): string | null {
+  const cached = frontmatterCache.get(filename);
 
-  if (scopeRoot !== undefined && settings.astroSegments.has(scopeRoot)) {
-    return "astro";
+  if (cached !== undefined) {
+    return cached;
   }
 
-  if (segments.some((segment) => settings.clientSegments.has(segment))) {
-    return "client";
-  }
+  const body =
+    /^---\r?\n(?<body>(?:[^\n]*\n)*?)---(?:\r?\n|$)/u.exec(readFileSync(filename, "utf8"))?.groups
+      ?.body ?? null;
 
-  if (
-    (scopeRoot !== undefined && settings.serverSegments.has(scopeRoot)) ||
-    segments.some((segment) => settings.serverSegments.has(segment)) ||
-    segments.length === 2
-  ) {
-    return "server";
-  }
-
-  return "shared";
+  frontmatterCache.set(filename, body);
+  return body;
 }
 
+/** Read the boundary marker from a file's first non-empty line (or Astro frontmatter). */
 function markerOf(source: string): Scope | null {
   const firstLine = source.split(/\r?\n/u).find((line) => line.trim().length > 0) ?? "";
   const match = /^\s*\/\/ @boundary (?<scope>astro|client|server|shared)\s*$/u.exec(firstLine);
@@ -122,6 +105,43 @@ function markerOf(source: string): Scope | null {
   return scope === "astro" || scope === "client" || scope === "server" || scope === "shared"
     ? scope
     : null;
+}
+
+/** Marker of an import target, read from disk and cached for the lint session. */
+function markerOfFile(filename: string): Scope | null {
+  const cached = markerCache.get(filename);
+
+  if (cached !== undefined) {
+    return cached;
+  }
+
+  let source: string | null = null;
+
+  for (const candidate of [
+    filename,
+    `${filename}.ts`,
+    `${filename}.tsx`,
+    `${filename}.astro`,
+    path.join(filename, "index.ts"),
+  ]) {
+    try {
+      source = readFileSync(candidate, "utf8");
+      break;
+    } catch {
+      // Try the next candidate.
+    }
+  }
+
+  if (source === null) {
+    markerCache.set(filename, null);
+    return null;
+  }
+
+  const body = filename.endsWith(".astro") ? frontmatterOf(filename) : null;
+  const marker = markerOf(body ?? source);
+
+  markerCache.set(filename, marker);
+  return marker;
 }
 
 function resolveImport(root: string, from: string, specifier: string): string | null {
@@ -152,7 +172,12 @@ function specifierOf(node: NodeLike): string | null {
 
 /** Scope of an illegal import target, or `null` when the import is allowed. */
 function violation(settings: Settings, from: Scope, target: string): Scope | null {
-  const to = scopeOf(target, settings);
+  const to = markerOfFile(path.join(settings.root, target));
+
+  // Unmarked targets are outside this rule's reach.
+  if (to === null) {
+    return null;
+  }
 
   if (from === "astro") {
     return null;
@@ -172,28 +197,8 @@ function violation(settings: Settings, from: Scope, target: string): Scope | nul
   return to === "shared" ? null : to;
 }
 
-/**
- * Frontmatter text of an Astro file, normalized the way Oxlint extracts it.
- * `null` means the file has no frontmatter block.
- */
-function frontmatterOf(filename: string): string | null {
-  const cached = frontmatterCache.get(filename);
-
-  if (cached !== undefined) {
-    return cached;
-  }
-
-  const body =
-    /^---\r?\n(?<body>(?:[^\n]*\n)*?)---(?:\r?\n|$)/u.exec(readFileSync(filename, "utf8"))?.groups
-      ?.body ?? null;
-
-  frontmatterCache.set(filename, body);
-  return body;
-}
-
 const messages = {
   missing: "{{file}} is missing a valid // @boundary marker",
-  mismatch: '{{file}} marker is "{{marker}}" but its path is "{{expected}}"',
   forbidden: "{{file}} ({{marker}}) imports {{specifier}} ({{to}})",
 } as const;
 
@@ -201,17 +206,13 @@ const boundaryRule: Rule = {
   meta: {
     type: "problem",
     docs: {
-      description:
-        "Require a `// @boundary` marker matching the path scope and restrict imports between scopes",
+      description: "Require a `// @boundary` marker and restrict imports between scopes",
     },
     schema: [
       {
         type: "object",
         properties: {
           root: { type: "string" },
-          serverSegments: { type: "array", items: { type: "string" } },
-          clientSegments: { type: "array", items: { type: "string" } },
-          astroSegments: { type: "array", items: { type: "string" } },
           exempt: { type: "array", items: { type: "string" } },
           importExempt: { type: "array", items: { type: "string" } },
           allowedServerTypes: { type: "array", items: { type: "string" } },
@@ -230,8 +231,7 @@ const boundaryRule: Rule = {
     }
 
     // Oxlint lints Astro frontmatter and every `<script>` block as separate
-    // programs. Only the frontmatter carries the marker; template scripts were
-    // never part of the boundary check.
+    // programs. Only the frontmatter carries the marker.
     if (file.endsWith(".astro")) {
       const frontmatter = frontmatterOf(context.filename);
 
@@ -239,14 +239,11 @@ const boundaryRule: Rule = {
         return {};
       }
 
-      if (frontmatter === null) {
-        // No frontmatter: report once per file, on whichever program comes first.
-        if (reportedWithoutFrontmatter.has(context.filename)) {
-          return {};
-        }
-
-        reportedWithoutFrontmatter.add(context.filename);
+      if (frontmatter === null && reportedWithoutFrontmatter.has(context.filename)) {
+        return {};
       }
+
+      reportedWithoutFrontmatter.add(context.filename);
     }
 
     const marker = markerOf(context.sourceCode.getText());
@@ -255,16 +252,6 @@ const boundaryRule: Rule = {
       return {
         Program: (node) => {
           context.report({ node, messageId: "missing", data: { file } });
-        },
-      };
-    }
-
-    const expected = scopeOf(file, settings);
-
-    if (marker !== expected) {
-      return {
-        Program: (node) => {
-          context.report({ node, messageId: "mismatch", data: { file, marker, expected } });
         },
       };
     }

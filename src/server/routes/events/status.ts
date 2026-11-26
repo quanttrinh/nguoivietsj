@@ -12,8 +12,9 @@ import { createCheckinQrSvg } from "~/events/services/checkin-qr";
 import { enqueueStatusOtpEmail } from "~/events/services/email-queue";
 import { loadRegistrationView } from "~/events/services/registration-view";
 import { hashStatusToken, issueStatusOtp, verifyStatusOtp } from "~/events/services/status";
-import { apiError, apiSuccess } from "~/server/api-response";
-import { notFound, rateLimited } from "~/server/common-responses";
+import { apiSuccess } from "~/server/helpers/responses/api-response";
+import { notFound, rateLimited } from "~/server/helpers/responses/common-responses";
+import { defaultValidationHandler } from "~/server/helpers/validation/validation-handler";
 import { apiBodyLimit } from "~/server/middleware/body-limit";
 import {
   checkRateLimit,
@@ -23,8 +24,9 @@ import {
   rateLimit,
   type RateLimitSettings,
 } from "~/server/middleware/rate-limit";
-import { defaultValidationHandler } from "~/server/validation-handler";
 import { serverLogger } from "~/shared/server/logger";
+
+import { eventApiError } from "./event-errors";
 
 const STATUS_SESSION_COOKIE = "status_session";
 
@@ -77,7 +79,7 @@ function codeSent(ctx: Context) {
 }
 
 function codeError(ctx: Context, error: "event_code_invalid" | "event_code_locked") {
-  return apiError(ctx, error, { status: 400 });
+  return eventApiError(ctx, error, { status: 400 });
 }
 
 /** Issue and queue a status OTP when the registration and email match. */

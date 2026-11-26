@@ -1,33 +1,34 @@
 // @boundary server
 import type { BetterAuthOptions } from "better-auth";
-import { admin, twoFactor } from "better-auth/plugins";
-import type { OTPOptions } from "better-auth/plugins/two-factor";
+import { admin } from "better-auth/plugins";
+import { emailOTP, type EmailOTPOptions } from "better-auth/plugins/email-otp";
 
 import { ac, roles } from "~/auth/permissions";
 import { USER_ROLE } from "~/auth/roles";
 
 /**
- * Better Auth plugins. `sendOTP` needs Worker bindings, so `src/auth/server/auth.ts`
- * supplies it at runtime; the CLI only needs the schema.
+ * Better Auth plugins. `sendVerificationOTP` needs Worker bindings, so
+ * `src/auth/server/auth.ts` supplies it at runtime; the CLI only needs the schema.
  */
-export function authPlugins(sendOTP?: OTPOptions["sendOTP"]) {
+export function authPlugins(
+  sendVerificationOTP?: EmailOTPOptions["sendVerificationOTP"],
+  generateOTP?: EmailOTPOptions["generateOTP"],
+) {
   const adminPlugin = admin({
     ac,
     defaultRole: USER_ROLE.user,
     adminRoles: [USER_ROLE.admin],
     roles,
   });
-  const twoFactorPlugin = twoFactor({
-    issuer: "Người Việt SJ",
-    otpOptions: {
-      sendOTP,
-      // Only a hash of the emailed code is stored in D1.
-      storeOTP: "hashed",
-    },
-    backupCodeOptions: { storeBackupCodes: "encrypted" },
+  const emailOtpPlugin = emailOTP({
+    sendVerificationOTP: sendVerificationOTP ?? (() => Promise.resolve()),
+    storeOTP: "hashed",
+    expiresIn: 10 * 60,
+    disableSignUp: true,
+    ...(generateOTP === undefined ? {} : { generateOTP }),
   });
   // A mutable tuple keeps each plugin's inferred API and session fields.
-  const plugins: [typeof adminPlugin, typeof twoFactorPlugin] = [adminPlugin, twoFactorPlugin];
+  const plugins: [typeof adminPlugin, typeof emailOtpPlugin] = [adminPlugin, emailOtpPlugin];
 
   return plugins;
 }
@@ -40,13 +41,6 @@ export function authPlugins(sendOTP?: OTPOptions["sendOTP"]) {
  * reuse the same plugins and role definitions when generating the schema.
  */
 export const baseAuthConfig = {
-  emailAndPassword: {
-    enabled: true,
-    disableSignUp: true,
-    minPasswordLength: 12,
-    maxPasswordLength: 128,
-  },
-
   session: {
     // KV is the session store; session checks should not read or write D1.
     storeSessionInDatabase: false,
@@ -75,12 +69,6 @@ export const baseAuthConfig = {
         required: false,
         input: false,
         defaultValue: USER_ROLE.user,
-      },
-      twoFactorRequired: {
-        type: "boolean",
-        required: true,
-        input: false,
-        defaultValue: true,
       },
     },
   },

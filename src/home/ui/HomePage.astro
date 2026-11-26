@@ -1,15 +1,14 @@
 ---
 // @boundary client
-import { useIntlayer, useLocale } from "astro-intlayer";
-import { getLocalizedUrl } from "intlayer";
-
 import { css } from "styled-system/css";
 import { circle, flex, grid, hstack, stack, vstack } from "styled-system/patterns";
+import { localized as all } from "~/generated/client/all";
 import BaseLayout from "~/layouts/BaseLayout.astro";
+import { useLocale, getLocalizedUrl } from "~/shared/i18n";
 import Eyebrow from "~/shared/ui/Eyebrow.astro";
 
-const content = useIntlayer("home");
-const { locale } = useLocale();
+const { locale } = useLocale(Astro.url);
+const content = all(locale);
 const registrationHref = getLocalizedUrl("/events/", locale);
 
 const styles = {
@@ -87,26 +86,26 @@ const styles = {
 };
 ---
 
-<BaseLayout title={content.meta.title.value} description={content.meta.description.value}>
+<BaseLayout title={content.home.meta.title} description={content.home.meta.description}>
   <section class={styles.hero}>
     <div class={styles.copy}>
-      <Eyebrow tone="primary">{content.eyebrow.value}</Eyebrow>
-      <h1 class={styles.title}>{content.heading.value}</h1>
-      <p class={styles.intro}>{content.intro.value}</p>
+      <Eyebrow tone="primary">{content.home.eyebrow}</Eyebrow>
+      <h1 class={styles.title}>{content.home.heading}</h1>
+      <p class={styles.intro}>{content.home.intro}</p>
     </div>
 
     <div class={styles.eventCard}>
       <div class={styles.eventTop}>
         <Eyebrow as="span" tone="tertiary">
-          {content.event.eyebrow.value}
+          {content.home.event.eyebrow}
         </Eyebrow>
         <span class={styles.eventDot} aria-hidden="true"></span>
       </div>
-      <h2 class={styles.eventTitle}>{content.event.title.value}</h2>
-      <p class={styles.eventDescription}>{content.event.description.value}</p>
+      <h2 class={styles.eventTitle}>{content.home.event.title}</h2>
+      <p class={styles.eventDescription}>{content.home.event.description}</p>
       <div class={styles.eventLink}>
         <qui-button href={registrationHref} variant="filled">
-          {content.event.cta.value}
+          {content.home.event.cta}
         </qui-button>
       </div>
     </div>

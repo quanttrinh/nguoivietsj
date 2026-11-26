@@ -1,7 +1,6 @@
 // @boundary client
 /* oxlint-disable eslint/max-lines-per-function, typescript/prefer-nullish-coalescing, unicorn/max-nested-calls -- The editor keeps loading, schema, save, and JSON editing state in one component. */
 import { navigate } from "astro:transitions/client";
-import type { DeclaredLocales } from "intlayer";
 import type { JSX } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 
@@ -12,12 +11,12 @@ import { FORM_VERSION_STATUS } from "~/events/domain/constants";
 import { MAX_FORM_SCHEMA_BYTES } from "~/events/domain/form-schema/limits";
 import { createStarterFormSchema } from "~/events/domain/form-schema/schema/starter";
 import { localized } from "~/events/domain/localized";
+import type { FormEditorLabels } from "~/generated/client/FormEditor";
 import { apiClient, apiErrorMessage, apiResponseMessage } from "~/shared/client/api/client";
 import { clientLogger } from "~/shared/client/logger";
 import { useQuery } from "~/shared/client/query/use-query";
+import type { Locale as DeclaredLocales } from "~/shared/i18n";
 import { isRecord } from "~/shared/utils/records";
-
-import type { FormEditorLabels } from "./form-labels";
 
 interface FormEditorProps {
   locale: DeclaredLocales;
@@ -137,7 +136,7 @@ export function FormEditor({ locale, labels }: FormEditorProps): JSX.Element | n
 
     if (requestedVersion !== null && source === null) {
       setLoadFailed(true);
-      setNotice({ message: labels.loadFailed, tone: "error" });
+      setNotice({ message: labels.engineAdmin.loadFailed, tone: "error" });
       return;
     }
 
@@ -155,7 +154,7 @@ export function FormEditor({ locale, labels }: FormEditorProps): JSX.Element | n
 
     const baseTitle = baseTitleRef.current ?? document.title;
     document.title = `${baseTitle}: ${localized(payload.event.title, locale, "")}`;
-  }, [payload, query.version, locale, labels.loadFailed]);
+  }, [payload, query.version, locale, labels.engineAdmin.loadFailed]);
 
   useEffect(() => {
     if (notice !== null) {
@@ -176,7 +175,7 @@ export function FormEditor({ locale, labels }: FormEditorProps): JSX.Element | n
   if (query.eventId === null) {
     return (
       <p class={styles.notice} data-tone="error" role="alert">
-        {labels.loadFailed}
+        {labels.engineAdmin.loadFailed}
       </p>
     );
   }
@@ -188,7 +187,9 @@ export function FormEditor({ locale, labels }: FormEditorProps): JSX.Element | n
   if (error !== null || payload === null || loadFailed) {
     return (
       <p class={styles.notice} data-tone="error" role="alert">
-        {error === null ? labels.loadFailed : apiErrorMessage(error, labels.loadFailed)}
+        {error === null
+          ? labels.engineAdmin.loadFailed
+          : apiErrorMessage(error, labels.engineAdmin.loadFailed)}
       </p>
     );
   }
@@ -202,12 +203,12 @@ export function FormEditor({ locale, labels }: FormEditorProps): JSX.Element | n
     const parsed = parseSchema(schemaText);
 
     if (parsed === null) {
-      setNotice({ message: labels.formatFailed, tone: "error" });
+      setNotice({ message: labels.engineAdmin.formatFailed, tone: "error" });
       return;
     }
 
     if (!Number.isInteger(nextVersion) || nextVersion < 1) {
-      setNotice({ message: labels.saveFailed, tone: "error" });
+      setNotice({ message: labels.engineAdmin.saveFailed, tone: "error" });
       return;
     }
 
@@ -232,15 +233,15 @@ export function FormEditor({ locale, labels }: FormEditorProps): JSX.Element | n
             issues.length > 0
           ) {
             setNotice({
-              message: apiResponseMessage(body, labels.formValidationFailed),
+              message: apiResponseMessage(body, labels.engineAdmin.formValidationFailed),
               tone: "error",
               issues,
             });
           } else {
             const fallback =
               status === FORM_VERSION_STATUS.published
-                ? labels.formValidationFailed
-                : labels.saveFailed;
+                ? labels.engineAdmin.formValidationFailed
+                : labels.engineAdmin.saveFailed;
 
             setNotice({ message: apiResponseMessage(body, fallback), tone: "error" });
           }
@@ -252,8 +253,8 @@ export function FormEditor({ locale, labels }: FormEditorProps): JSX.Element | n
         setNotice({
           message:
             status === FORM_VERSION_STATUS.published
-              ? labels.formSavedPublished
-              : labels.formSavedDraft,
+              ? labels.engineAdmin.formSavedPublished
+              : labels.engineAdmin.formSavedDraft,
           tone: "success",
         });
         adminRefresh.afterFormVersionWrite(query.eventId ?? "");
@@ -267,7 +268,7 @@ export function FormEditor({ locale, labels }: FormEditorProps): JSX.Element | n
       } catch (error_) {
         clientLogger.error(error_);
         setNotice({
-          message: apiErrorMessage(error_, labels.saveFailed),
+          message: apiErrorMessage(error_, labels.engineAdmin.saveFailed),
           tone: "error",
         });
       } finally {
@@ -311,38 +312,53 @@ export function FormEditor({ locale, labels }: FormEditorProps): JSX.Element | n
       </div>
 
       <div class={styles.panel}>
-        <h2 class={styles.sectionTitle}>{labels.formSchema}</h2>
-        <p class={styles.sectionDescription}>{labels.formEditorCopyNotice}</p>
+        <h2 class={styles.sectionTitle}>{labels.engineAdmin.formSchema}</h2>
+        <p class={styles.sectionDescription}>{labels.engineAdmin.formEditorCopyNotice}</p>
         <div class={styles.meta}>
           <span class={styles.badge}>
-            {labels.sourceVersion}: <span>{sourceVersion === null ? "—" : sourceVersion}</span>
+            {labels.engineAdmin.sourceVersion}:{" "}
+            <span>{sourceVersion === null ? "—" : sourceVersion}</span>
           </span>
           <span class={styles.badge}>
-            {labels.newVersion}: <span>{nextVersion}</span>
+            {labels.engineAdmin.newVersion}: <span>{nextVersion}</span>
           </span>
           <span class={styles.badge}>
-            {labels.active}: <span>{activeTickets}</span>
+            {labels.shared.active}: <span>{activeTickets}</span>
           </span>
         </div>
         {activeTickets === 0 ? (
           <p class={styles.notice} data-tone="error" role="alert">
-            {labels.noTicketTypesForForm}
+            {labels.engineAdmin.noTicketTypesForForm}
           </p>
         ) : null}
 
         <qui-accordion collapsible class={styles.sectionBody}>
           <qui-accordion-item value="json-instructions">
-            <qui-accordion-trigger>{labels.formSchemaInstructionsTitle}</qui-accordion-trigger>
+            <qui-accordion-trigger>
+              {labels.engineAdmin.formSchemaInstructionsTitle}
+            </qui-accordion-trigger>
             <qui-accordion-content>
               <div class={styles.instructions}>
-                <p class={styles.instructionsText}>{labels.formSchemaInstructionsIntro}</p>
-                <p class={styles.instructionsText}>{labels.formSchemaInstructionsKeys}</p>
-                <p class={styles.instructionsText}>{labels.formSchemaInstructionsRefs}</p>
-                <p class={styles.instructionsText}>{labels.formSchemaInstructionsLocalized}</p>
-                <p class={styles.instructionsText}>{labels.formSchemaInstructionsConditions}</p>
-                <p class={styles.instructionsText}>{labels.formSchemaInstructionsValidation}</p>
+                <p class={styles.instructionsText}>
+                  {labels.engineAdmin.formSchemaInstructionsIntro}
+                </p>
+                <p class={styles.instructionsText}>
+                  {labels.engineAdmin.formSchemaInstructionsKeys}
+                </p>
+                <p class={styles.instructionsText}>
+                  {labels.engineAdmin.formSchemaInstructionsRefs}
+                </p>
+                <p class={styles.instructionsText}>
+                  {labels.engineAdmin.formSchemaInstructionsLocalized}
+                </p>
+                <p class={styles.instructionsText}>
+                  {labels.engineAdmin.formSchemaInstructionsConditions}
+                </p>
+                <p class={styles.instructionsText}>
+                  {labels.engineAdmin.formSchemaInstructionsValidation}
+                </p>
                 <div>
-                  <p class={styles.label}>{labels.formSchemaInstructionsExample}</p>
+                  <p class={styles.label}>{labels.engineAdmin.formSchemaInstructionsExample}</p>
                   <pre class={styles.instructionsCode}>
                     <code>{FORM_SCHEMA_EXAMPLE}</code>
                   </pre>
@@ -353,7 +369,7 @@ export function FormEditor({ locale, labels }: FormEditorProps): JSX.Element | n
         </qui-accordion>
 
         <qui-field class={`${styles.field} ${styles.sectionBody}`}>
-          <qui-field-label>{labels.formSchema}</qui-field-label>
+          <qui-field-label>{labels.engineAdmin.formSchema}</qui-field-label>
           <qui-textarea
             id="engine-form-schema"
             value={schemaText}
@@ -365,7 +381,7 @@ export function FormEditor({ locale, labels }: FormEditorProps): JSX.Element | n
               setSchemaText(event.detail.value);
             }}
           />
-          <qui-field-helper-text>{labels.formSchemaHelp}</qui-field-helper-text>
+          <qui-field-helper-text>{labels.engineAdmin.formSchemaHelp}</qui-field-helper-text>
         </qui-field>
 
         <div class={styles.actions}>
@@ -375,7 +391,7 @@ export function FormEditor({ locale, labels }: FormEditorProps): JSX.Element | n
               const parsed = parseSchema(schemaText);
 
               if (parsed === null) {
-                setNotice({ message: labels.formatFailed, tone: "error" });
+                setNotice({ message: labels.engineAdmin.formatFailed, tone: "error" });
                 return;
               }
 
@@ -383,7 +399,7 @@ export function FormEditor({ locale, labels }: FormEditorProps): JSX.Element | n
               setNotice(null);
             }}
           >
-            {labels.formatJson}
+            {labels.engineAdmin.formatJson}
           </qui-button>
           <qui-button
             type="button"
@@ -393,7 +409,7 @@ export function FormEditor({ locale, labels }: FormEditorProps): JSX.Element | n
               submit(FORM_VERSION_STATUS.draft);
             }}
           >
-            {saving === "draft" ? labels.saving : labels.saveDraft}
+            {saving === "draft" ? labels.shared.saving : labels.engineAdmin.saveDraft}
           </qui-button>
           <qui-button
             type="button"
@@ -403,10 +419,10 @@ export function FormEditor({ locale, labels }: FormEditorProps): JSX.Element | n
               submit(FORM_VERSION_STATUS.published);
             }}
           >
-            {saving === "published" ? labels.saving : labels.publishForm}
+            {saving === "published" ? labels.shared.saving : labels.engineAdmin.publishForm}
           </qui-button>
           <qui-button href={detailUrl} variant="outlined">
-            {labels.cancel}
+            {labels.shared.cancel}
           </qui-button>
         </div>
       </div>

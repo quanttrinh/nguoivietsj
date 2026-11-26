@@ -35,13 +35,13 @@ export default defineConfig({
     sortScripts: false,
   },
   ignorePatterns: [
-    ".intlayer/",
     "dist/",
     "styled-system/",
     ".astro/",
     ".wrangler/",
     ".devcontainer/",
     "node_modules/",
+    "src/generated/",
     // Generated test artifacts: reformatting them after a test run is churn.
     ".vitest/",
     "coverage/",

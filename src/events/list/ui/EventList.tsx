@@ -1,5 +1,4 @@
 // @boundary client
-import type { DeclaredLocales } from "intlayer";
 import type { JSX } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
@@ -9,6 +8,7 @@ import { localized } from "~/events/domain/localized";
 import type { PublicEventSummary } from "~/events/domain/types";
 import { apiClient, apiErrorMessage, readApiJson } from "~/shared/client/api/client";
 import { clientLogger } from "~/shared/client/logger";
+import type { Locale as DeclaredLocales } from "~/shared/i18n";
 import { dateTimeFormatter } from "~/shared/utils/format";
 
 const getEvents = apiClient.api.events.$get;

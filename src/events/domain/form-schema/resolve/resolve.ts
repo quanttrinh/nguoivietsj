@@ -48,7 +48,7 @@ import type {
   EventPayments,
   EventStatus,
 } from "~/events/domain/types";
-import { DEFAULT_LOCALE } from "~/shared/constants/locales";
+import { DEFAULT_LOCALE } from "~/shared/i18n";
 
 export type {
   ResolvedConfirmation,

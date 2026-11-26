@@ -1,6 +1,5 @@
 // @boundary client
 import type { InferResponseType } from "hono/client";
-import type { DeclaredLocales } from "intlayer";
 import type { JSX } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
@@ -8,19 +7,13 @@ import { css } from "styled-system/css";
 import { vstack, wrap } from "styled-system/patterns";
 import { adminQueries } from "~/events/admin/ui/shared/queries";
 import { adminEventUrl } from "~/events/admin/ui/shared/routes";
-import type { AdminContentValues } from "~/events/content/admin.content";
-import type { CheckinContentValues } from "~/events/content/checkin.content";
+import type { AdminQrLabels } from "~/generated/client/AdminQr";
 import { apiClient, apiErrorMessage } from "~/shared/client/api/client";
 import { useQuery } from "~/shared/client/query/use-query";
+import type { Locale as DeclaredLocales } from "~/shared/i18n";
 import { QrImage } from "~/shared/ui/QrImage";
 
 import EventTitle from "../shared/EventTitle";
-
-type AdminQrLabels = Pick<AdminContentValues, "loadFailed" | "loading"> &
-  Pick<
-    CheckinContentValues,
-    "qrTitle" | "qrHelp" | "printQr" | "openScanner" | "paymentPendingQr" | "registrationNotFound"
-  >;
 
 interface AdminQrProps {
   labels: AdminQrLabels;
@@ -89,19 +82,19 @@ interface ContentInput {
 
 function contentFor({ params, data, error, loading, locale, labels }: ContentInput) {
   if (params === undefined || loading) {
-    return <p class={styles.notice}>{labels.loading}</p>;
+    return <p class={styles.notice}>{labels.engineAdmin.loading}</p>;
   }
 
   if (params === null) {
-    return <p class={styles.notice}>{labels.registrationNotFound}</p>;
+    return <p class={styles.notice}>{labels.engineCheckin.registrationNotFound}</p>;
   }
 
   if (error !== null && data === null) {
-    return <p class={styles.notice}>{apiErrorMessage(error, labels.loadFailed)}</p>;
+    return <p class={styles.notice}>{apiErrorMessage(error, labels.engineAdmin.loadFailed)}</p>;
   }
 
   if (data === null) {
-    return <p class={styles.notice}>{labels.loading}</p>;
+    return <p class={styles.notice}>{labels.engineAdmin.loading}</p>;
   }
 
   return (
@@ -109,12 +102,12 @@ function contentFor({ params, data, error, loading, locale, labels }: ContentInp
       <div class={styles.body}>
         {data.qrAvailable && data.qrSvg !== null ? (
           <>
-            <p class={styles.help}>{labels.qrHelp}</p>
+            <p class={styles.help}>{labels.engineCheckin.qrHelp}</p>
             <QrImage class={styles.qr} svg={data.qrSvg} />
             <p class={styles.name}>{data.registration.fullName}</p>
           </>
         ) : (
-          <p class={styles.notice}>{labels.paymentPendingQr}</p>
+          <p class={styles.notice}>{labels.engineCheckin.paymentPendingQr}</p>
         )}
       </div>
       <div class={styles.actions}>
@@ -124,7 +117,7 @@ function contentFor({ params, data, error, loading, locale, labels }: ContentInp
             globalThis.print();
           }}
         >
-          {labels.printQr}
+          {labels.engineCheckin.printQr}
         </qui-button>
         <qui-button
           variant="outlined"
@@ -133,7 +126,7 @@ function contentFor({ params, data, error, loading, locale, labels }: ContentInp
             eventId: params.eventId,
           })}
         >
-          {labels.openScanner}
+          {labels.engineCheckin.openScanner}
         </qui-button>
       </div>
     </>
@@ -161,7 +154,7 @@ export default function AdminQr({ locale, labels }: AdminQrProps): JSX.Element {
       return;
     }
 
-    document.title = `${labels.qrTitle}: ${data.registration.fullName}`;
+    document.title = `${labels.engineCheckin.qrTitle}: ${data.registration.fullName}`;
   }, [data, locale, labels]);
 
   const content = contentFor({

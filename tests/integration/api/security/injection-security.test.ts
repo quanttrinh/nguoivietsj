@@ -462,8 +462,6 @@ describe("HTML and script injection", () => {
       expect(serialized).not.toContain("<img");
       expect(serialized).not.toContain("onerror=");
       expect(serialized).not.toContain("onmouseover=");
-      expect(response.headers.get("vary")).toContain("Accept-Language");
-      expect(response.headers.get("vary")).toContain("X-Locale");
     },
   );
 });
@@ -490,8 +488,6 @@ describe("header injection through locale headers", () => {
       const setCookie = response.headers.get("set-cookie");
       expect(setCookie === null || !setCookie.includes("injected")).toBe(true);
       expect(response.headers.get("x-injected")).toBeNull();
-      expect(response.headers.get("vary")).toContain("Accept-Language");
-      expect(response.headers.get("vary")).toContain("X-Locale");
     },
   );
 

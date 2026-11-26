@@ -1,10 +1,8 @@
 ---
 // @boundary astro
-import { useDictionary, useLocale } from "astro-intlayer";
-import { getLocalizedUrl } from "intlayer";
-
+import { localized as all } from "~/generated/client/all";
 import SiteLayout from "~/layouts/shared/SiteLayout.astro";
-import siteContent from "~/layouts/site.content";
+import { useLocale, getLocalizedUrl } from "~/shared/i18n";
 
 interface Props {
   title: string;
@@ -13,20 +11,20 @@ interface Props {
 }
 
 const { title, description, noindex = false }: Props = Astro.props;
-const { locale } = useLocale();
-const messages = useDictionary(siteContent, locale);
+const { locale } = useLocale(Astro.url);
+const messages = all(locale);
 ---
 
 <SiteLayout
   title={title}
   description={description}
-  brand={messages.brand.value}
-  brandSubtitle={messages.brandSubtitle.value}
+  brand={messages.site.brand}
+  brandSubtitle={messages.site.brandSubtitle}
   homeHref={getLocalizedUrl("/", locale)}
   skipHref="#main"
-  skipLabel={messages.skipToContent.value}
-  languageLabel={messages.language.value}
-  builtBy={messages.builtBy.value}
+  skipLabel={messages.site.skipToContent}
+  languageLabel={messages.site.language}
+  builtBy={messages.site.builtBy}
   noindex={noindex}
 >
   <Fragment slot="header-actions">

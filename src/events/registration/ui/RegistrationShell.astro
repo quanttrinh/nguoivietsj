@@ -1,13 +1,13 @@
 ---
 // @boundary client
-import { getBasePlugins, getDictionary } from "@intlayer/core/interpreter";
-import { useDictionary, useLocale } from "astro-intlayer";
 import { TURNSTILE_SITE_KEY } from "astro:env/client";
 
-import engineRegistrationContent from "~/events/content/registration.content";
 import { REGISTRATION_TURNSTILE_ACTION } from "~/events/domain/registration";
 import PublicRegistration from "~/events/registration/ui/PublicRegistration";
+import { localized as all } from "~/generated/client/all";
+import { localized as registrationLocalized } from "~/generated/client/PublicRegistration";
 import BaseLayout from "~/layouts/BaseLayout.astro";
+import { useLocale } from "~/shared/i18n";
 
 interface Props {
   preview?: boolean;
@@ -16,8 +16,8 @@ interface Props {
 
 const { preview = false, staff = false }: Props = Astro.props;
 
-const { locale } = useLocale();
-const content = useDictionary(engineRegistrationContent, locale);
+const { locale } = useLocale(Astro.url);
+const content = all(locale);
 
 const config = {
   locale,
@@ -25,13 +25,13 @@ const config = {
     siteKey: TURNSTILE_SITE_KEY.trim(),
     action: REGISTRATION_TURNSTILE_ACTION,
   },
-  labels: getDictionary(engineRegistrationContent, locale, getBasePlugins(locale)),
+  labels: registrationLocalized(locale),
 };
 ---
 
 <BaseLayout
-  title={content.meta.title.value}
-  description={content.meta.description.value}
+  title={content.engineRegistration.meta.title}
+  description={content.engineRegistration.meta.description}
   noindex={preview || staff}
 >
   <PublicRegistration client:load config={config} preview={preview} staff={staff} />

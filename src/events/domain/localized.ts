@@ -2,7 +2,7 @@
 /* oxlint-disable eslint/max-params -- Localized resolution keeps explicit locale/fallback context. */
 
 import type { LocalizedText } from "~/events/domain/types";
-import { DEFAULT_LOCALE } from "~/shared/constants/locales";
+import { DEFAULT_LOCALE } from "~/shared/i18n";
 
 /** Resolve localized text with event-default, default-locale, then first-value fallback. */
 export function localized(

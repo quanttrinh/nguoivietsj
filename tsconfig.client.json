@@ -15,13 +15,14 @@
   "include": [
     ".astro/types.d.ts",
     ".astro/env.d.ts",
-    ".intlayer/**/*.ts",
     "src/types/raw.d.ts",
     "package.json",
     "src/**/*.ts",
     "src/**/*.tsx",
     "src/**/*.astro",
-    "better-auth.config.ts"
+    "better-auth.config.ts",
+    "i18n.config.ts",
+    "plugins/**/*.ts"
   ],
   "exclude": ["dist", "src/backfills/**"]
 }

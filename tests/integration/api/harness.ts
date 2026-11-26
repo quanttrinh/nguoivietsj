@@ -149,11 +149,17 @@ export async function createApiHarness(): Promise<ApiHarness> {
     return response;
   }
 
-  async function signIn(email: string, password = "dev-password"): Promise<Response> {
-    const response = await request("/api/auth/sign-in/email", {
+  async function signIn(email: string, _password?: string): Promise<Response> {
+    await request("/api/auth/email-otp/send-verification-otp", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, type: "sign-in" }),
+    });
+
+    const response = await request("/api/auth/sign-in/email-otp", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ email, otp: "123456" }),
     });
 
     cookie = response.headers

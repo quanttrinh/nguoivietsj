@@ -1,19 +1,12 @@
 // @boundary client
-import type { DeclaredLocales } from "intlayer";
+import type { PublicRegistrationLabels } from "~/generated/client/PublicRegistration";
+import type { Locale as DeclaredLocales } from "~/shared/i18n";
 
-import type { RegistrationContentValues } from "~/events/content/registration.content";
-
-export type RegistrationErrorMessages = RegistrationContentValues["errors"];
 export interface PublicRegistrationConfig {
   locale: DeclaredLocales;
-  labels: RegistrationContentValues;
+  labels: PublicRegistrationLabels;
   turnstile: {
     siteKey: string;
     action: string;
   };
-}
-export interface Props {
-  config: PublicRegistrationConfig;
-  preview?: boolean;
-  staff?: boolean;
 }

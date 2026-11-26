@@ -2,7 +2,7 @@
 import type { MiddlewareHandler } from "hono";
 import { bodyLimit } from "hono/body-limit";
 
-import { apiError } from "~/server/api-response";
+import { sharedApiError } from "~/server/helpers/responses/shared-api-error";
 
 const MAX_API_BODY_BYTES = 1024 * 1024;
 
@@ -10,6 +10,6 @@ const MAX_API_BODY_BYTES = 1024 * 1024;
 export function apiBodyLimit(maxSize: number = MAX_API_BODY_BYTES): MiddlewareHandler<HonoEnv> {
   return bodyLimit({
     maxSize,
-    onError: (ctx) => apiError(ctx, "payload_too_large", { status: 413 }),
+    onError: (ctx) => sharedApiError(ctx, "payload_too_large", { status: 413 }),
   });
 }

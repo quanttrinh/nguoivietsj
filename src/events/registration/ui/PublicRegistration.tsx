@@ -9,7 +9,13 @@ import { clientLogger } from "~/shared/client/logger";
 import { Page } from "./page/RegistrationPage";
 import { registrationRequest } from "./shared/registration-endpoints";
 import { styles } from "./shared/registration-styles";
-import type { Props } from "./shared/registration-types";
+import type { PublicRegistrationConfig } from "./shared/registration-types";
+
+interface Props {
+  config: PublicRegistrationConfig;
+  preview?: boolean;
+  staff?: boolean;
+}
 
 const getPublicEvent = apiClient.api.events[":slug"].$get;
 const getPreview = apiClient.api.admin.events[":eventId"].preview.$get;
@@ -73,12 +79,14 @@ export default function PublicRegistration({ config, preview, staff }: Props): J
         const resolvedForm = await loadRegistrationForm(request);
         setForm(resolvedForm);
         if (resolvedForm !== null) {
-          document.title = `${resolvedForm.event.title} · ${config.labels.form.title}`;
+          document.title = `${resolvedForm.event.title} · ${config.labels.shared.yourRegistration}`;
         }
       } catch (error) {
         clientLogger.error(error);
         setForm(null);
-        setErrorMessage(apiErrorMessage(error, config.labels.event.unavailableBody));
+        setErrorMessage(
+          apiErrorMessage(error, config.labels.engineRegistration.event.unavailableBody),
+        );
       } finally {
         setLoading(false);
       }
@@ -93,9 +101,9 @@ export default function PublicRegistration({ config, preview, staff }: Props): J
     return (
       <section class={styles.section}>
         <div class={styles.panel}>
-          <h1 class={styles.title}>{config.labels.event.unavailable}</h1>
+          <h1 class={styles.title}>{config.labels.engineRegistration.event.unavailable}</h1>
           <p class={styles.cardDescription}>
-            {errorMessage ?? config.labels.event.unavailableBody}
+            {errorMessage ?? config.labels.engineRegistration.event.unavailableBody}
           </p>
         </div>
       </section>

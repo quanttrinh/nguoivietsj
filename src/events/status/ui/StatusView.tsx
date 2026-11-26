@@ -1,13 +1,11 @@
 // @boundary client
 import type { InferResponseType } from "hono/client";
-import type { DeclaredLocales } from "intlayer";
 import type { JSX } from "preact";
 import { useEffect } from "preact/hooks";
 
 import { css } from "styled-system/css";
 import { vstack, wrap } from "styled-system/patterns";
 import { localized } from "~/events/domain/localized";
-import type { StatusViewLabels } from "~/events/status/ui/labels";
 import {
   RegistrationAnswersCard,
   RegistrationContactsCard,
@@ -16,8 +14,11 @@ import {
   RegistrationTicketsCard,
 } from "~/events/ui/registration/RegistrationCards";
 import { registrationViewStyles } from "~/events/ui/registration/styles";
+import type { AllLabels } from "~/generated/client/all";
+import type { StatusViewLabels } from "~/generated/client/StatusView";
 import { apiClient, readApiJson } from "~/shared/client/api/client";
 import { useApiQuery } from "~/shared/client/api/use-api-query";
+import type { Locale as DeclaredLocales } from "~/shared/i18n";
 import { guardPageStyles } from "~/shared/ui/guard-page-styles";
 import { QrImage } from "~/shared/ui/QrImage";
 import { dateTimeFormatter, moneyFormatter } from "~/shared/utils/format";
@@ -68,9 +69,11 @@ const styles = {
 
 function paymentBadgeText(payload: StatusPayload, labels: StatusViewLabels) {
   if (!payload.paid) {
-    return labels.paymentPending;
+    return labels.shared.paymentPending;
   }
-  return payload.payment === null ? labels.noPaymentRequired : labels.paymentConfirmed;
+  return payload.payment === null
+    ? labels.shared.noPaymentRequired
+    : labels.shared.paymentConfirmed;
 }
 
 function QrPanel({
@@ -90,20 +93,24 @@ function QrPanel({
   return (
     <div class={styles.panel}>
       <div class={registrationViewStyles.cardHeader}>
-        <h2 class={styles.cardTitle}>{paidWithQr ? labels.qrTitle : labels.paymentInstructions}</h2>
+        <h2 class={styles.cardTitle}>
+          {paidWithQr
+            ? labels.engineRegistrationStatus.qrTitle
+            : labels.engineRegistrationStatus.paymentInstructions}
+        </h2>
       </div>
       {paidWithQr ? (
         <>
           <QrImage class={styles.qr} svg={qrSvg} />
-          <p class={styles.intro}>{labels.qrHelp}</p>
+          <p class={styles.intro}>{labels.engineRegistrationStatus.qrHelp}</p>
         </>
       ) : (
         <>
-          <p class={styles.intro}>{labels.qrPending}</p>
+          <p class={styles.intro}>{labels.engineRegistrationStatus.qrPending}</p>
           {payload.event.payments.etransfer.enabled &&
           payload.event.payments.etransfer.email !== null ? (
             <p class={styles.value}>
-              {labels.etransferInstruction}{" "}
+              {labels.engineRegistrationStatus.etransferInstruction}{" "}
               <a class={styles.link} href={`mailto:${payload.event.payments.etransfer.email}`}>
                 {payload.event.payments.etransfer.email}
               </a>
@@ -111,20 +118,20 @@ function QrPanel({
           ) : null}
           {payload.event.payments.cash.enabled && payload.event.payments.cash.address !== null ? (
             <p class={styles.value}>
-              {labels.cashInstruction} {payload.event.payments.cash.address}
+              {labels.shared.payInPersonAt} {payload.event.payments.cash.address}
             </p>
           ) : null}
           {!payload.event.payments.etransfer.enabled && !payload.event.payments.cash.enabled ? (
-            <p class={styles.value}>{labels.noPaymentInstructions}</p>
+            <p class={styles.value}>{labels.engineRegistrationStatus.noPaymentInstructions}</p>
           ) : null}
         </>
       )}
       <div class={styles.actions}>
         <a class={styles.link} href={eventUrl}>
-          {labels.backToEvent}
+          {labels.shared.backToEvent}
         </a>
         <a class={styles.link} href={`/${locale}/events/status`}>
-          {labels.findAnother}
+          {labels.engineRegistrationStatus.findAnother}
         </a>
       </div>
     </div>
@@ -144,7 +151,7 @@ export default function StatusView({ locale, labels }: StatusViewProps): JSX.Ele
     }
 
     const title = localized(data.event.title, locale, "", data.event.defaultLocale);
-    document.title = `${labels.heading}: ${title}`;
+    document.title = `${labels.shared.yourRegistration}: ${title}`;
   }, [data, locale, labels]);
 
   if (loading) {
@@ -155,10 +162,10 @@ export default function StatusView({ locale, labels }: StatusViewProps): JSX.Ele
     return (
       <section class={guardPageStyles.section}>
         <div class={guardPageStyles.panel} role="alert">
-          <h1 class={guardPageStyles.title}>{labels.linkInvalidTitle}</h1>
-          <p class={guardPageStyles.message}>{labels.linkInvalid}</p>
+          <h1 class={guardPageStyles.title}>{labels.engineRegistrationStatus.linkInvalidTitle}</h1>
+          <p class={guardPageStyles.message}>{labels.engineRegistrationStatus.linkInvalid}</p>
           <qui-button href={`/${locale}/events/status`} variant="filled">
-            {labels.findAnother}
+            {labels.engineRegistrationStatus.findAnother}
           </qui-button>
         </div>
       </section>
@@ -178,13 +185,13 @@ export default function StatusView({ locale, labels }: StatusViewProps): JSX.Ele
   return (
     <section class={styles.section}>
       <div class={styles.top}>
-        <h1 class={styles.title}>{labels.heading}</h1>
-        <p class={styles.intro}>{labels.intro}</p>
+        <h1 class={styles.title}>{labels.shared.yourRegistration}</h1>
+        <p class={styles.intro}>{labels.engineRegistrationStatus.intro}</p>
         <span class={styles.badge}>{paymentBadgeText(data, labels)}</span>
       </div>
       <div class={styles.grid}>
         <RegistrationOverviewCard
-          title={labels.heading}
+          title={labels.shared.yourRegistration}
           eventTitle={title}
           registration={registration}
           payment={payment}
@@ -192,32 +199,38 @@ export default function StatusView({ locale, labels }: StatusViewProps): JSX.Ele
           paymentStatusText={paymentBadgeText(data, labels)}
           checkinStatusText={
             checkin === null
-              ? labels.notCheckedIn
-              : `${labels.checkedIn} · ${dateTime.format(new Date(checkin.checkedInAt))}`
+              ? labels.shared.notCheckedIn
+              : `${labels.shared.checkedIn} · ${dateTime.format(new Date(checkin.checkedInAt))}`
           }
           money={money}
           dateTime={dateTime}
-          labels={labels}
+          labels={labels as AllLabels}
         />
-        <QrPanel payload={data} locale={locale} labels={labels} eventUrl={eventUrl} />
+        <QrPanel
+          payload={data}
+          locale={locale}
+          // oxlint-disable-next-line typescript/no-unnecessary-type-assertion -- shared panel accepts the wider generated catalog.
+          labels={labels as AllLabels}
+          eventUrl={eventUrl}
+        />
       </div>
       <div class={styles.grid}>
-        <RegistrationContactsCard contacts={registration.contacts} labels={labels} />
+        <RegistrationContactsCard contacts={registration.contacts} labels={labels as AllLabels} />
         <RegistrationTicketsCard
           tickets={registration.tickets}
           locale={locale}
           defaultLocale={data.event.defaultLocale}
           money={money}
-          labels={labels}
+          labels={labels as AllLabels}
         />
         <RegistrationAnswersCard
           answers={registration.answers}
           answerFields={answerFields}
           locale={locale}
           defaultLocale={data.event.defaultLocale}
-          labels={labels}
+          labels={labels as AllLabels}
         />
-        <RegistrationMetadataCard metadata={registration.metadata} labels={labels} />
+        <RegistrationMetadataCard metadata={registration.metadata} labels={labels as AllLabels} />
       </div>
     </section>
   );

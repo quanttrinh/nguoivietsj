@@ -1,53 +1,30 @@
 // @boundary client
-import type { DeclaredLocales } from "intlayer";
 import type { JSX } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
 import { adminQueries } from "~/events/admin/ui/shared/queries";
 import { tableStyles } from "~/events/admin/ui/shared/styles/table";
-import type { AdminContentValues } from "~/events/content/admin.content";
 import { localized } from "~/events/domain/localized";
+import type { AdminActivityLabels } from "~/generated/client/AdminActivity";
 import { apiErrorMessage } from "~/shared/client/api/client";
 import { useQuery } from "~/shared/client/query/use-query";
+import type { Locale as DeclaredLocales } from "~/shared/i18n";
 import { dateTimeFormatter } from "~/shared/utils/format";
-
-type AdminActivityLabels = Pick<
-  AdminContentValues,
-  | "action"
-  | "activity"
-  | "actor"
-  | "eventNotFound"
-  | "loadFailed"
-  | "loading"
-  | "metadata"
-  | "noActivity"
-  | "paymentConfirmAction"
-  | "paymentUnconfirmAction"
-  | "paymentUpdateAction"
-  | "target"
-  | "time"
->;
 
 interface AdminActivityProps {
   labels: AdminActivityLabels;
   locale: DeclaredLocales;
 }
 
-function actionLabel(
-  action: string,
-  labels: Pick<
-    AdminContentValues,
-    "paymentConfirmAction" | "paymentUnconfirmAction" | "paymentUpdateAction"
-  >,
-) {
+function actionLabel(action: string, labels: AdminActivityLabels) {
   if (action === "payment.confirm") {
-    return labels.paymentConfirmAction;
+    return labels.engineAdmin.paymentConfirmAction;
   }
   if (action === "payment.update") {
-    return labels.paymentUpdateAction;
+    return labels.engineAdmin.paymentUpdateAction;
   }
   if (action === "payment.unconfirm") {
-    return labels.paymentUnconfirmAction;
+    return labels.engineAdmin.paymentUnconfirmAction;
   }
   return action;
 }
@@ -70,29 +47,29 @@ export default function AdminActivity({ locale, labels }: AdminActivityProps): J
 
     const title = localized(data.event.title, locale, data.event.slug, data.event.defaultLocale);
 
-    document.title = `${labels.activity}: ${title}`;
-  }, [data, locale, labels.activity]);
+    document.title = `${labels.shared.activity}: ${title}`;
+  }, [data, locale, labels.shared.activity]);
 
   if (eventId === undefined || loading) {
-    return <p class={tableStyles.note}>{labels.loading}</p>;
+    return <p class={tableStyles.note}>{labels.engineAdmin.loading}</p>;
   }
 
   if (eventId === null) {
-    return <p class={tableStyles.error}>{labels.eventNotFound}</p>;
+    return <p class={tableStyles.error}>{labels.engineAdmin.eventNotFound}</p>;
   }
 
   if (error !== null && data === null) {
-    return <p class={tableStyles.error}>{apiErrorMessage(error, labels.loadFailed)}</p>;
+    return <p class={tableStyles.error}>{apiErrorMessage(error, labels.engineAdmin.loadFailed)}</p>;
   }
 
   if (data?.event === undefined) {
-    return <p class={tableStyles.error}>{labels.eventNotFound}</p>;
+    return <p class={tableStyles.error}>{labels.engineAdmin.eventNotFound}</p>;
   }
 
   const activity = data.activity;
 
   if (activity.length === 0) {
-    return <p class={tableStyles.empty}>{labels.noActivity}</p>;
+    return <p class={tableStyles.empty}>{labels.engineAdmin.noActivity}</p>;
   }
 
   const dateFormatter = dateTimeFormatter(locale, data.event.timezone);
@@ -102,11 +79,11 @@ export default function AdminActivity({ locale, labels }: AdminActivityProps): J
       <table class={tableStyles.responsiveTable}>
         <thead>
           <tr>
-            <th class={tableStyles.th}>{labels.time}</th>
-            <th class={tableStyles.th}>{labels.action}</th>
-            <th class={tableStyles.th}>{labels.actor}</th>
-            <th class={tableStyles.th}>{labels.target}</th>
-            <th class={tableStyles.th}>{labels.metadata}</th>
+            <th class={tableStyles.th}>{labels.engineAdmin.time}</th>
+            <th class={tableStyles.th}>{labels.engineAdmin.action}</th>
+            <th class={tableStyles.th}>{labels.engineAdmin.actor}</th>
+            <th class={tableStyles.th}>{labels.engineAdmin.target}</th>
+            <th class={tableStyles.th}>{labels.engineAdmin.metadata}</th>
           </tr>
         </thead>
         <tbody>
@@ -152,11 +129,11 @@ export default function AdminActivity({ locale, labels }: AdminActivityProps): J
             </div>
             <div class={tableStyles.mobileCardGrid}>
               <div>
-                <span class={tableStyles.mobileCardLabel}>{labels.actor}</span>
+                <span class={tableStyles.mobileCardLabel}>{labels.engineAdmin.actor}</span>
                 <code class={tableStyles.code}>{item.actorUserId}</code>
               </div>
               <div>
-                <span class={tableStyles.mobileCardLabel}>{labels.target}</span>
+                <span class={tableStyles.mobileCardLabel}>{labels.engineAdmin.target}</span>
                 {item.targetId === null ? (
                   <span class={tableStyles.mobileCardValue}>—</span>
                 ) : (
@@ -164,7 +141,7 @@ export default function AdminActivity({ locale, labels }: AdminActivityProps): J
                 )}
               </div>
               <div>
-                <span class={tableStyles.mobileCardLabel}>{labels.metadata}</span>
+                <span class={tableStyles.mobileCardLabel}>{labels.engineAdmin.metadata}</span>
                 {item.metadata === null ? (
                   <span class={tableStyles.mobileCardValue}>—</span>
                 ) : (

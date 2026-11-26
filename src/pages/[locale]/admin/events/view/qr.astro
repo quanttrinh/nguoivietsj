@@ -1,42 +1,32 @@
 ---
 // @boundary astro
-import { getBasePlugins, getDictionary } from "@intlayer/core/interpreter";
-import { useDictionary, useLocale } from "astro-intlayer";
-import { locales } from "intlayer";
-
 import { center } from "styled-system/patterns";
 import AdminQr from "~/events/admin/ui/qr/AdminQr";
 import AdminLayout from "~/events/admin/ui/shared/AdminLayout.astro";
-import engineContent from "~/events/content/admin.content";
-import engineCheckinContent from "~/events/content/checkin.content";
-import { pick } from "~/shared/content/pick";
+import { localized } from "~/generated/client/AdminQr";
+import { localized as all } from "~/generated/client/all";
+import { locales, useLocale } from "~/shared/i18n";
 import Panel from "~/shared/ui/Panel.astro";
 
 export function getStaticPaths(): { params: { locale: string } }[] {
   return locales.map((locale) => ({ params: { locale } }));
 }
 
-const { locale } = useLocale();
-const content = useDictionary(engineCheckinContent, locale);
+const { locale } = useLocale(Astro.url);
+const content = all(locale);
 
 const styles = {
   section: center({ paddingBlockStart: { base: "2", md: "3" } }),
 };
 
-const view = {
-  ...pick(getDictionary(engineContent, locale, getBasePlugins(locale)), ["loadFailed", "loading"]),
-  ...pick(getDictionary(engineCheckinContent, locale, getBasePlugins(locale)), [
-    "qrTitle",
-    "qrHelp",
-    "printQr",
-    "openScanner",
-    "paymentPendingQr",
-    "registrationNotFound",
-  ]),
-};
+const view = localized(locale);
 ---
 
-<AdminLayout title={content.qrTitle.value} description={content.qrHelp.value} noindex>
+<AdminLayout
+  title={content.engineCheckin.qrTitle}
+  description={content.engineCheckin.qrHelp}
+  noindex
+>
   <section class={styles.section}>
     <Panel padding="lg">
       <AdminQr client:load locale={locale} labels={view} />

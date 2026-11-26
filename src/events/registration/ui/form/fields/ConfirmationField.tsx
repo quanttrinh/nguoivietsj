@@ -20,11 +20,11 @@ export function ConfirmationField({ field, config, error }: ConfirmationFieldPro
   return (
     <FieldFrame
       fieldRef={field.ref}
-      label={config.labels.fields.confirmation.label}
+      label={config.labels.engineRegistration.fields.confirmation.label}
       required={required}
-      help={config.labels.fields.confirmation.help}
+      help={config.labels.engineRegistration.fields.confirmation.help}
       error={error}
-      fallbackError={config.labels.errors.confirmationRequired}
+      fallbackError={config.labels.engineRegistration.errors.confirmationRequired}
     >
       <qui-radio-group
         name={FORM_CONFIRMATION_FIELD_NAME}
@@ -32,7 +32,9 @@ export function ConfirmationField({ field, config, error }: ConfirmationFieldPro
         defaultValue={defaultValue}
       >
         {field.mode === "optional" ? (
-          <qui-radio value="">{config.labels.fields.confirmation.none}</qui-radio>
+          <qui-radio value="">
+            {config.labels.engineRegistration.fields.confirmation.none}
+          </qui-radio>
         ) : null}
         {field.methods.map((method) => (
           <qui-radio key={method.kind} value={method.kind}>

@@ -1,11 +1,11 @@
 // @boundary client
-import { locales, defaultLocale } from "intlayer";
 import type { JSX } from "preact";
 
 import { adminStyles as styles } from "~/events/admin/ui/shared/styles/admin-styles";
 import type { TicketTypeInput, TicketTypeRecord } from "~/events/domain/types";
-
-import type { TicketFieldsLabels } from "./form-labels";
+import type { EventFormLabels } from "~/generated/client/EventForm";
+import type { TicketTypeFormLabels } from "~/generated/client/TicketTypeForm";
+import { locales, defaultLocale } from "~/shared/i18n";
 
 export interface TicketTypeDraft {
   key: string;
@@ -116,7 +116,7 @@ export function TicketTypeFields({
   onRemove,
 }: {
   draft: TicketTypeDraft;
-  labels: TicketFieldsLabels;
+  labels: TicketTypeFormLabels | EventFormLabels;
   removable?: boolean;
   keyReadOnly?: boolean;
   onChange: (next: TicketTypeDraft) => void;
@@ -135,17 +135,17 @@ export function TicketTypeFields({
   return (
     <div class={styles.ticketCard} data-ticket>
       <div class={styles.ticketHeader}>
-        <h3 class={styles.ticketTitle}>{labels.ticketTypes}</h3>
+        <h3 class={styles.ticketTitle}>{labels.engineAdmin.ticketTypes}</h3>
         {removable === true ? (
           <qui-button variant="text" size="sm" onClick={onRemove}>
-            {labels.removeTicketType}
+            {labels.shared.remove}
           </qui-button>
         ) : null}
       </div>
 
       <div class={styles.fieldGrid}>
         <qui-field class={styles.field}>
-          <qui-field-label>{labels.ticketKey}</qui-field-label>
+          <qui-field-label>{labels.engineAdmin.ticketKey}</qui-field-label>
           <qui-input
             value={draft.key}
             inputPattern="[a-z][a-z0-9_]{0,63}"
@@ -159,7 +159,7 @@ export function TicketTypeFields({
         </qui-field>
 
         <qui-field class={styles.field}>
-          <qui-field-label>{labels.priceMinor}</qui-field-label>
+          <qui-field-label>{labels.engineAdmin.priceMinor}</qui-field-label>
           <qui-input
             value={draft.priceMinor}
             inputType="number"
@@ -171,13 +171,13 @@ export function TicketTypeFields({
               update({ priceMinor: event.detail.value });
             }}
           />
-          <qui-field-helper-text>{labels.priceMinorHelp}</qui-field-helper-text>
+          <qui-field-helper-text>{labels.engineAdmin.priceMinorHelp}</qui-field-helper-text>
         </qui-field>
 
         {locales.map((language) => (
           <qui-field key={language} class={styles.field}>
             <qui-field-label>
-              {labels.ticketLabel} · {language}
+              {labels.engineAdmin.ticketLabel} · {language}
             </qui-field-label>
             <qui-input
               value={draft.label[language] ?? ""}
@@ -192,7 +192,7 @@ export function TicketTypeFields({
         {locales.map((language) => (
           <qui-field key={language} class={styles.field}>
             <qui-field-label>
-              {labels.ticketDescription} · {language}
+              {labels.engineAdmin.ticketDescription} · {language}
             </qui-field-label>
             <qui-input
               value={draft.description[language] ?? ""}
@@ -206,7 +206,7 @@ export function TicketTypeFields({
 
       <div class={styles.fieldGrid}>
         <qui-field class={styles.field}>
-          <qui-field-label>{labels.minPerRegistration}</qui-field-label>
+          <qui-field-label>{labels.engineAdmin.minPerRegistration}</qui-field-label>
           <qui-input
             value={draft.minPerRegistration}
             inputType="number"
@@ -221,7 +221,7 @@ export function TicketTypeFields({
         </qui-field>
 
         <qui-field class={styles.field}>
-          <qui-field-label>{labels.maxPerRegistration}</qui-field-label>
+          <qui-field-label>{labels.engineAdmin.maxPerRegistration}</qui-field-label>
           <qui-input
             value={draft.maxPerRegistration}
             inputType="number"
@@ -232,11 +232,11 @@ export function TicketTypeFields({
               update({ maxPerRegistration: event.detail.value });
             }}
           />
-          <qui-field-helper-text>{labels.noLimit}</qui-field-helper-text>
+          <qui-field-helper-text>{labels.engineAdmin.noLimit}</qui-field-helper-text>
         </qui-field>
 
         <qui-field class={styles.field}>
-          <qui-field-label>{labels.defaultQuantity}</qui-field-label>
+          <qui-field-label>{labels.engineAdmin.defaultQuantity}</qui-field-label>
           <qui-input
             value={draft.defaultQuantity}
             inputType="number"
@@ -251,7 +251,7 @@ export function TicketTypeFields({
         </qui-field>
 
         <qui-field class={styles.field}>
-          <qui-field-label>{labels.capacity}</qui-field-label>
+          <qui-field-label>{labels.engineAdmin.capacity}</qui-field-label>
           <qui-input
             value={draft.capacity}
             inputType="number"
@@ -262,11 +262,11 @@ export function TicketTypeFields({
               update({ capacity: event.detail.value });
             }}
           />
-          <qui-field-helper-text>{labels.noLimit}</qui-field-helper-text>
+          <qui-field-helper-text>{labels.engineAdmin.noLimit}</qui-field-helper-text>
         </qui-field>
 
         <qui-field class={styles.field}>
-          <qui-field-label>{labels.sortOrder}</qui-field-label>
+          <qui-field-label>{labels.engineAdmin.sortOrder}</qui-field-label>
           <qui-input
             value={draft.sortOrder}
             inputType="number"
@@ -281,7 +281,7 @@ export function TicketTypeFields({
 
         <qui-checkbox
           checked={draft.active}
-          label={labels.active}
+          label={labels.shared.active}
           oncheckedchange={(event) => {
             update({ active: event.detail.checked === true });
           }}

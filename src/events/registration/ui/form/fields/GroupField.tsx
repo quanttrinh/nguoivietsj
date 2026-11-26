@@ -90,7 +90,7 @@ export function GroupField({
             defaultValue={initialSelected}
           >
             {group.mode === FORM_GROUP_MODE.oneOf && !group.required ? (
-              <qui-radio value="">{config.labels.groups.none}</qui-radio>
+              <qui-radio value="">{config.labels.engineRegistration.groups.none}</qui-radio>
             ) : null}
             {group.options.map((option) => (
               <qui-radio key={option.ref} value={option.ref}>

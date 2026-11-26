@@ -1,6 +1,6 @@
 // @boundary shared
 import { SUPPORTED_CURRENCY_CODES } from "~/events/domain/defaults";
-import { SUPPORTED_LOCALES } from "~/shared/constants/locales";
+import { SUPPORTED_LOCALES } from "~/shared/i18n";
 
 import type { EventLocation, EventPayments } from "./schemas/event";
 import type { EventNotes } from "./schemas/notes";

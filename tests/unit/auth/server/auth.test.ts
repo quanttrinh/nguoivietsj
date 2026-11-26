@@ -7,8 +7,9 @@ interface SessionStorage {
 }
 
 interface SentOtp {
-  user: { email: string };
+  email: string;
   otp: string;
+  type: "sign-in" | "email-verification" | "forget-password" | "change-email";
 }
 
 type SendOTP = (input: SentOtp) => Promise<void>;
@@ -16,7 +17,7 @@ type SendOTP = (input: SentOtp) => Promise<void>;
 interface CapturedOptions {
   plugins: {
     id: string;
-    options?: { otpOptions?: { sendOTP?: SendOTP } };
+    options?: { sendVerificationOTP?: SendOTP };
   }[];
   secondaryStorage?: SessionStorage;
   secret: string;
@@ -36,7 +37,7 @@ const mocks = vi.hoisted(() => ({
   kvDelete: vi.fn<(key: string) => Promise<void>>(),
 }));
 
-vi.mock("better-auth", () => ({ betterAuth: mocks.betterAuth }));
+vi.mock("better-auth/minimal", () => ({ betterAuth: mocks.betterAuth }));
 vi.mock("drizzle-orm/d1", () => ({ drizzle: mocks.drizzle }));
 vi.mock("@better-auth/drizzle-adapter/relations-v2", () => ({
   drizzleAdapter: mocks.drizzleAdapter,
@@ -92,10 +93,10 @@ function storageFrom(options: CapturedOptions): SessionStorage {
 }
 
 function sendOtpFrom(options: CapturedOptions): SendOTP {
-  const plugin = options.plugins.find((candidate) => candidate.id === "two-factor");
-  const sendOTP = plugin?.options?.otpOptions?.sendOTP;
+  const plugin = options.plugins.find((candidate) => candidate.id === "email-otp");
+  const sendOTP = plugin?.options?.sendVerificationOTP;
   if (sendOTP === undefined) {
-    throw new Error("two-factor sendOTP callback was not configured");
+    throw new Error("email-otp sendVerificationOTP callback was not configured");
   }
   return sendOTP;
 }
@@ -143,7 +144,7 @@ describe("auth", () => {
     expect(options.secret).toBe("test-secret");
     expect(options.baseURL).toBe("https://example.com");
     expect(options.basePath).toBe("/api/auth");
-    expect(options.plugins.map((plugin) => plugin.id)).toContain("two-factor");
+    expect(options.plugins.map((plugin) => plugin.id)).toContain("email-otp");
     expect(options.secondaryStorage).toBeDefined();
   });
 
@@ -186,27 +187,27 @@ describe("auth", () => {
     expect(mocks.kvGet).not.toHaveBeenCalled();
   });
 
-  test("queues a two-factor code email from the plugin callback", async () => {
+  test("queues a sign-in code email from the plugin callback", async () => {
     const env = makeEnv();
     createAuthFor(env);
     const sendOTP = sendOtpFrom(lastOptions());
 
-    await sendOTP({ user: { email: "staff@example.com" }, otp: "123456" });
+    await sendOTP({ email: "staff@example.com", otp: "123456", type: "sign-in" });
 
     expect(mocks.enqueueTwoFactorCodeEmail).toHaveBeenCalledExactlyOnceWith(env, {
       email: "staff@example.com",
       code: "123456",
-      expiresMinutes: 3,
+      expiresMinutes: 10,
     });
   });
 
-  test("throws when the two-factor email cannot be queued", async () => {
+  test("throws when the sign-in code email cannot be queued", async () => {
     createAuthFor(makeEnv());
     const sendOTP = sendOtpFrom(lastOptions());
     mocks.enqueueTwoFactorCodeEmail.mockResolvedValueOnce(false);
 
-    await expect(sendOTP({ user: { email: "staff@example.com" }, otp: "123456" })).rejects.toThrow(
-      "Two-factor email could not be queued",
-    );
+    await expect(
+      sendOTP({ email: "staff@example.com", otp: "123456", type: "sign-in" }),
+    ).rejects.toThrow("Sign-in code email could not be queued");
   });
 });

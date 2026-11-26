@@ -1,52 +1,30 @@
 ---
 // @boundary astro
-import { getBasePlugins, getDictionary } from "@intlayer/core/interpreter";
-import { useDictionary, useLocale } from "astro-intlayer";
-import { locales } from "intlayer";
-
 import AdminCheckinScanner from "~/events/admin/ui/checkin/AdminCheckinScanner";
 import AdminEventTitleLoader from "~/events/admin/ui/shared/AdminEventTitleLoader.astro";
 import AdminLayout from "~/events/admin/ui/shared/AdminLayout.astro";
 import AdminPageHeader from "~/events/admin/ui/shared/AdminPageHeader.astro";
 import { adminPageStyles } from "~/events/admin/ui/shared/styles/admin-styles";
-import engineCheckinContent from "~/events/content/checkin.content";
-import { pick } from "~/shared/content/pick";
+import { localized } from "~/generated/client/AdminCheckinScanner";
+import { localized as all } from "~/generated/client/all";
+import { locales, useLocale } from "~/shared/i18n";
 import Panel from "~/shared/ui/Panel.astro";
 
 export function getStaticPaths(): { params: { locale: string } }[] {
   return locales.map((locale) => ({ params: { locale } }));
 }
 
-const { locale } = useLocale();
-const content = useDictionary(engineCheckinContent, locale);
+const { locale } = useLocale(Astro.url);
+const content = all(locale);
 
 const styles = {
   section: adminPageStyles.section,
 };
 
-const view = pick(getDictionary(engineCheckinContent, locale, getBasePlugins(locale)), [
-  "checkedInAt",
-  "scannerTitle",
-  "scannerHelp",
-  "startCamera",
-  "stopCamera",
-  "registrationId",
-  "manualPlaceholder",
-  "lookUp",
-  "undo",
-  "scanAgain",
-  "cameraError",
-  "cameraUnsupported",
-  "invalidCode",
-  "checkinSuccess",
-  "alreadyCheckedIn",
-  "checkinFailed",
-  "undoSuccess",
-  "undoFailed",
-]);
+const view = localized(locale);
 ---
 
-<AdminLayout title={content.title.value} description={content.intro.value} noindex>
+<AdminLayout title={content.engineCheckin.title} description={content.engineCheckin.intro} noindex>
   <section class={styles.section} id="engine-admin-checkin">
     <AdminEventTitleLoader />
     <AdminPageHeader
@@ -54,7 +32,7 @@ const view = pick(getDictionary(engineCheckinContent, locale, getBasePlugins(loc
       title=""
       titleId="engine-checkin-title"
       preserveTitle
-      intro={content.intro.value}
+      intro={content.engineCheckin.intro}
     />
 
     <Panel padding="lg">

@@ -1,7 +1,6 @@
 // @boundary client
 import { navigate } from "astro:transitions/client";
 import type { InferResponseType } from "hono/client";
-import type { DeclaredLocales } from "intlayer";
 import type { JSX } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 
@@ -16,7 +15,6 @@ import {
 import { adminEventUrl } from "~/events/admin/ui/shared/routes";
 import { adminStyles } from "~/events/admin/ui/shared/styles/admin-styles";
 import { tableStyles } from "~/events/admin/ui/shared/styles/table";
-import type { AdminContentValues } from "~/events/content/admin.content";
 import { MAX_REGISTRATION_SEARCH_QUERY_LENGTH } from "~/events/domain/limits";
 import { localized } from "~/events/domain/localized";
 import {
@@ -27,59 +25,15 @@ import {
   ticketSummary,
 } from "~/events/domain/presentation";
 import type { CheckinRecord, PaymentRecord } from "~/events/domain/types";
+import type { AdminSupportLabels } from "~/generated/client/AdminSupport";
+import type { AllLabels } from "~/generated/client/all";
 import { apiClient, apiErrorMessage } from "~/shared/client/api/client";
 import { useQuery } from "~/shared/client/query/use-query";
+import type { Locale as DeclaredLocales } from "~/shared/i18n";
 import { noticeStyles } from "~/shared/ui/notice-styles";
 import { dateTimeFormatter, moneyFormatter } from "~/shared/utils/format";
 
 import RegistrationCards from "./RegistrationCards";
-
-export type AdminSupportLabels = Pick<
-  AdminContentValues,
-  | "support"
-  | "results"
-  | "noResults"
-  | "fullName"
-  | "contact"
-  | "ticketsTotal"
-  | "amountDue"
-  | "paymentStatus"
-  | "checkinFilter"
-  | "createdAt"
-  | "qrCode"
-  | "paid"
-  | "unpaid"
-  | "checkedIn"
-  | "notCheckedIn"
-  | "notAvailable"
-  | "cashPayment"
-  | "etransferPayment"
-  | "otherPayment"
-  | "confirmPayment"
-  | "updatePayment"
-  | "removePayment"
-  | "removePaymentConfirm"
-  | "paymentMethod"
-  | "paymentNote"
-  | "paymentNoteRequired"
-  | "paymentFailed"
-  | "paymentSaved"
-  | "paymentRemoved"
-  | "paymentEmailFailed"
-  | "savingPayment"
-  | "otherPaymentNoteHelp"
-  | "previousPage"
-  | "nextPage"
-  | "loadFailed"
-  | "eventNotFound"
-  | "search"
-  | "searchPlaceholder"
-  | "paymentFilter"
-  | "all"
-  | "searchAction"
-  | "clearFilters"
-  | "userClose"
->;
 
 interface AdminSupportProps {
   labels: AdminSupportLabels;
@@ -106,13 +60,13 @@ function paymentDisplay(
 ): string {
   if (payment !== null) {
     return paymentMethodLabel(payment.method, {
-      cash: labels.cashPayment,
-      etransfer: labels.etransferPayment,
-      other: labels.otherPayment,
+      cash: labels.shared.cash,
+      eTransfer: labels.shared.eTransfer,
+      other: labels.shared.other,
     });
   }
 
-  return due === 0 ? labels.notAvailable : labels.unpaid;
+  return due === 0 ? labels.engineAdmin.notAvailable : labels.engineAdmin.unpaid;
 }
 
 const styles = {
@@ -200,7 +154,7 @@ function Pager({
           params: previousParams,
         })}
       >
-        {labels.previousPage}
+        {labels.engineAdmin.previousPage}
       </qui-button>
     );
   }
@@ -218,7 +172,7 @@ function Pager({
           params: nextParams,
         })}
       >
-        {labels.nextPage}
+        {labels.engineAdmin.nextPage}
       </qui-button>
     );
   }
@@ -288,7 +242,7 @@ function RegistrationResults({
   }, []);
 
   if (data.registrations.length === 0) {
-    return <p class={tableStyles.empty}>{labels.noResults}</p>;
+    return <p class={tableStyles.empty}>{labels.engineAdmin.noResults}</p>;
   }
 
   const paymentsById = indexByRegistrationId<PaymentRecord>(data.payments);
@@ -320,14 +274,14 @@ function RegistrationResults({
       <table class={tableStyles.responsiveTable}>
         <thead>
           <tr>
-            <th class={tableStyles.th}>{labels.fullName}</th>
-            <th class={tableStyles.th}>{labels.contact}</th>
-            <th class={tableStyles.th}>{labels.ticketsTotal}</th>
-            <th class={tableStyles.th}>{labels.amountDue}</th>
-            <th class={tableStyles.th}>{labels.paymentStatus}</th>
-            <th class={tableStyles.th}>{labels.checkinFilter}</th>
-            <th class={tableStyles.th}>{labels.createdAt}</th>
-            <th class={tableStyles.th}>{labels.qrCode}</th>
+            <th class={tableStyles.th}>{labels.shared.name}</th>
+            <th class={tableStyles.th}>{labels.engineAdmin.contact}</th>
+            <th class={tableStyles.th}>{labels.engineAdmin.ticketsTotal}</th>
+            <th class={tableStyles.th}>{labels.shared.amountDue}</th>
+            <th class={tableStyles.th}>{labels.shared.payment}</th>
+            <th class={tableStyles.th}>{labels.engineAdmin.checkinFilter}</th>
+            <th class={tableStyles.th}>{labels.shared.created}</th>
+            <th class={tableStyles.th}>{labels.shared.qRCode}</th>
           </tr>
         </thead>
         <tbody>
@@ -377,20 +331,22 @@ function RegistrationResults({
                           setEditingId(registration.id);
                         }}
                       >
-                        {payment === null ? labels.confirmPayment : labels.updatePayment}
+                        {payment === null
+                          ? labels.engineAdmin.confirmPayment
+                          : labels.engineAdmin.updatePayment}
                       </button>
                     </p>
                   )}
                 </td>
                 <td class={tableStyles.td}>
                   {checkin === null
-                    ? labels.notAvailable
+                    ? labels.engineAdmin.notAvailable
                     : dateTime.format(new Date(checkin.checkedInAt))}
                 </td>
                 <td class={tableStyles.td}>{dateTime.format(new Date(registration.createdAt))}</td>
                 <td class={tableStyles.td}>
                   <a class={tableStyles.link} href={qr}>
-                    {labels.qrCode}
+                    {labels.shared.qRCode}
                   </a>
                 </td>
               </tr>
@@ -402,7 +358,7 @@ function RegistrationResults({
       <RegistrationCards
         data={data}
         locale={locale}
-        labels={labels}
+        labels={labels as AllLabels}
         money={money}
         dateTime={dateTime}
         eventId={eventId}
@@ -418,7 +374,9 @@ function RegistrationResults({
         <qui-dialog-content>
           <div class={styles.dialogHeader}>
             <qui-dialog-title>
-              {editingPayment === null ? labels.confirmPayment : labels.updatePayment}
+              {editingPayment === null
+                ? labels.engineAdmin.confirmPayment
+                : labels.engineAdmin.updatePayment}
             </qui-dialog-title>
             <qui-dialog-close
               onClick={() => {
@@ -426,7 +384,7 @@ function RegistrationResults({
               }}
             >
               <qui-icon
-                label={labels.userClose}
+                label={labels.engineAdmin.userClose}
                 path="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
               />
             </qui-dialog-close>
@@ -493,11 +451,11 @@ export default function AdminSupport({ locale, labels }: AdminSupportProps): JSX
 
     const title = localized(payload.event.title, locale, "");
 
-    document.title = `${labels.support}: ${title}`;
+    document.title = `${labels.shared.registrationSupport}: ${title}`;
   }, [payload, locale, labels]);
 
   if (eventId === null) {
-    return <p class={tableStyles.error}>{labels.eventNotFound}</p>;
+    return <p class={tableStyles.error}>{labels.engineAdmin.eventNotFound}</p>;
   }
 
   if (eventId === undefined || filters === null || loading) {
@@ -539,12 +497,12 @@ export default function AdminSupport({ locale, labels }: AdminSupportProps): JSX
       <form class={styles.filters} method="get" onSubmit={search}>
         <input type="hidden" name="event" value={eventId} />
         <qui-field class={adminStyles.field}>
-          <qui-field-label>{labels.search}</qui-field-label>
+          <qui-field-label>{labels.engineAdmin.search}</qui-field-label>
           <qui-input
             id="engine-support-query"
             name="q"
             maxLength={MAX_REGISTRATION_SEARCH_QUERY_LENGTH}
-            placeholder={labels.searchPlaceholder}
+            placeholder={labels.engineAdmin.searchPlaceholder}
             defaultValue={filters.query}
             onvaluechange={(event) => {
               setQueryValue(event.detail.value);
@@ -552,7 +510,7 @@ export default function AdminSupport({ locale, labels }: AdminSupportProps): JSX
           />
         </qui-field>
         <qui-field class={adminStyles.field}>
-          <qui-field-label>{labels.paymentFilter}</qui-field-label>
+          <qui-field-label>{labels.shared.payment}</qui-field-label>
           <qui-select
             id="engine-support-payment"
             name="payment"
@@ -561,13 +519,13 @@ export default function AdminSupport({ locale, labels }: AdminSupportProps): JSX
               setPaymentValue(paymentFilter(event.detail.value[0] ?? ""));
             }}
           >
-            <qui-option value="">{labels.all}</qui-option>
-            <qui-option value="paid">{labels.paid}</qui-option>
-            <qui-option value="unpaid">{labels.unpaid}</qui-option>
+            <qui-option value="">{labels.engineAdmin.all}</qui-option>
+            <qui-option value="paid">{labels.engineAdmin.paid}</qui-option>
+            <qui-option value="unpaid">{labels.engineAdmin.unpaid}</qui-option>
           </qui-select>
         </qui-field>
         <qui-field class={adminStyles.field}>
-          <qui-field-label>{labels.checkinFilter}</qui-field-label>
+          <qui-field-label>{labels.engineAdmin.checkinFilter}</qui-field-label>
           <qui-select
             id="engine-support-checkin"
             name="checkin"
@@ -576,28 +534,28 @@ export default function AdminSupport({ locale, labels }: AdminSupportProps): JSX
               setCheckinValue(checkinFilter(event.detail.value[0] ?? ""));
             }}
           >
-            <qui-option value="">{labels.all}</qui-option>
-            <qui-option value="checked_in">{labels.checkedIn}</qui-option>
-            <qui-option value="not_checked_in">{labels.notCheckedIn}</qui-option>
+            <qui-option value="">{labels.engineAdmin.all}</qui-option>
+            <qui-option value="checked_in">{labels.shared.checkedIn}</qui-option>
+            <qui-option value="not_checked_in">{labels.shared.notCheckedIn}</qui-option>
           </qui-select>
         </qui-field>
         <div class={styles.actions}>
           <qui-button type="button" variant="filled" onClick={search}>
-            {labels.searchAction}
+            {labels.engineAdmin.searchAction}
           </qui-button>
           <qui-button type="button" variant="outlined" onClick={clearFilters}>
-            {labels.clearFilters}
+            {labels.shared.clear}
           </qui-button>
         </div>
       </form>
 
       <p class={tableStyles.note}>
-        {labels.results}: {payload?.registrations.length ?? 0}
+        {labels.engineAdmin.results}: {payload?.registrations.length ?? 0}
         {keyset?.hasNext === true ? "+" : ""}
       </p>
 
       {error !== null && payload === null ? (
-        <p class={tableStyles.error}>{apiErrorMessage(error, labels.loadFailed)}</p>
+        <p class={tableStyles.error}>{apiErrorMessage(error, labels.engineAdmin.loadFailed)}</p>
       ) : null}
 
       {view === null ? null : (

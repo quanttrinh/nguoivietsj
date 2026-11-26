@@ -4,7 +4,7 @@ import type { Context } from "hono";
 import { statusPageUrl } from "~/events/domain/status-paths";
 import type { RegistrationResult } from "~/events/domain/types";
 import { enqueueRegistrationReceivedEmail } from "~/events/services/email-queue";
-import { apiSuccess } from "~/server/api-response";
+import { apiSuccess } from "~/server/helpers/responses/api-response";
 
 /** Shared 201 response for every registration-creation route. */
 export async function registrationCreatedResponse(

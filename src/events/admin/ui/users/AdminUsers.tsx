@@ -1,7 +1,6 @@
 // @boundary client
 /* oxlint-disable eslint/max-lines, eslint/max-lines-per-function -- User management keeps filters, form, list, and mutations in one workflow. */
 import type { InferResponseType } from "hono/client";
-import type { DeclaredLocales } from "intlayer";
 import type { JSX } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 
@@ -16,56 +15,15 @@ import {
 } from "~/events/admin/ui/shared/queries";
 import { adminStyles } from "~/events/admin/ui/shared/styles/admin-styles";
 import { tableStyles } from "~/events/admin/ui/shared/styles/table";
-import type { AdminContentValues } from "~/events/content/admin.content";
 import { MAX_EMAIL_ADDRESS_LENGTH } from "~/events/domain/limits";
+import type { AdminUsersLabels } from "~/generated/client/AdminUsers";
 import { apiClient, apiErrorMessage, readApiJson } from "~/shared/client/api/client";
 import { clientLogger } from "~/shared/client/logger";
 import { useQuery } from "~/shared/client/query/use-query";
+import type { Locale as DeclaredLocales } from "~/shared/i18n";
 import { noticeStyles } from "~/shared/ui/notice-styles";
 import { dateFormatter } from "~/shared/utils/format";
 import { isRecord } from "~/shared/utils/records";
-
-type AdminUsersLabels = Pick<
-  AdminContentValues,
-  | "allRoles"
-  | "createUser"
-  | "deleteUserConfirm"
-  | "editUser"
-  | "newPassword"
-  | "nextPage"
-  | "noUsers"
-  | "passwordHelp"
-  | "passwordTooShort"
-  | "previousPage"
-  | "roleAdmin"
-  | "roleEventCheckin"
-  | "roleEventStaff"
-  | "roleUser"
-  | "userActions"
-  | "userCancel"
-  | "userClearFilters"
-  | "userClose"
-  | "userCreated"
-  | "userCreatedAt"
-  | "userDelete"
-  | "userDeleteFailed"
-  | "userDeleted"
-  | "userEdit"
-  | "userEmail"
-  | "userLoadFailed"
-  | "userName"
-  | "userPassword"
-  | "userRequired"
-  | "userRole"
-  | "userSave"
-  | "userSaveFailed"
-  | "userSaving"
-  | "userSearch"
-  | "userSearchAction"
-  | "userSearchField"
-  | "userSearchPlaceholder"
-  | "userUpdated"
->;
 
 interface AdminUsersProps {
   labels: AdminUsersLabels;
@@ -158,16 +116,16 @@ function userRole(value: string | undefined): UserRole {
 function roleLabel(role: string, labels: AdminUsersLabels) {
   switch (role) {
     case USER_ROLE.user: {
-      return labels.roleUser;
+      return labels.engineAdmin.roleUser;
     }
     case USER_ROLE.admin: {
-      return labels.roleAdmin;
+      return labels.engineAdmin.roleAdmin;
     }
     case USER_ROLE.event_staff: {
-      return labels.roleEventStaff;
+      return labels.engineAdmin.roleEventStaff;
     }
     case USER_ROLE.event_checkin: {
-      return labels.roleEventCheckin;
+      return labels.engineAdmin.roleEventCheckin;
     }
     default: {
       return role;
@@ -207,10 +165,10 @@ function UserForm({
     >
       <div class={styles.formGrid}>
         <qui-field class={adminStyles.field}>
-          <qui-field-label>{labels.userName}</qui-field-label>
+          <qui-field-label>{labels.shared.name}</qui-field-label>
           <qui-input
             required
-            aria-label={labels.userName}
+            aria-label={labels.shared.name}
             defaultValue={name}
             onvaluechange={(event) => {
               setName(event.detail.value);
@@ -218,10 +176,10 @@ function UserForm({
           />
         </qui-field>
         <qui-field class={adminStyles.field}>
-          <qui-field-label>{labels.userEmail}</qui-field-label>
+          <qui-field-label>{labels.shared.email}</qui-field-label>
           <qui-input
             required
-            aria-label={labels.userEmail}
+            aria-label={labels.shared.email}
             inputType="text"
             inputModeHint="email"
             defaultValue={email}
@@ -232,10 +190,10 @@ function UserForm({
         </qui-field>
         <qui-field class={adminStyles.field}>
           <qui-field-label>
-            {mode === "create" ? labels.userPassword : labels.newPassword}
+            {mode === "create" ? labels.shared.password : labels.engineAdmin.newPassword}
           </qui-field-label>
           <qui-input
-            aria-label={mode === "create" ? labels.userPassword : labels.newPassword}
+            aria-label={mode === "create" ? labels.shared.password : labels.engineAdmin.newPassword}
             inputType="password"
             autocomplete="new-password"
             required={mode === "create"}
@@ -244,12 +202,12 @@ function UserForm({
               setPassword(event.detail.value);
             }}
           />
-          <qui-field-helper-text>{labels.passwordHelp}</qui-field-helper-text>
+          <qui-field-helper-text>{labels.engineAdmin.passwordHelp}</qui-field-helper-text>
         </qui-field>
         <qui-field class={adminStyles.field}>
-          <qui-field-label>{labels.userRole}</qui-field-label>
+          <qui-field-label>{labels.engineAdmin.userRole}</qui-field-label>
           <qui-select
-            aria-label={labels.userRole}
+            aria-label={labels.engineAdmin.userRole}
             defaultValue={[role]}
             onvaluechange={(event) => {
               const value = event.detail.value[0];
@@ -274,10 +232,10 @@ function UserForm({
       </div>
       <div class={styles.dialogActions}>
         <qui-button type="button" variant="text" disabled={busy} onClick={onCancel}>
-          {labels.userCancel}
+          {labels.shared.cancel}
         </qui-button>
         <qui-button type="submit" variant="filled" disabled={busy}>
-          {busy ? labels.userSaving : labels.userSave}
+          {busy ? labels.shared.saving : labels.engineAdmin.userSave}
         </qui-button>
       </div>
     </form>
@@ -394,12 +352,12 @@ export default function AdminUsers({ locale, labels, pageOfParts }: AdminUsersPr
       email.length === 0 ||
       (editing === null && draft.password.length === 0)
     ) {
-      setNotice({ message: labels.userRequired, tone: "error" });
+      setNotice({ message: labels.engineAdmin.userRequired, tone: "error" });
       return;
     }
 
     if (draft.password.length > 0 && draft.password.length < 8) {
-      setNotice({ message: labels.passwordTooShort, tone: "error" });
+      setNotice({ message: labels.engineAdmin.passwordTooShort, tone: "error" });
       return;
     }
 
@@ -418,7 +376,7 @@ export default function AdminUsers({ locale, labels, pageOfParts }: AdminUsersPr
             },
           }),
         );
-        setNotice({ message: labels.userCreated, tone: "success" });
+        setNotice({ message: labels.engineAdmin.userCreated, tone: "success" });
       } else {
         await readApiJson(
           await updateUser({
@@ -431,7 +389,7 @@ export default function AdminUsers({ locale, labels, pageOfParts }: AdminUsersPr
             },
           }),
         );
-        setNotice({ message: labels.userUpdated, tone: "success" });
+        setNotice({ message: labels.engineAdmin.userUpdated, tone: "success" });
       }
 
       adminRefresh.afterUserWrite();
@@ -440,7 +398,7 @@ export default function AdminUsers({ locale, labels, pageOfParts }: AdminUsersPr
     } catch (error_) {
       clientLogger.error(error_);
       setNotice({
-        message: apiErrorMessage(error_, labels.userSaveFailed),
+        message: apiErrorMessage(error_, labels.engineAdmin.userSaveFailed),
         tone: "error",
       });
     } finally {
@@ -450,7 +408,7 @@ export default function AdminUsers({ locale, labels, pageOfParts }: AdminUsersPr
 
   async function removeUser(user: AdminUser): Promise<void> {
     // oxlint-disable-next-line eslint/no-alert -- Deleting a user requires confirmation.
-    if (!globalThis.confirm(labels.deleteUserConfirm)) {
+    if (!globalThis.confirm(labels.engineAdmin.deleteUserConfirm)) {
       return;
     }
 
@@ -459,12 +417,12 @@ export default function AdminUsers({ locale, labels, pageOfParts }: AdminUsersPr
 
     try {
       await readApiJson(await deleteUser({ param: { userId: user.id } }));
-      setNotice({ message: labels.userDeleted, tone: "success" });
+      setNotice({ message: labels.engineAdmin.userDeleted, tone: "success" });
       adminRefresh.afterUserWrite();
     } catch (error_) {
       clientLogger.error(error_);
       setNotice({
-        message: apiErrorMessage(error_, labels.userDeleteFailed),
+        message: apiErrorMessage(error_, labels.engineAdmin.userDeleteFailed),
         tone: "error",
       });
     } finally {
@@ -488,19 +446,19 @@ export default function AdminUsers({ locale, labels, pageOfParts }: AdminUsersPr
 
       <div class={styles.toolbar}>
         <qui-button variant="filled" onClick={openCreate}>
-          {labels.createUser}
+          {labels.engineAdmin.createUser}
         </qui-button>
       </div>
 
       {mounted ? (
         <form key={filterKey} class={styles.filters} onSubmit={search}>
           <qui-field class={adminStyles.field}>
-            <qui-field-label>{labels.userSearch}</qui-field-label>
+            <qui-field-label>{labels.engineAdmin.userSearch}</qui-field-label>
             <qui-input
               id="engine-users-query"
               name="q"
               maxLength={MAX_EMAIL_ADDRESS_LENGTH}
-              placeholder={labels.userSearchPlaceholder}
+              placeholder={labels.engineAdmin.userSearchPlaceholder}
               defaultValue={filters.query}
               onvaluechange={(event) => {
                 setQueryValue(event.detail.value);
@@ -508,7 +466,7 @@ export default function AdminUsers({ locale, labels, pageOfParts }: AdminUsersPr
             />
           </qui-field>
           <qui-field class={adminStyles.field}>
-            <qui-field-label>{labels.userSearchField}</qui-field-label>
+            <qui-field-label>{labels.engineAdmin.userSearchField}</qui-field-label>
             <qui-select
               id="engine-users-field"
               name="field"
@@ -521,12 +479,12 @@ export default function AdminUsers({ locale, labels, pageOfParts }: AdminUsersPr
                 }
               }}
             >
-              <qui-option value="email">{labels.userEmail}</qui-option>
-              <qui-option value="name">{labels.userName}</qui-option>
+              <qui-option value="email">{labels.shared.email}</qui-option>
+              <qui-option value="name">{labels.shared.name}</qui-option>
             </qui-select>
           </qui-field>
           <qui-field class={adminStyles.field}>
-            <qui-field-label>{labels.userRole}</qui-field-label>
+            <qui-field-label>{labels.engineAdmin.userRole}</qui-field-label>
             <qui-select
               id="engine-users-role"
               name="role"
@@ -545,7 +503,7 @@ export default function AdminUsers({ locale, labels, pageOfParts }: AdminUsersPr
                 }
               }}
             >
-              <qui-option value="">{labels.allRoles}</qui-option>
+              <qui-option value="">{labels.engineAdmin.allRoles}</qui-option>
               {roles.map((value) => (
                 <qui-option key={value} value={value}>
                   {roleLabel(value, labels)}
@@ -555,10 +513,10 @@ export default function AdminUsers({ locale, labels, pageOfParts }: AdminUsersPr
           </qui-field>
           <div class={styles.filterActions}>
             <qui-button type="submit" variant="filled">
-              {labels.userSearchAction}
+              {labels.engineAdmin.userSearchAction}
             </qui-button>
             <qui-button type="button" variant="outlined" onClick={clearFilters}>
-              {labels.userClearFilters}
+              {labels.shared.clear}
             </qui-button>
           </div>
         </form>
@@ -568,11 +526,11 @@ export default function AdminUsers({ locale, labels, pageOfParts }: AdminUsersPr
         <qui-dialog-content>
           <div class={styles.dialogHeader}>
             <qui-dialog-title>
-              {formMode === "edit" ? labels.editUser : labels.createUser}
+              {formMode === "edit" ? labels.engineAdmin.editUser : labels.engineAdmin.createUser}
             </qui-dialog-title>
             <qui-dialog-close onClick={closeForm}>
               <qui-icon
-                label={labels.userClose}
+                label={labels.engineAdmin.userClose}
                 path="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
               />
             </qui-dialog-close>
@@ -594,20 +552,20 @@ export default function AdminUsers({ locale, labels, pageOfParts }: AdminUsersPr
 
       <div class={styles.panel}>
         {error === null ? null : (
-          <p class={styles.error}>{apiErrorMessage(error, labels.userLoadFailed)}</p>
+          <p class={styles.error}>{apiErrorMessage(error, labels.engineAdmin.userLoadFailed)}</p>
         )}
         {!loading && error === null && users.length === 0 ? (
-          <p class={tableStyles.empty}>{labels.noUsers}</p>
+          <p class={tableStyles.empty}>{labels.engineAdmin.noUsers}</p>
         ) : null}
         {users.length > 0 ? (
           <table class={tableStyles.table}>
             <thead>
               <tr>
-                <th class={tableStyles.th}>{labels.userName}</th>
-                <th class={tableStyles.th}>{labels.userEmail}</th>
-                <th class={tableStyles.th}>{labels.userRole}</th>
-                <th class={tableStyles.th}>{labels.userCreatedAt}</th>
-                <th class={tableStyles.th}>{labels.userActions}</th>
+                <th class={tableStyles.th}>{labels.shared.name}</th>
+                <th class={tableStyles.th}>{labels.shared.email}</th>
+                <th class={tableStyles.th}>{labels.engineAdmin.userRole}</th>
+                <th class={tableStyles.th}>{labels.shared.created}</th>
+                <th class={tableStyles.th}>{labels.engineAdmin.userActions}</th>
               </tr>
             </thead>
             <tbody>
@@ -625,23 +583,23 @@ export default function AdminUsers({ locale, labels, pageOfParts }: AdminUsersPr
                         type="button"
                         size="sm"
                         variant="outlined"
-                        aria-label={`${labels.userEdit}: ${user.name}`}
+                        aria-label={`${labels.shared.edit}: ${user.name}`}
                         disabled={busy}
                         onClick={() => {
                           openEdit(user);
                         }}
                       >
-                        {labels.userEdit}
+                        {labels.shared.edit}
                       </qui-button>
                       <qui-button
                         type="button"
                         size="sm"
                         variant="text"
-                        aria-label={`${labels.userDelete}: ${user.name}`}
+                        aria-label={`${labels.engineAdmin.userDelete}: ${user.name}`}
                         disabled={busy}
                         onClick={() => void removeUser(user)}
                       >
-                        {labels.userDelete}
+                        {labels.engineAdmin.userDelete}
                       </qui-button>
                     </div>
                   </td>
@@ -662,7 +620,7 @@ export default function AdminUsers({ locale, labels, pageOfParts }: AdminUsersPr
                   setFilters((current) => ({ ...current, page: Math.max(1, current.page - 1) }));
                 }}
               >
-                {labels.previousPage}
+                {labels.engineAdmin.previousPage}
               </qui-button>
               <qui-button
                 type="button"
@@ -676,7 +634,7 @@ export default function AdminUsers({ locale, labels, pageOfParts }: AdminUsersPr
                   }));
                 }}
               >
-                {labels.nextPage}
+                {labels.engineAdmin.nextPage}
               </qui-button>
             </div>
             <span class={styles.pagerNote}>

@@ -1,45 +1,26 @@
 ---
 // @boundary astro
-import { getBasePlugins, getDictionary } from "@intlayer/core/interpreter";
-import { useDictionary, useLocale } from "astro-intlayer";
-import { locales } from "intlayer";
-
 import AdminCatalog from "~/events/admin/ui/catalog/AdminCatalog";
 import AdminLayout from "~/events/admin/ui/shared/AdminLayout.astro";
-import engineContent from "~/events/content/admin.content";
-import { pick } from "~/shared/content/pick";
+import { localized } from "~/generated/client/AdminCatalog";
+import { localized as all } from "~/generated/client/all";
+import { locales, useLocale } from "~/shared/i18n";
 
 export function getStaticPaths(): { params: { locale: string } }[] {
   return locales.map((locale) => ({ params: { locale } }));
 }
 
-const { locale } = useLocale();
-const content = useDictionary(engineContent, locale);
+const { locale } = useLocale(Astro.url);
+const content = all(locale);
 
-const view = pick(getDictionary(engineContent, locale, getBasePlugins(locale)), [
-  "active",
-  "archived",
-  "draft",
-  "intro",
-  "loadFailed",
-  "newEvent",
-  "nextPage",
-  "noEvents",
-  "previousPage",
-  "registrationCount",
-  "staffIntro",
-  "staffTitle",
-  "ticketsTotal",
-  "title",
-  "upcoming",
-]);
+const view = localized(locale);
 ---
 
-<AdminLayout title={content.title.value} description={content.intro.value} noindex>
+<AdminLayout title={content.engineAdmin.title} description={content.engineAdmin.intro} noindex>
   <AdminCatalog
     client:load
     locale={locale}
     labels={view}
-    pageOfParts={content.pageOfParts.map((part: { value: string }) => part.value)}
+    pageOfParts={[...content.engineAdmin.pageOfParts]}
   />
 </AdminLayout>

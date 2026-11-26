@@ -4,32 +4,14 @@ import { useState } from "preact/hooks";
 
 import { vstack, wrap } from "styled-system/patterns";
 import { adminRefresh } from "~/events/admin/ui/shared/queries";
-import type { AdminContentValues } from "~/events/content/admin.content";
 import { MAX_PAYMENT_NOTE_LENGTH } from "~/events/domain/limits";
 import type { PaymentRecord } from "~/events/domain/types";
+import type { PaymentFormLabels } from "~/generated/client/PaymentForm";
 import { apiClient, apiErrorMessage, readApiJson } from "~/shared/client/api/client";
 import { readFormValue } from "~/shared/client/form-controls";
 import { clientLogger } from "~/shared/client/logger";
 
-export type PaymentFormLabels = Pick<
-  AdminContentValues,
-  | "cashPayment"
-  | "confirmPayment"
-  | "etransferPayment"
-  | "otherPayment"
-  | "otherPaymentNoteHelp"
-  | "paymentEmailFailed"
-  | "paymentFailed"
-  | "paymentMethod"
-  | "paymentNote"
-  | "paymentNoteRequired"
-  | "paymentRemoved"
-  | "paymentSaved"
-  | "removePayment"
-  | "removePaymentConfirm"
-  | "savingPayment"
-  | "updatePayment"
->;
+export type { PaymentFormLabels } from "~/generated/client/PaymentForm";
 
 export type PaymentResultKind = "saved" | "removed" | "email_failed" | "failed";
 
@@ -75,7 +57,7 @@ export default function PaymentForm({
     const form = event.currentTarget;
 
     if (!(form instanceof HTMLFormElement) || pending) {
-      report("failed", labels.paymentFailed, "error");
+      report("failed", labels.engineAdmin.paymentFailed, "error");
       return;
     }
 
@@ -83,11 +65,11 @@ export default function PaymentForm({
     const note = readFormValue(form, "note").trim();
 
     if (nextMethod !== "cash" && nextMethod !== "etransfer" && nextMethod !== "other") {
-      report("failed", labels.paymentFailed, "error");
+      report("failed", labels.engineAdmin.paymentFailed, "error");
       return;
     }
     if (nextMethod === "other" && note.length === 0) {
-      report("failed", labels.paymentNoteRequired, "error");
+      report("failed", labels.engineAdmin.paymentNoteRequired, "error");
       return;
     }
 
@@ -103,13 +85,13 @@ export default function PaymentForm({
       adminRefresh.afterPaymentWrite(eventId);
 
       if (body.data.created && !body.data.emailQueued) {
-        report("email_failed", labels.paymentEmailFailed, "error");
+        report("email_failed", labels.engineAdmin.paymentEmailFailed, "error");
       } else {
-        report("saved", labels.paymentSaved, "success");
+        report("saved", labels.engineAdmin.paymentSaved, "success");
       }
     } catch (error) {
       clientLogger.error(error);
-      report("failed", apiErrorMessage(error, labels.paymentFailed), "error");
+      report("failed", apiErrorMessage(error, labels.engineAdmin.paymentFailed), "error");
     } finally {
       setPending(false);
     }
@@ -117,7 +99,7 @@ export default function PaymentForm({
 
   async function remove() {
     // oxlint-disable-next-line eslint/no-alert -- Removing a payment needs confirmation.
-    if (pending || !globalThis.confirm(labels.removePaymentConfirm)) {
+    if (pending || !globalThis.confirm(labels.engineAdmin.removePaymentConfirm)) {
       return;
     }
 
@@ -126,10 +108,10 @@ export default function PaymentForm({
       await readApiJson(await removePaymentRecord({ param: { eventId, registrationId } }));
 
       adminRefresh.afterPaymentWrite(eventId);
-      report("removed", labels.paymentRemoved, "success");
+      report("removed", labels.engineAdmin.paymentRemoved, "success");
     } catch (error) {
       clientLogger.error(error);
-      report("failed", apiErrorMessage(error, labels.paymentFailed), "error");
+      report("failed", apiErrorMessage(error, labels.engineAdmin.paymentFailed), "error");
     } finally {
       setPending(false);
     }
@@ -137,9 +119,9 @@ export default function PaymentForm({
 
   const submitLabel = (() => {
     if (pending) {
-      return labels.savingPayment;
+      return labels.shared.saving;
     }
-    return payment === null ? labels.confirmPayment : labels.updatePayment;
+    return payment === null ? labels.engineAdmin.confirmPayment : labels.engineAdmin.updatePayment;
   })();
 
   return (
@@ -150,7 +132,7 @@ export default function PaymentForm({
       }}
     >
       <qui-field class={styles.field}>
-        <qui-field-label>{labels.paymentMethod}</qui-field-label>
+        <qui-field-label>{labels.engineAdmin.paymentMethod}</qui-field-label>
         <qui-select
           name="method"
           defaultValue={[method]}
@@ -159,13 +141,13 @@ export default function PaymentForm({
             setMethod(next === "cash" || next === "etransfer" || next === "other" ? next : "cash");
           }}
         >
-          <qui-option value="cash">{labels.cashPayment}</qui-option>
-          <qui-option value="etransfer">{labels.etransferPayment}</qui-option>
-          <qui-option value="other">{labels.otherPayment}</qui-option>
+          <qui-option value="cash">{labels.shared.cash}</qui-option>
+          <qui-option value="etransfer">{labels.shared.eTransfer}</qui-option>
+          <qui-option value="other">{labels.shared.other}</qui-option>
         </qui-select>
       </qui-field>
       <qui-field class={styles.field}>
-        <qui-field-label>{labels.paymentNote}</qui-field-label>
+        <qui-field-label>{labels.engineAdmin.paymentNote}</qui-field-label>
         <qui-input
           name="note"
           maxLength={MAX_PAYMENT_NOTE_LENGTH}
@@ -173,7 +155,7 @@ export default function PaymentForm({
           defaultValue={payment?.note ?? ""}
         />
         {method === "other" ? (
-          <qui-field-helper-text>{labels.otherPaymentNoteHelp}</qui-field-helper-text>
+          <qui-field-helper-text>{labels.engineAdmin.otherPaymentNoteHelp}</qui-field-helper-text>
         ) : null}
       </qui-field>
       <div class={styles.actions}>
@@ -189,7 +171,7 @@ export default function PaymentForm({
               void remove();
             }}
           >
-            {labels.removePayment}
+            {labels.engineAdmin.removePayment}
           </qui-button>
         )}
       </div>

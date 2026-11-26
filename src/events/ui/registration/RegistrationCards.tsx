@@ -1,5 +1,4 @@
 // @boundary client
-import type { DeclaredLocales } from "intlayer";
 import type { ComponentChildren, JSX } from "preact";
 
 import { CONTACT_KIND } from "~/events/domain/constants";
@@ -12,8 +11,9 @@ import type {
   RegistrationRecord,
   RegistrationTicketRecord,
 } from "~/events/domain/types";
+import type { AllLabels } from "~/generated/client/all";
+import type { Locale as DeclaredLocales } from "~/shared/i18n";
 
-import type { RegistrationCardLabels } from "./labels";
 import { registrationViewStyles as styles } from "./styles";
 
 interface AnswerFieldView {
@@ -72,44 +72,44 @@ export function RegistrationOverviewCard({
   checkinStatusText: string;
   money: Intl.NumberFormat;
   dateTime: Intl.DateTimeFormat;
-  labels: RegistrationCardLabels;
+  labels: AllLabels;
   title?: string;
   actions?: ComponentChildren;
 }): JSX.Element {
   return (
-    <Card title={title ?? labels.fullName}>
+    <Card title={title ?? labels.shared.name}>
       <dl class={styles.details}>
-        <DetailRow term={labels.event}>{eventTitle}</DetailRow>
-        <DetailRow term={labels.fullName}>{registration.fullName}</DetailRow>
-        <DetailRow term={labels.registrationId}>
+        <DetailRow term={labels.shared.event}>{eventTitle}</DetailRow>
+        <DetailRow term={labels.shared.name}>{registration.fullName}</DetailRow>
+        <DetailRow term={labels.engineAdmin.registrationId}>
           <code class={styles.code}>{registration.id}</code>
         </DetailRow>
-        <DetailRow term={labels.createdAt}>
+        <DetailRow term={labels.shared.created}>
           {dateTime.format(new Date(registration.createdAt))}
         </DetailRow>
-        <DetailRow term={labels.formVersion}>
+        <DetailRow term={labels.engineAdmin.formVersion}>
           {registration.formVersion === null ? "—" : String(registration.formVersion)}
         </DetailRow>
-        <DetailRow term={labels.amountDue}>{money.format(amountDue / 100)}</DetailRow>
-        <DetailRow term={labels.paymentStatus}>{paymentStatusText}</DetailRow>
-        <DetailRow term={labels.checkedIn}>{checkinStatusText}</DetailRow>
+        <DetailRow term={labels.shared.amountDue}>{money.format(amountDue / 100)}</DetailRow>
+        <DetailRow term={labels.shared.payment}>{paymentStatusText}</DetailRow>
+        <DetailRow term={labels.shared.checkedIn}>{checkinStatusText}</DetailRow>
         {payment === null ? null : (
           <>
-            <DetailRow term={labels.amountPaid}>
+            <DetailRow term={labels.shared.amountPaid}>
               {money.format(payment.amountMinor / 100)}
             </DetailRow>
-            <DetailRow term={labels.paymentMethod}>
+            <DetailRow term={labels.engineAdmin.paymentMethod}>
               {paymentMethodLabel(payment.method, {
-                cash: labels.paymentMethodCash,
-                etransfer: labels.paymentMethodEtransfer,
-                other: labels.paymentMethodOther,
+                cash: labels.shared.cash,
+                eTransfer: labels.shared.eTransfer,
+                other: labels.shared.other,
               })}
             </DetailRow>
-            <DetailRow term={labels.paymentConfirmedAt}>
+            <DetailRow term={labels.engineAdmin.paymentConfirmedAt}>
               {dateTime.format(new Date(payment.updatedAt))}
             </DetailRow>
             {payment.note === null || payment.note.length === 0 ? null : (
-              <DetailRow term={labels.paymentNote}>{payment.note}</DetailRow>
+              <DetailRow term={labels.engineAdmin.paymentNote}>{payment.note}</DetailRow>
             )}
           </>
         )}
@@ -119,38 +119,35 @@ export function RegistrationOverviewCard({
   );
 }
 
-function contactFields(
-  contact: RegistrationContactRecord,
-  labels: RegistrationCardLabels,
-): [string, string][] {
+function contactFields(contact: RegistrationContactRecord, labels: AllLabels): [string, string][] {
   const fields: [string, string][] = [];
 
   if (contact.emailAddress !== null) {
-    fields.push([labels.email, contact.emailAddress]);
+    fields.push([labels.shared.email, contact.emailAddress]);
   }
   if (contact.phoneNumber !== null) {
-    fields.push([labels.phone, contact.phoneNumber]);
+    fields.push([labels.engineAdmin.phone, contact.phoneNumber]);
   }
   if ((contact.addressLine1 ?? "").length > 0) {
-    fields.push([labels.addressLine1, contact.addressLine1 ?? ""]);
+    fields.push([labels.engineAdmin.addressLine1, contact.addressLine1 ?? ""]);
   }
   if (contact.addressLine2 !== null) {
-    fields.push([labels.addressLine2, contact.addressLine2]);
+    fields.push([labels.engineAdmin.addressLine2, contact.addressLine2]);
   }
   if ((contact.city ?? "").length > 0) {
-    fields.push([labels.city, contact.city ?? ""]);
+    fields.push([labels.shared.city, contact.city ?? ""]);
   }
   if ((contact.province ?? "").length > 0) {
-    fields.push([labels.province, contact.province ?? ""]);
+    fields.push([labels.engineAdmin.province, contact.province ?? ""]);
   }
   if ((contact.postalCode ?? "").length > 0) {
-    fields.push([labels.postalCode, contact.postalCode ?? ""]);
+    fields.push([labels.engineAdmin.postalCode, contact.postalCode ?? ""]);
   }
   if ((contact.country ?? "").length > 0) {
-    fields.push([labels.country, contact.country ?? ""]);
+    fields.push([labels.shared.country, contact.country ?? ""]);
   }
   if (contact.label !== null) {
-    fields.push([labels.contactLabel, contact.label]);
+    fields.push([labels.engineAdmin.contactLabel, contact.label]);
   }
 
   for (const [key, value] of Object.entries(contact.value)) {
@@ -160,14 +157,14 @@ function contactFields(
   return fields;
 }
 
-function contactKindLabel(kind: string, labels: RegistrationCardLabels) {
+function contactKindLabel(kind: string, labels: AllLabels) {
   if (kind === CONTACT_KIND.email) {
-    return labels.email;
+    return labels.shared.email;
   }
   if (kind === CONTACT_KIND.phone) {
-    return labels.phone;
+    return labels.engineAdmin.phone;
   }
-  return labels.mail;
+  return labels.engineAdmin.mail;
 }
 
 export function RegistrationContactsCard({
@@ -175,12 +172,12 @@ export function RegistrationContactsCard({
   labels,
 }: {
   contacts: RegistrationContactRecord[];
-  labels: RegistrationCardLabels;
+  labels: AllLabels;
 }): JSX.Element {
   return (
-    <Card title={labels.contacts} count={contacts.length}>
+    <Card title={labels.engineAdmin.contacts} count={contacts.length}>
       {contacts.length === 0 ? (
-        <p class={styles.empty}>{labels.noContacts}</p>
+        <p class={styles.empty}>{labels.engineAdmin.noContacts}</p>
       ) : (
         <div class={styles.section}>
           {contacts.map((contact) => {
@@ -191,10 +188,10 @@ export function RegistrationContactsCard({
                 <div class={styles.badgeRow}>
                   <span class={styles.badgeAccent}>{kind}</span>
                   {contact.isPrimary ? (
-                    <span class={styles.badge}>{labels.primaryContact}</span>
+                    <span class={styles.badge}>{labels.engineAdmin.primaryContact}</span>
                   ) : null}
                   {contact.isConfirmation ? (
-                    <span class={styles.badge}>{labels.confirmationContact}</span>
+                    <span class={styles.badge}>{labels.engineAdmin.confirmationContact}</span>
                   ) : null}
                 </div>
                 <dl class={styles.details}>
@@ -224,19 +221,19 @@ export function RegistrationTicketsCard({
   locale: DeclaredLocales;
   defaultLocale: string;
   money: Intl.NumberFormat;
-  labels: RegistrationCardLabels;
+  labels: AllLabels;
 }): JSX.Element {
   return (
-    <Card title={labels.tickets} count={tickets.length}>
+    <Card title={labels.shared.tickets} count={tickets.length}>
       {tickets.length === 0 ? (
         <p class={styles.empty}>—</p>
       ) : (
         <table class={styles.table}>
           <thead>
             <tr>
-              <th class={styles.th}>{labels.tickets}</th>
-              <th class={styles.th}>{labels.quantity}</th>
-              <th class={styles.th}>{labels.unitPrice}</th>
+              <th class={styles.th}>{labels.shared.tickets}</th>
+              <th class={styles.th}>{labels.engineAdmin.quantity}</th>
+              <th class={styles.th}>{labels.engineAdmin.unitPrice}</th>
             </tr>
           </thead>
           <tbody>
@@ -270,21 +267,21 @@ export function RegistrationAnswersCard({
   answerFields: AnswerFieldView[];
   locale: DeclaredLocales;
   defaultLocale: string;
-  labels: RegistrationCardLabels;
+  labels: AllLabels;
 }): JSX.Element {
   const entries = Object.entries(answers);
   const fields = new Map(answerFields.map((field) => [field.key, field]));
 
   return (
-    <Card title={labels.customAnswers} count={entries.length}>
+    <Card title={labels.engineAdmin.customAnswers} count={entries.length}>
       {entries.length === 0 ? (
-        <p class={styles.empty}>{labels.noAnswers}</p>
+        <p class={styles.empty}>{labels.engineAdmin.noAnswers}</p>
       ) : (
         <table class={styles.table}>
           <thead>
             <tr>
-              <th class={styles.th}>{labels.answerKey}</th>
-              <th class={styles.th}>{labels.answerValue}</th>
+              <th class={styles.th}>{labels.engineAdmin.answerKey}</th>
+              <th class={styles.th}>{labels.engineAdmin.answerValue}</th>
             </tr>
           </thead>
           <tbody>
@@ -319,12 +316,12 @@ export function RegistrationMetadataCard({
   labels,
 }: {
   metadata: Record<string, unknown>;
-  labels: RegistrationCardLabels;
+  labels: AllLabels;
 }): JSX.Element {
   const entries = Object.entries(metadata);
 
   return (
-    <Card title={labels.metadata} count={entries.length}>
+    <Card title={labels.engineAdmin.metadata} count={entries.length}>
       {entries.length === 0 ? (
         <p class={styles.empty}>—</p>
       ) : (

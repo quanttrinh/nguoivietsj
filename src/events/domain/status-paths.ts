@@ -1,5 +1,5 @@
 // @boundary shared
-import { DEFAULT_LOCALE, SUPPORTED_LOCALES } from "~/shared/constants/locales";
+import { DEFAULT_LOCALE, SUPPORTED_LOCALES } from "~/shared/i18n";
 
 /** Resolve a caller-supplied locale to a supported one, falling back to the default. */
 export function resolveStatusLocale(locale: string | null | undefined): string {

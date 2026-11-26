@@ -1,8 +1,8 @@
 // @boundary client
-import { resolveBrowserLocale } from "@intlayer/core/localization";
 import { hc } from "hono/client";
 
 import type { ApiMeta, ApiPagination } from "~/shared/api/response";
+import { resolveBrowserLocale } from "~/shared/i18n";
 import { isRecord } from "~/shared/utils/records";
 import type { ApiAppType } from "~/types/api";
 

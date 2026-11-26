@@ -29,12 +29,20 @@ export function Page({
       : readRegistrationSuccess(staff, form.event.id);
   const [completed, setCompleted] = useState(storedSuccess !== null);
   const messages = config.labels;
-  let heading = staff ? config.labels.form.staffTitle : config.labels.form.title;
-  let description = staff ? config.labels.form.staffDescription : config.labels.form.description;
+  let heading = staff
+    ? config.labels.engineRegistration.form.staffTitle
+    : config.labels.shared.yourRegistration;
+  let description = staff
+    ? config.labels.engineRegistration.form.staffDescription
+    : config.labels.engineRegistration.form.description;
 
   if (completed) {
-    heading = staff ? messages.success.staffTitle : messages.success.title;
-    description = staff ? messages.success.staffBody : messages.success.body;
+    heading = staff
+      ? messages.engineRegistration.success.staffTitle
+      : messages.engineRegistration.success.title;
+    description = staff
+      ? messages.engineRegistration.success.staffBody
+      : messages.engineRegistration.success.body;
   }
 
   return (
@@ -66,9 +74,9 @@ export function Page({
           />
         ) : (
           <div class={styles.errorBox} role="alert">
-            <strong>{config.labels.event.registrationClosed}</strong>
+            <strong>{config.labels.engineRegistration.event.registrationClosed}</strong>
             <br />
-            {config.labels.event.registrationClosedBody}
+            {config.labels.engineRegistration.event.registrationClosedBody}
           </div>
         )}
       </div>

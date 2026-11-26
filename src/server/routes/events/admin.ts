@@ -1,7 +1,6 @@
 // @boundary server
-/* oxlint-disable eslint/max-lines, import/max-dependencies -- Admin routes share repository wiring; response types stay inferred for Hono RPC. */
-
 import { sValidator } from "@hono/standard-validator";
+/* oxlint-disable eslint/max-lines, import/max-dependencies -- Admin routes share repository wiring; response types stay inferred for Hono RPC. */
 import { type } from "arktype";
 import { type Context, Hono } from "hono";
 
@@ -54,13 +53,15 @@ import {
 } from "~/events/services/registration-service";
 import { loadRegistrationView } from "~/events/services/registration-view";
 import { issueStatusToken } from "~/events/services/status";
-import { apiError, apiSuccess } from "~/server/api-response";
-import { keysetQueryFields, registrationCursor } from "~/server/pagination/keyset";
+import { keysetQueryFields, registrationCursor } from "~/server/helpers/pagination/keyset";
+import { apiSuccess } from "~/server/helpers/responses/api-response";
+import { defaultValidationHandler } from "~/server/helpers/validation/validation-handler";
 import { registrationFailureResponse } from "~/server/routes/events/registration-errors";
-import { defaultValidationHandler } from "~/server/validation-handler";
-import { SUPPORTED_LOCALES } from "~/shared/constants/locales";
+import { SUPPORTED_LOCALES } from "~/shared/i18n";
 import { serverLogger } from "~/shared/server/logger";
 import { isRecord } from "~/shared/utils/records";
+
+import { eventApiError } from "./event-errors";
 
 const eventParamSchema = type({
   eventId: "string.uuid.v7",
@@ -109,23 +110,34 @@ const registrationListQuerySchema = type({
 });
 
 function eventNotFound(ctx: Context) {
-  return apiError(ctx, "event_not_found", { status: 404 });
+  return eventApiError(ctx, "event_not_found", {
+    status: 404,
+  });
 }
 
 function registrationNotFound(ctx: Context) {
-  return apiError(ctx, "event_registration_not_found", { status: 404 });
+  return eventApiError(ctx, "event_registration_not_found", {
+    status: 404,
+  });
 }
 
 function invalidPayload(ctx: Context, fields: string[]) {
-  return apiError(ctx, "event_invalid_payload", { status: 400, fields });
+  return eventApiError(ctx, "event_invalid_payload", {
+    status: 400,
+    fields,
+  });
 }
 
 function formNotFound(ctx: Context) {
-  return apiError(ctx, "event_form_not_found", { status: 404 });
+  return eventApiError(ctx, "event_form_not_found", {
+    status: 404,
+  });
 }
 
 function invalidFormSchema(ctx: Context) {
-  return apiError(ctx, "event_invalid_form_schema", { status: 400 });
+  return eventApiError(ctx, "event_invalid_form_schema", {
+    status: 400,
+  });
 }
 
 function placesTicketType(schema: Record<string, unknown>, key: string) {
@@ -229,11 +241,15 @@ export const adminEvents = new Hono<HonoEnv>()
           databaseCode === DATABASE_ERROR.eventConflict ||
           databaseCode === DATABASE_ERROR.uniqueConstraint
         ) {
-          return apiError(ctx, "event_exists", { status: 409 });
+          return eventApiError(ctx, "event_exists", {
+            status: 409,
+          });
         }
 
         serverLogger.error(error, "Failed to create event");
-        return apiError(ctx, "event_create_failed", { status: 500 });
+        return eventApiError(ctx, "event_create_failed", {
+          status: 500,
+        });
       }
     },
   )
@@ -301,11 +317,15 @@ export const adminEvents = new Hono<HonoEnv>()
           databaseCode === DATABASE_ERROR.eventConflict ||
           databaseCode === DATABASE_ERROR.uniqueConstraint
         ) {
-          return apiError(ctx, "event_exists", { status: 409 });
+          return eventApiError(ctx, "event_exists", {
+            status: 409,
+          });
         }
 
         serverLogger.error(error, "Failed to update event");
-        return apiError(ctx, "event_update_failed", { status: 500 });
+        return eventApiError(ctx, "event_update_failed", {
+          status: 500,
+        });
       }
     },
   )
@@ -419,7 +439,7 @@ export const adminEvents = new Hono<HonoEnv>()
       });
 
       if (validation.errors.length > 0) {
-        return apiError(ctx, "event_invalid_form_schema", {
+        return eventApiError(ctx, "event_invalid_form_schema", {
           status: 400,
           fields: invalidFields(validation.errors.map((issue) => issue.path)),
           issues: validation.errors,
@@ -440,11 +460,15 @@ export const adminEvents = new Hono<HonoEnv>()
         );
       } catch (error) {
         if (classifyDatabaseError(error).code === DATABASE_ERROR.uniqueConstraint) {
-          return apiError(ctx, "event_form_version_exists", { status: 409 });
+          return eventApiError(ctx, "event_form_version_exists", {
+            status: 409,
+          });
         }
 
         serverLogger.error(error, "Failed to create form version");
-        return apiError(ctx, "event_form_version_create_failed", { status: 500 });
+        return eventApiError(ctx, "event_form_version_create_failed", {
+          status: 500,
+        });
       }
     },
   )
@@ -582,13 +606,17 @@ export const adminEvents = new Hono<HonoEnv>()
         return registrationNotFound(ctx);
       }
       if (!isRegistrationPaid(payment, registrationAmountDue(registration))) {
-        return apiError(ctx, "event_payment_required", { status: 402 });
+        return eventApiError(ctx, "event_payment_required", {
+          status: 402,
+        });
       }
 
       const result = await getCheckinRepository(engineDb).create(eventId, registrationId);
 
       if (result === null) {
-        return apiError(ctx, "event_checkin_failed", { status: 500 });
+        return eventApiError(ctx, "event_checkin_failed", {
+          status: 500,
+        });
       }
 
       return result.created
@@ -614,7 +642,9 @@ export const adminEvents = new Hono<HonoEnv>()
 
       return removed
         ? apiSuccess(ctx, { removed: true })
-        : apiError(ctx, "event_checkin_not_found", { status: 404 });
+        : eventApiError(ctx, "event_checkin_not_found", {
+            status: 404,
+          });
     },
   )
   .post(
@@ -654,7 +684,9 @@ export const adminEvents = new Hono<HonoEnv>()
       });
 
       if (result === null) {
-        return apiError(ctx, "event_payment_update_failed", { status: 500 });
+        return eventApiError(ctx, "event_payment_update_failed", {
+          status: 500,
+        });
       }
 
       const { payment, created } = result;
@@ -699,7 +731,9 @@ export const adminEvents = new Hono<HonoEnv>()
 
       return removed
         ? apiSuccess(ctx, { removed: true })
-        : apiError(ctx, "event_payment_not_found", { status: 404 });
+        : eventApiError(ctx, "event_payment_not_found", {
+            status: 404,
+          });
     },
   )
   .get(
@@ -903,7 +937,9 @@ export const adminEvents = new Hono<HonoEnv>()
       }
 
       if (existing !== null) {
-        return apiError(ctx, "event_ticket_type_exists", { status: 409 });
+        return eventApiError(ctx, "event_ticket_type_exists", {
+          status: 409,
+        });
       }
 
       try {
@@ -914,7 +950,9 @@ export const adminEvents = new Hono<HonoEnv>()
         );
       } catch (error) {
         serverLogger.error(error, "Failed to create ticket type");
-        return apiError(ctx, "event_ticket_type_create_failed", { status: 500 });
+        return eventApiError(ctx, "event_ticket_type_create_failed", {
+          status: 500,
+        });
       }
     },
   )
@@ -938,7 +976,9 @@ export const adminEvents = new Hono<HonoEnv>()
       }
 
       if (current === null) {
-        return apiError(ctx, "event_ticket_type_not_found", { status: 404 });
+        return eventApiError(ctx, "event_ticket_type_not_found", {
+          status: 404,
+        });
       }
 
       const input = mergeTicketType(current, body);
@@ -951,7 +991,10 @@ export const adminEvents = new Hono<HonoEnv>()
         const publishedForm = await getFormVersionRepository(engineDb).findPublished(eventId);
 
         if (publishedForm !== null && !placesTicketType(publishedForm.schema, key)) {
-          return apiError(ctx, "event_form_update_required", { status: 409, fields: ["active"] });
+          return eventApiError(ctx, "event_form_update_required", {
+            status: 409,
+            fields: ["active"],
+          });
         }
       }
 
@@ -967,7 +1010,9 @@ export const adminEvents = new Hono<HonoEnv>()
         });
       } catch (error) {
         serverLogger.error(error, "Failed to update ticket type");
-        return apiError(ctx, "event_ticket_type_update_failed", { status: 500 });
+        return eventApiError(ctx, "event_ticket_type_update_failed", {
+          status: 500,
+        });
       }
     },
   );

@@ -4,19 +4,18 @@ import type { JSX } from "preact";
 import { adminStyles as styles } from "~/events/admin/ui/shared/styles/admin-styles";
 import { MAX_NOTE_BULLETS_TEXT_LENGTH, MAX_NOTE_PARAGRAPH_LENGTH } from "~/events/domain/limits";
 import type { EventNoteBlock } from "~/events/domain/types";
+import type { EventFormLabels } from "~/generated/client/EventForm";
 
-import type { NoteBlockLabels } from "./form-labels";
-
-function typeLabel(block: EventNoteBlock, labels: NoteBlockLabels) {
+function typeLabel(block: EventNoteBlock, labels: EventFormLabels) {
   if (block.type === "paragraph") {
-    return labels.noteParagraph;
+    return labels.engineAdmin.noteParagraph;
   }
 
   if (block.type === "bullets") {
-    return labels.noteBullets;
+    return labels.engineAdmin.noteBullets;
   }
 
-  return labels.noteLink;
+  return labels.engineAdmin.noteLink;
 }
 
 export function NoteBlockFields({
@@ -28,7 +27,7 @@ export function NoteBlockFields({
   onRemove,
 }: {
   block: EventNoteBlock;
-  labels: NoteBlockLabels;
+  labels: EventFormLabels;
   onChange: (next: EventNoteBlock) => void;
   onMoveUp: () => void;
   onMoveDown: () => void;
@@ -41,7 +40,7 @@ export function NoteBlockFields({
       case "paragraph": {
         return (
           <qui-field class={styles.field}>
-            <qui-field-label>{labels.noteText}</qui-field-label>
+            <qui-field-label>{labels.engineAdmin.noteText}</qui-field-label>
             <qui-textarea
               value={block.text}
               rows={3}
@@ -56,7 +55,7 @@ export function NoteBlockFields({
       case "bullets": {
         return (
           <qui-field class={styles.field}>
-            <qui-field-label>{labels.noteText}</qui-field-label>
+            <qui-field-label>{labels.engineAdmin.noteText}</qui-field-label>
             <qui-textarea
               value={block.items.join("\n")}
               rows={3}
@@ -68,7 +67,7 @@ export function NoteBlockFields({
                 });
               }}
             />
-            <qui-field-helper-text>{labels.noteBulletsHelp}</qui-field-helper-text>
+            <qui-field-helper-text>{labels.engineAdmin.noteBulletsHelp}</qui-field-helper-text>
           </qui-field>
         );
       }
@@ -76,7 +75,7 @@ export function NoteBlockFields({
         return link === null ? null : (
           <div class={styles.fieldGrid}>
             <qui-field class={styles.field}>
-              <qui-field-label>{labels.noteLabel}</qui-field-label>
+              <qui-field-label>{labels.engineAdmin.noteLabel}</qui-field-label>
               <qui-input
                 value={link.label}
                 onvaluechange={(event) => {
@@ -85,7 +84,7 @@ export function NoteBlockFields({
               />
             </qui-field>
             <qui-field class={styles.field}>
-              <qui-field-label>{labels.noteUrl}</qui-field-label>
+              <qui-field-label>{labels.engineAdmin.noteUrl}</qui-field-label>
               <qui-input
                 value={link.href}
                 inputModeHint="url"
@@ -109,13 +108,13 @@ export function NoteBlockFields({
         <h3 class={styles.ticketTitle}>{typeLabel(block, labels)}</h3>
         <div class={styles.noteBlockActions}>
           <qui-button variant="text" size="sm" onClick={onMoveUp}>
-            {labels.moveUp}
+            {labels.engineAdmin.moveUp}
           </qui-button>
           <qui-button variant="text" size="sm" onClick={onMoveDown}>
-            {labels.moveDown}
+            {labels.engineAdmin.moveDown}
           </qui-button>
           <qui-button variant="text" size="sm" onClick={onRemove}>
-            {labels.removeNoteBlock}
+            {labels.shared.remove}
           </qui-button>
         </div>
       </div>

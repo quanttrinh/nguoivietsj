@@ -19,12 +19,12 @@ export function ConsentField({ field, config, error }: ConsentFieldProps): JSX.E
       fieldRef={field.ref}
       label={null}
       required={field.required}
-      help={field.help ?? config.labels.fields.consent.help}
+      help={field.help ?? config.labels.engineRegistration.fields.consent.help}
       error={error}
-      fallbackError={config.labels.errors.required}
+      fallbackError={config.labels.engineRegistration.errors.required}
     >
       <qui-checkbox name={FORM_REF_PREFIX.consent} required={field.required}>
-        {field.label ?? config.labels.fields.consent.label}
+        {field.label ?? config.labels.engineRegistration.fields.consent.label}
       </qui-checkbox>
     </FieldFrame>
   );

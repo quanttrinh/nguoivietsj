@@ -1,16 +1,20 @@
 // @boundary client
-import type { DeclaredLocales } from "intlayer";
+import type { InferResponseType } from "hono/client";
 import type { JSX } from "preact";
 
 import { can } from "~/auth/permissions";
 import { adminEventUrl } from "~/events/admin/ui/shared/routes";
-import { eventStatusText } from "~/events/admin/ui/shared/status-label";
 import { localized } from "~/events/domain/localized";
+import type { AdminEventDetailLabels } from "~/generated/client/AdminEventDetail";
+import { apiClient } from "~/shared/client/api/client";
+import type { Locale as DeclaredLocales } from "~/shared/i18n";
 import { dateTimeFormatter } from "~/shared/utils/format";
 
 import EventTitle from "../shared/EventTitle";
 import { styles } from "./admin-detail-styles";
-import type { AdminDetailValues, EventDetail } from "./admin-detail-types";
+
+const getOverview = apiClient.api.admin.events[":eventId"].overview.$get;
+type EventDetail = InferResponseType<typeof getOverview, 200>["data"]["event"];
 
 export function EventDetailHeader({
   locale,
@@ -21,7 +25,7 @@ export function EventDetailHeader({
   onArchive,
 }: {
   locale: DeclaredLocales;
-  labels: AdminDetailValues;
+  labels: AdminEventDetailLabels;
   current: EventDetail;
   role: string | null;
   notice: string | null;
@@ -44,28 +48,28 @@ export function EventDetailHeader({
         />
         <div class={styles.metaList}>
           <div class={styles.metaRow}>
-            <span class={styles.metaLabel}>{labels.status}</span>
-            <span class={styles.badge}>{eventStatusText(current.status, labels)}</span>
+            <span class={styles.metaLabel}>{labels.engineAdmin.status}</span>
+            <span class={styles.badge}>{labels.shared[current.status]}</span>
           </div>
           <div class={styles.metaRow}>
-            <span class={styles.metaLabel}>{labels.slug}</span>
+            <span class={styles.metaLabel}>{labels.engineAdmin.slug}</span>
             <span>{current.slug}</span>
           </div>
           <div class={styles.metaRow}>
-            <span class={styles.metaLabel}>{labels.defaultLocale}</span>
+            <span class={styles.metaLabel}>{labels.engineAdmin.defaultLocale}</span>
             <span>{current.defaultLocale.toUpperCase()}</span>
           </div>
           <div class={styles.metaRow}>
-            <span class={styles.metaLabel}>{labels.registrationCount}</span>
+            <span class={styles.metaLabel}>{labels.engineAdmin.registrationCount}</span>
             <span>{current.registrationCount}</span>
           </div>
           <div class={styles.metaRow}>
-            <span class={styles.metaLabel}>{labels.ticketsTotal}</span>
+            <span class={styles.metaLabel}>{labels.engineAdmin.ticketsTotal}</span>
             <span>{current.ticketsTotal}</span>
           </div>
           {current.startsAt === null ? null : (
             <div class={styles.metaRow}>
-              <span class={styles.metaLabel}>{labels.eventDate}</span>
+              <span class={styles.metaLabel}>{labels.engineAdmin.eventDate}</span>
               <span>
                 {dateTimeFormatter(locale, current.timezone).format(new Date(current.startsAt))}
               </span>
@@ -75,7 +79,7 @@ export function EventDetailHeader({
       </section>
 
       <section class={`${styles.panel} ${styles.actionsCard}`}>
-        <h2 class={styles.cardTitle}>{labels.actions}</h2>
+        <h2 class={styles.cardTitle}>{labels.engineAdmin.actions}</h2>
         <div class={styles.actions}>
           {canEditEvent ? (
             <qui-button
@@ -85,7 +89,7 @@ export function EventDetailHeader({
               })}
               variant="filled"
             >
-              {labels.editEvent}
+              {labels.shared.editEvent}
             </qui-button>
           ) : null}
           {canReadForm ? (
@@ -96,7 +100,7 @@ export function EventDetailHeader({
               })}
               variant="outlined"
             >
-              {labels.newForm}
+              {labels.shared.newFormVersion}
             </qui-button>
           ) : null}
           {canReadCheckin ? (
@@ -107,7 +111,7 @@ export function EventDetailHeader({
               })}
               variant="outlined"
             >
-              {labels.checkIn}
+              {labels.shared.checkIn}
             </qui-button>
           ) : null}
           {canReadSupport ? (
@@ -118,7 +122,7 @@ export function EventDetailHeader({
               })}
               variant="outlined"
             >
-              {labels.supportLink}
+              {labels.engineAdmin.supportLink}
             </qui-button>
           ) : null}
           {canReadActivity ? (
@@ -129,7 +133,7 @@ export function EventDetailHeader({
               })}
               variant="outlined"
             >
-              {labels.activity}
+              {labels.shared.activity}
             </qui-button>
           ) : null}
           {canCreateEvent ? (
@@ -140,7 +144,7 @@ export function EventDetailHeader({
               })}
               variant="outlined"
             >
-              {labels.cloneEvent}
+              {labels.shared.cloneEvent}
             </qui-button>
           ) : null}
           {current.enabled && (current.status === "upcoming" || current.status === "active") ? (
@@ -148,12 +152,12 @@ export function EventDetailHeader({
               href={`/${locale}/events/registration?slug=${current.slug}`}
               variant="outlined"
             >
-              {labels.viewPublicPage}
+              {labels.engineAdmin.viewPublicPage}
             </qui-button>
           ) : null}
           {canEditEvent && current.status !== "archived" ? (
             <qui-button class={styles.dangerButton} variant="text" onClick={onArchive}>
-              {labels.archiveEvent}
+              {labels.engineAdmin.archiveEvent}
             </qui-button>
           ) : null}
         </div>

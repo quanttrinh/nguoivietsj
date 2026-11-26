@@ -1,5 +1,4 @@
 // @boundary client
-import type { DeclaredLocales } from "intlayer";
 import type { JSX } from "preact";
 
 import { adminEventUrl } from "~/events/admin/ui/shared/routes";
@@ -11,8 +10,10 @@ import {
   ticketSummary,
 } from "~/events/domain/presentation";
 import type { CheckinRecord, PaymentRecord } from "~/events/domain/types";
+import type { AllLabels } from "~/generated/client/all";
+import type { Locale as DeclaredLocales } from "~/shared/i18n";
 
-import type { AdminSupportLabels, SupportData } from "./AdminSupport";
+import type { SupportData } from "./AdminSupport";
 
 export default function RegistrationCards({
   data,
@@ -26,7 +27,7 @@ export default function RegistrationCards({
 }: {
   data: SupportData;
   locale: DeclaredLocales;
-  labels: AdminSupportLabels;
+  labels: AllLabels;
   money: Intl.NumberFormat;
   dateTime: Intl.DateTimeFormat;
   eventId: string;
@@ -64,7 +65,7 @@ export default function RegistrationCards({
                   params: new URLSearchParams({ registration: registration.id }),
                 })}
               >
-                {labels.qrCode}
+                {labels.shared.qRCode}
               </a>
             </div>
             <p class={tableStyles.note}>
@@ -72,35 +73,35 @@ export default function RegistrationCards({
             </p>
             <div class={tableStyles.mobileCardGrid}>
               <div>
-                <span class={tableStyles.mobileCardLabel}>{labels.contact}</span>
+                <span class={tableStyles.mobileCardLabel}>{labels.engineAdmin.contact}</span>
                 <span class={tableStyles.mobileCardValue}>
                   {registration.contacts.map((contact) => contactDisplay(contact)).join("; ")}
                 </span>
               </div>
               <div>
-                <span class={tableStyles.mobileCardLabel}>{labels.ticketsTotal}</span>
+                <span class={tableStyles.mobileCardLabel}>{labels.engineAdmin.ticketsTotal}</span>
                 <span class={tableStyles.mobileCardValue}>
                   {ticketSummary(registration.tickets)}
                 </span>
               </div>
               <div>
-                <span class={tableStyles.mobileCardLabel}>{labels.amountDue}</span>
+                <span class={tableStyles.mobileCardLabel}>{labels.shared.amountDue}</span>
                 <span class={tableStyles.mobileCardValue}>{money.format(due / 100)}</span>
               </div>
               <div>
-                <span class={tableStyles.mobileCardLabel}>{labels.paymentStatus}</span>
+                <span class={tableStyles.mobileCardLabel}>{labels.shared.payment}</span>
                 <span class={tableStyles.mobileCardValue}>{paymentText(payment, due)}</span>
               </div>
               <div>
-                <span class={tableStyles.mobileCardLabel}>{labels.checkinFilter}</span>
+                <span class={tableStyles.mobileCardLabel}>{labels.engineAdmin.checkinFilter}</span>
                 <span class={tableStyles.mobileCardValue}>
                   {checkin === null
-                    ? labels.notAvailable
+                    ? labels.engineAdmin.notAvailable
                     : dateTime.format(new Date(checkin.checkedInAt))}
                 </span>
               </div>
               <div>
-                <span class={tableStyles.mobileCardLabel}>{labels.createdAt}</span>
+                <span class={tableStyles.mobileCardLabel}>{labels.shared.created}</span>
                 <span class={tableStyles.mobileCardValue}>
                   {dateTime.format(new Date(registration.createdAt))}
                 </span>
@@ -115,7 +116,9 @@ export default function RegistrationCards({
                     onEdit(registration.id);
                   }}
                 >
-                  {payment === null ? labels.confirmPayment : labels.updatePayment}
+                  {payment === null
+                    ? labels.engineAdmin.confirmPayment
+                    : labels.engineAdmin.updatePayment}
                 </button>
               </p>
             )}

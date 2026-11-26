@@ -1,12 +1,12 @@
 // @boundary client
 import { useStore } from "@nanostores/preact";
-import type { DeclaredLocales } from "intlayer";
 import type { JSX } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
 import { css } from "styled-system/css";
 import { wrap } from "styled-system/patterns";
 import { localized } from "~/events/domain/localized";
+import type { Locale as DeclaredLocales } from "~/shared/i18n";
 
 import { type AdminBreadcrumbLabels, resolveAdminBreadcrumbs } from "./breadcrumbs";
 import { eventTitles } from "./event-titles";

@@ -10,9 +10,10 @@ import { auth } from "~/auth/server/auth";
 import { requireAuth, requirePermission } from "~/auth/server/middleware";
 import { LIMITS } from "~/events/domain/limits";
 import { emailSchema } from "~/events/domain/schemas/common";
-import { apiError, apiSuccess } from "~/server/api-response";
-import { forbidden } from "~/server/common-responses";
-import { defaultValidationHandler } from "~/server/validation-handler";
+import { apiSuccess } from "~/server/helpers/responses/api-response";
+import { forbidden } from "~/server/helpers/responses/common-responses";
+import { sharedApiError } from "~/server/helpers/responses/shared-api-error";
+import { defaultValidationHandler } from "~/server/helpers/validation/validation-handler";
 import type { ApiPaginatedMeta } from "~/shared/api/response";
 import { serverLogger } from "~/shared/server/logger";
 import { isRecord } from "~/shared/utils/records";
@@ -71,7 +72,7 @@ function failureStatus(status: number | string): 400 | 401 | 403 | 404 | 409 | 5
   }
 }
 
-function userFailure(ctx: Parameters<typeof apiError>[0], error: unknown) {
+function userFailure(ctx: Parameters<typeof sharedApiError>[0], error: unknown) {
   if (error instanceof APIError) {
     const code =
       isRecord(error.body) && typeof error.body.code === "string"
@@ -82,7 +83,7 @@ function userFailure(ctx: Parameters<typeof apiError>[0], error: unknown) {
         ? error.body.message
         : undefined;
 
-    return apiError(ctx, code, {
+    return sharedApiError(ctx, code, {
       status: failureStatus(error.status),
       ...(message === undefined ? {} : { message }),
     });
@@ -93,7 +94,7 @@ function userFailure(ctx: Parameters<typeof apiError>[0], error: unknown) {
     "Admin user operation failed",
   );
 
-  return apiError(ctx, "user_operation_failed", { status: 500 });
+  return sharedApiError(ctx, "user_operation_failed", { status: 500 });
 }
 
 function userDto(user: {
@@ -204,7 +205,7 @@ export const adminUsers = new Hono<HonoEnv>()
       // The acting admin is always an admin, so only a self-demotion can leave
       // the installation without anyone able to manage users.
       if (body.role !== undefined && userId === user.id) {
-        return apiError(ctx, "cannot_change_own_role", { status: 400 });
+        return sharedApiError(ctx, "cannot_change_own_role", { status: 400 });
       }
 
       if (body.password !== undefined && !can(user.role, { user: ["set-password"] })) {
@@ -225,7 +226,7 @@ export const adminUsers = new Hono<HonoEnv>()
       }
 
       if (Object.keys(data).length === 0 && body.password === undefined) {
-        return apiError(ctx, "user_update_empty", { status: 400 });
+        return sharedApiError(ctx, "user_update_empty", { status: 400 });
       }
 
       try {

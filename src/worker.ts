@@ -3,8 +3,8 @@ import { handle } from "@astrojs/cloudflare/handler";
 
 import { runAppMaintenance } from "~/auth/server/maintenance";
 import { runEventMaintenance } from "~/events/services/maintenance";
+import { runMaintenance, type MaintenanceTask } from "~/maintenance";
 import { api } from "~/server/app";
-import { runMaintenance, type MaintenanceTask } from "~/server/maintenance";
 import { appEmailQueue } from "~/server/services/email/app-queue";
 import { isEmailQueue, processEmailBatch } from "~/server/services/email/queue";
 

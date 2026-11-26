@@ -4,10 +4,11 @@ import cloudflare from "@astrojs/cloudflare";
 import preact from "@astrojs/preact";
 import pandacss from "@pandacss/vite";
 import Qui from "@quanttrinh/qui-unplugin";
-import { intlayer } from "astro-intlayer";
 import { defineConfig, envField } from "astro/config";
 
+import { i18nConfig } from "./i18n.config";
 import { CSP_CONFIG } from "./plugins/csp-astro";
+import { i18nIntegration } from "./plugins/i18n";
 import { modulePreloads } from "./plugins/module-preloads";
 import { securityHeadersFile } from "./plugins/security-headers-file";
 import { workerOrigin } from "./plugins/worker-origin";
@@ -20,6 +21,11 @@ export default defineConfig({
   output: "static",
   adapter: cloudflare({ imageService: "compile", configPath: wranglerConfigName }),
   session: false,
+  i18n: {
+    defaultLocale: i18nConfig.defaultLocale,
+    locales: [...i18nConfig.locales],
+    routing: { prefixDefaultLocale: true },
+  },
   security: {
     csp: CSP_CONFIG,
   },
@@ -36,14 +42,13 @@ export default defineConfig({
   },
   integrations: [
     preact(),
-    intlayer(),
+    i18nIntegration(i18nConfig),
     workerOrigin({ configPath: wranglerConfigPath }),
     securityHeadersFile({ fileName: "_headers" }),
     modulePreloads({
       global: {
         preload: ["astro:transitions/client", "preact", "~/shared/client/api/client"],
       },
-      // The camera scanner is lazy-loaded; warm it in the HTTP cache on check-in pages only.
       routes: [{ match: /\/admin\/events\/view\/checkin\/$/u, prefetch: [{ package: "qr" }] }],
       budget: 120_000,
     }),

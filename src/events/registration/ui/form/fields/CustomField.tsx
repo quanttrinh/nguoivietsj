@@ -131,7 +131,7 @@ export function CustomField({ field, config, required, error }: CustomFieldProps
       required={required}
       help={field.help}
       error={error}
-      fallbackError={config.labels.errors.required}
+      fallbackError={config.labels.engineRegistration.errors.required}
       customType={field.type}
     >
       {checkbox ? (

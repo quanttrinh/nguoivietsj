@@ -4,13 +4,15 @@ import type {
   RegistrationFormIssue,
   RegistrationValidationCode,
 } from "~/events/domain/form-schema/types";
+import type { Messages, Widen } from "~/generated/i18n-types";
 import type { ApiIssue } from "~/shared/api/response";
 import { apiClient, apiResponseMessage } from "~/shared/client/api/client";
 import { clientLogger } from "~/shared/client/logger";
 import { isRecord } from "~/shared/utils/records";
 
-import type { RegistrationErrorMessages } from "../shared/registration-types";
 import type { RegistrationPayload } from "./registration-form-state";
+
+export type RegistrationErrorMessages = Widen<Messages["engineRegistration"]["errors"]>;
 
 export interface RegistrationSuccess {
   id: string;

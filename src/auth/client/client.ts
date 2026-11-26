@@ -1,6 +1,6 @@
 // @boundary client
 import { createAuthClient } from "better-auth/client";
-import { twoFactorClient } from "better-auth/client/plugins";
+import { emailOTPClient } from "better-auth/client/plugins";
 
 import { BETTER_AUTH_BASE_PATH } from "~/auth/constants";
 
@@ -13,6 +13,5 @@ import { BETTER_AUTH_BASE_PATH } from "~/auth/constants";
  */
 export const authClient = createAuthClient({
   basePath: BETTER_AUTH_BASE_PATH,
-  // The login form handles the second step itself, so no redirect page.
-  plugins: [twoFactorClient()],
+  plugins: [emailOTPClient()],
 });

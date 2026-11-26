@@ -1,22 +1,21 @@
 ---
 // @boundary client
-import { useDictionary } from "astro-intlayer";
-
 import { adminCatalogUrl } from "~/events/admin/ui/shared/routes";
-import engineAdminContent from "~/events/content/admin.content";
+import { localized as all } from "~/generated/client/all";
+import type { Locale } from "~/shared/i18n";
 import LogoutButton from "~/shared/ui/LogoutButton.astro";
 
 interface Props {
-  locale: string;
+  locale: Locale;
 }
 
 const { locale } = Astro.props;
-const content = useDictionary(engineAdminContent, locale);
+const content = all(locale);
 ---
 
 <LogoutButton
-  label={content.logout.value}
-  loginLabel={content.login.value}
+  label={content.engineAdmin.logout}
+  loginLabel={content.engineAdmin.login}
   loginUrl={`/${locale}/login`}
   fallbackUrl={adminCatalogUrl(locale)}
 />

@@ -35,7 +35,6 @@ import {
 } from "../../db/events/schemas";
 import type { EventStatus } from "../../events/domain/constants";
 import type { EventNotes, LocalizedText, PaymentMethod } from "../../events/domain/types";
-import { cliPasswordHashers } from "../password";
 
 interface SeedTicket {
   key: string;
@@ -581,15 +580,11 @@ export function seedEventSql(): { sql: string; tokens: [string, string][] } {
   return { sql: [...cleanup, ...inserts].join("\n"), tokens };
 }
 
-const DEV_PASSWORD = "dev-password";
-
-/** Seed better-auth staff accounts with local-only credentials. */
+/** Seed better-auth staff accounts with verified emails for passwordless OTP sign-in. */
 export async function seedUsersSql(): Promise<string> {
   const now = Date.now();
   const createdAt = new Date(now);
   const userIds = [seededId(9, 1), seededId(9, 2)] as const;
-  const { hashPassword } = cliPasswordHashers();
-  const passwordHash = await hashPassword(DEV_PASSWORD);
 
   return [
     toSqlStatement(db.delete(account).where(inArray(account.userId, userIds)).getSQL()),
@@ -601,41 +596,25 @@ export async function seedUsersSql(): Promise<string> {
             id: userIds[0],
             name: "Admin",
             email: "admin@example.com",
+            emailVerified: true,
             createdAt,
             updatedAt: createdAt,
             role: USER_ROLE.admin,
-            twoFactorRequired: false,
           },
           {
             id: userIds[1],
             name: "Staff",
             email: "staff@example.com",
+            emailVerified: true,
             createdAt,
             updatedAt: createdAt,
             role: USER_ROLE.event_staff,
-            twoFactorRequired: false,
           },
         ])
         .onConflictDoUpdate({
           target: user.email,
-          set: { role: sql`excluded.role`, twoFactorRequired: false },
+          set: { role: sql`excluded.role`, emailVerified: true },
         })
-        .getSQL(),
-    ),
-    toSqlStatement(
-      db
-        .insert(account)
-        .values(
-          userIds.map((userId, index) => ({
-            id: seededId(10, index + 1),
-            accountId: userId,
-            providerId: "credential",
-            userId,
-            password: passwordHash,
-            createdAt,
-            updatedAt: createdAt,
-          })),
-        )
         .getSQL(),
     ),
   ].join("\n");
@@ -666,6 +645,6 @@ export default defineBackfill({
         `  ${name.padEnd(22)} http://localhost:4321/api/events/status/link?token=${encodeURIComponent(token)}&locale=en`,
       );
     }
-    d1.log(`Local users: admin@example.com / staff@example.com (password: ${DEV_PASSWORD})`);
+    d1.log("Local users: admin@example.com / staff@example.com (email OTP sign-in)");
   },
 });

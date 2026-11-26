@@ -172,13 +172,13 @@ export default defineConfig({
     __WORKER_ORIGIN__: "readonly",
   },
   ignorePatterns: [
-    ".intlayer/",
     "worker-configuration.d.ts",
     "dist/",
     "styled-system/",
     ".astro/",
     ".wrangler/",
     "node_modules/",
+    "src/generated/",
     ".vitest/",
     "coverage/",
     "reports/",
@@ -192,9 +192,6 @@ export default defineConfig({
         "boundary/scopes": [
           "error",
           {
-            serverSegments: ["server", "db", "services", "backfills", "tooling"],
-            clientSegments: ["ui", "client"],
-            astroSegments: ["pages", "layouts"],
             exempt: ["src/types/worker-configuration.d.ts"],
             importExempt: ["src/types/api.d.ts"],
             allowedServerTypes: ["src/types/api"],
@@ -236,6 +233,9 @@ export default defineConfig({
     {
       files: ["**/*.content.ts"],
       rules: {
+        // The boundary marker on a dictionary is i18n scope metadata (client/server),
+        // not a path-scope assertion.
+        "boundary/scopes": "off",
         "import/no-default-export": "off",
       },
     },

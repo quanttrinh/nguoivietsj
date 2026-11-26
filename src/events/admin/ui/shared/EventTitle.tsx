@@ -1,10 +1,10 @@
 // @boundary client
 import { useStore } from "@nanostores/preact";
-import type { DeclaredLocales } from "intlayer";
 import type { JSX } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 
 import { localized } from "~/events/domain/localized";
+import type { Locale as DeclaredLocales } from "~/shared/i18n";
 
 import { eventTitles } from "./event-titles";
 

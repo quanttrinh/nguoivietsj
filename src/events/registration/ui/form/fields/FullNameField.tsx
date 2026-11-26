@@ -18,15 +18,17 @@ export function FullNameField({ field, config, error }: FullNameFieldProps): JSX
   return (
     <TextField
       fieldRef={field.ref}
-      label={field.label ?? config.labels.fields.fullName.label}
+      label={field.label ?? config.labels.engineRegistration.fields.fullName.label}
       required={field.required}
       name={FORM_OVERRIDE_KEY.fullName}
       autocomplete="name"
-      placeholder={field.placeholder ?? config.labels.fields.fullName.placeholder}
-      help={field.help ?? config.labels.fields.fullName.help}
+      placeholder={
+        field.placeholder ?? config.labels.engineRegistration.fields.fullName.placeholder
+      }
+      help={field.help ?? config.labels.engineRegistration.fields.fullName.help}
       maxLength={MAX_FULL_NAME_LENGTH}
       error={error}
-      fallbackError={config.labels.errors.required}
+      fallbackError={config.labels.engineRegistration.errors.required}
     />
   );
 }

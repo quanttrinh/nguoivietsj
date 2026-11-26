@@ -5,17 +5,21 @@ import { logger } from "hono/logger";
 import { methodNotAllowed } from "hono/method-not-allowed";
 import { secureHeaders } from "hono/secure-headers";
 
+import { BETTER_AUTH_BASE_PATH } from "~/auth/constants";
 import { CSP_HEADER_DIRECTIVES } from "~/shared/constants/csp";
 import { serverLogger } from "~/shared/server/logger";
 
-import { notFound as apiNotFound } from "./common-responses";
+import { notFound as apiNotFound } from "./helpers/responses/common-responses";
 import { apiBodyLimit } from "./middleware/body-limit";
-import { localizeApiErrors } from "./middleware/localize-api-errors";
-import { root } from "./root";
+import { adminUsers } from "./routes/admin-users";
+import { authRoutes } from "./routes/auth";
+import { adminEvents } from "./routes/events/admin";
+import { publicEvents } from "./routes/events/public";
+import { eventStatus } from "./routes/events/status";
+import { health } from "./routes/health";
 
 const isDev = import.meta.env.DEV;
 
-/** API responses are JSON, so no script, style, or fetch source is needed. */
 const API_CSP_DIRECTIVES = {
   ...CSP_HEADER_DIRECTIVES,
   defaultSrc: ["'none'"],
@@ -23,12 +27,8 @@ const API_CSP_DIRECTIVES = {
   styleSrc: ["'none'"],
 };
 
-/** Hono app for every request under `/api`. */
 export const api = new Hono<HonoEnv>();
 
-// Security headers must be outermost so early rejections (CSRF 403, body
-// limit 413) carry them too. Hono applies them after downstream middleware
-// returns, so registering this first still decorates the final response.
 api.use(
   secureHeaders({
     contentSecurityPolicy: isDev
@@ -44,14 +44,10 @@ api.use(
     },
   }),
 );
-api.use(localizeApiErrors());
 api.use(apiBodyLimit());
 api.use(
   csrf({
     secFetchSite: ["same-origin", "none"],
-    // Hono's csrf passes when *either* signal is trusted. A cross-site fetch
-    // must never be accepted just because the request carries a same-origin
-    // Origin header, so veto the origin check in that case.
     origin: (origin, ctx) =>
       ctx.req.header("sec-fetch-site") === "cross-site"
         ? false
@@ -73,7 +69,18 @@ api.use(async (ctx, next) => {
   ctx.res = new Response(ctx.res.body, ctx.res);
 });
 
-api.route("/", root);
+/** Route chain only — the RPC contract deliberately excludes middleware and 404 catch-alls. */
+const routes = new Hono<HonoEnv>()
+  .route("/api/health", health)
+  .route(BETTER_AUTH_BASE_PATH, authRoutes)
+  .route("/api/admin/users", adminUsers)
+  .route("/api/admin/events", adminEvents)
+  .route("/api/events/status", eventStatus)
+  .route("/api/events", publicEvents);
+
+export type AppType = typeof routes;
+
+api.route("/", routes);
 
 api.all("/api", (ctx) => apiNotFound(ctx));
 api.all("/api/*", (ctx) => apiNotFound(ctx));

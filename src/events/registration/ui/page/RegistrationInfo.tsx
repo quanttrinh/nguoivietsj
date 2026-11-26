@@ -45,11 +45,13 @@ export function InfoBlock({
   return (
     <qui-accordion multiple class={styles.accordion}>
       <qui-accordion-item value="details">
-        <qui-accordion-trigger>{config.labels.info.details}</qui-accordion-trigger>
+        <qui-accordion-trigger>
+          {config.labels.engineRegistration.info.details}
+        </qui-accordion-trigger>
         <qui-accordion-content>
           <dl class={styles.infoRows}>
-            {when && <InfoRow term={config.labels.event.when}>{when}</InfoRow>}
-            <InfoRow term={config.labels.info.location}>
+            {when && <InfoRow term={config.labels.engineRegistration.event.when}>{when}</InfoRow>}
+            <InfoRow term={config.labels.shared.location}>
               {form.event.location.name.length > 0 || form.event.location.address.length > 0 ? (
                 <>
                   {form.event.location.name.length > 0 ? (
@@ -60,7 +62,9 @@ export function InfoBlock({
                   ) : null}
                 </>
               ) : (
-                <span class={styles.infoMuted}>{config.labels.info.venueTba}</span>
+                <span class={styles.infoMuted}>
+                  {config.labels.engineRegistration.info.venueTba}
+                </span>
               )}
             </InfoRow>
           </dl>
@@ -69,7 +73,9 @@ export function InfoBlock({
 
       {form.tickets.length > 0 ? (
         <qui-accordion-item value="pricing">
-          <qui-accordion-trigger>{config.labels.info.pricing}</qui-accordion-trigger>
+          <qui-accordion-trigger>
+            {config.labels.engineRegistration.info.pricing}
+          </qui-accordion-trigger>
           <qui-accordion-content>
             <div class={styles.ticketList}>
               {form.tickets.map((ticket) => (
@@ -79,14 +85,14 @@ export function InfoBlock({
                     {ticket.remaining === null ? null : (
                       <p class={styles.ticketMeta}>
                         {ticket.remaining === 0
-                          ? config.labels.event.soldOut
-                          : `${config.labels.event.remainingParts[0] ?? ""}${ticket.remaining}${config.labels.event.remainingParts[1] ?? ""}`}
+                          ? config.labels.engineRegistration.event.soldOut
+                          : `${config.labels.engineRegistration.event.remainingParts[0]}${ticket.remaining}${config.labels.engineRegistration.event.remainingParts[1]}`}
                       </p>
                     )}
                   </div>
                   <p class={styles.ticketPrice}>
                     {ticket.priceMinor === 0
-                      ? config.labels.event.free
+                      ? config.labels.engineRegistration.event.free
                       : formatMoney(ticket.priceMinor, config.locale, ticket.currency)}
                   </p>
                 </div>
@@ -97,17 +103,19 @@ export function InfoBlock({
       ) : null}
 
       <qui-accordion-item value="payment">
-        <qui-accordion-trigger>{config.labels.info.payment}</qui-accordion-trigger>
+        <qui-accordion-trigger>{config.labels.shared.payment}</qui-accordion-trigger>
         <qui-accordion-content>
           <div class={styles.chips}>
             {form.event.payments.etransfer.enabled ? (
-              <span class={styles.chip}>{config.labels.info.etransfer}</span>
+              <span class={styles.chip}>{config.labels.shared.eTransfer}</span>
             ) : null}
             {form.event.payments.cash.enabled ? (
-              <span class={styles.chip}>{config.labels.info.cash}</span>
+              <span class={styles.chip}>{config.labels.shared.cash}</span>
             ) : null}
             {missingPaymentMethod ? (
-              <span class={styles.infoMuted}>{config.labels.info.paymentNotConfigured}</span>
+              <span class={styles.infoMuted}>
+                {config.labels.engineRegistration.info.paymentNotConfigured}
+              </span>
             ) : null}
           </div>
         </qui-accordion-content>
@@ -115,7 +123,9 @@ export function InfoBlock({
 
       {form.event.notes.length > 0 ? (
         <qui-accordion-item value="notes">
-          <qui-accordion-trigger>{config.labels.info.notes}</qui-accordion-trigger>
+          <qui-accordion-trigger>
+            {config.labels.engineRegistration.info.notes}
+          </qui-accordion-trigger>
           <qui-accordion-content>
             <div class={styles.info}>
               {form.event.notes.map((note) => {

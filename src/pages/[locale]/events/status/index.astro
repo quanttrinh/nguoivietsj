@@ -1,15 +1,12 @@
 ---
 // @boundary astro
-import { getBasePlugins, getDictionary } from "@intlayer/core/interpreter";
-import { useDictionary, useLocale } from "astro-intlayer";
-import { locales } from "intlayer";
-
 import { css } from "styled-system/css";
 import { vstack } from "styled-system/patterns";
-import engineContent from "~/events/content/status.content";
 import StatusRequest from "~/events/status/ui/StatusRequest";
+import { localized as all } from "~/generated/client/all";
+import { localized } from "~/generated/client/StatusRequest";
 import BaseLayout from "~/layouts/BaseLayout.astro";
-import { pick } from "~/shared/content/pick";
+import { locales, useLocale } from "~/shared/i18n";
 import Panel from "~/shared/ui/Panel.astro";
 import QuiFormRuntime from "~/shared/ui/QuiFormRuntime.astro";
 
@@ -17,8 +14,8 @@ export function getStaticPaths(): { params: { locale: string } }[] {
   return locales.map((locale) => ({ params: { locale } }));
 }
 
-const { locale } = useLocale();
-const content = useDictionary(engineContent, locale);
+const { locale } = useLocale(Astro.url);
+const content = all(locale);
 
 const styles = {
   section: vstack({ alignItems: "stretch", gap: "6", paddingBlockStart: { base: "2", md: "3" } }),
@@ -40,24 +37,19 @@ const styles = {
   }),
 };
 
-const view = pick(getDictionary(engineContent, locale, getBasePlugins(locale)), [
-  "codeInvalid",
-  "codeLabel",
-  "codeSent",
-  "codeUnavailable",
-  "emailLabel",
-  "registrationId",
-  "requestCode",
-  "verifyCode",
-]);
+const view = localized(locale);
 ---
 
-<BaseLayout title={content.metaTitle.value} description={content.metaDescription.value} noindex>
+<BaseLayout
+  title={content.engineRegistrationStatus.metaTitle}
+  description={content.engineRegistrationStatus.metaDescription}
+  noindex
+>
   <section id="engine-status-request" class={styles.section}>
-    <h1 class={styles.title}>{content.accessTitle.value}</h1>
-    <p class={styles.intro}>{content.accessIntro.value}</p>
+    <h1 class={styles.title}>{content.engineRegistrationStatus.accessTitle}</h1>
+    <p class={styles.intro}>{content.engineRegistrationStatus.accessIntro}</p>
     <a class={styles.link} href={`/${locale}/events`}>
-      {content.backToEvents.value}
+      {content.shared.backToEvents}
     </a>
 
     <Panel padding="lg" maxWidth="2xl">

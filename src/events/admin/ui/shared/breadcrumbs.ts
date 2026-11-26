@@ -1,41 +1,13 @@
 // @boundary client
-import { adminCatalogUrl, adminEventUrl, adminHomeUrl } from "./routes";
+import type { AdminBreadcrumbsLabels as AdminBreadcrumbLabels } from "~/generated/client/AdminBreadcrumbs";
 
-export interface AdminBreadcrumbLabels {
-  administration: string;
-  users: string;
-  events: string;
-  event: string;
-  newEvent: string;
-  editEvent: string;
-  form: string;
-  support: string;
-  activity: string;
-  checkin: string;
-  qr: string;
-  registration: string;
-  clone: string;
-  newTicketType: string;
-  editTicketType: string;
-}
+import { adminCatalogUrl, adminEventUrl, adminHomeUrl } from "./routes";
 
 export interface AdminBreadcrumb {
   label: string;
   href?: string | undefined;
   current?: boolean | undefined;
 }
-
-const SUBPAGE_LABELS: Record<string, keyof AdminBreadcrumbLabels> = {
-  edit: "editEvent",
-  form: "form",
-  support: "support",
-  activity: "activity",
-  checkin: "checkin",
-  qr: "qr",
-  registration: "registration",
-  clone: "clone",
-  "ticket-type": "newTicketType",
-};
 
 function eventCrumb(input: {
   locale: string;
@@ -44,7 +16,7 @@ function eventCrumb(input: {
   labels: AdminBreadcrumbLabels;
 }): AdminBreadcrumb {
   return {
-    label: input.eventTitle ?? input.labels.event,
+    label: input.eventTitle ?? input.labels.shared.event,
     href:
       input.eventId === null ? undefined : adminEventUrl(input.locale, { eventId: input.eventId }),
   };
@@ -65,14 +37,14 @@ export function resolveAdminBreadcrumbs(input: {
   }
 
   const rest = segments.slice(2);
-  const root: AdminBreadcrumb = { label: labels.administration, href: adminHomeUrl(locale) };
+  const root: AdminBreadcrumb = { label: labels.shared.administration, href: adminHomeUrl(locale) };
 
   if (rest.length === 0) {
-    return [{ label: labels.administration, current: true }];
+    return [{ label: labels.shared.administration, current: true }];
   }
 
   if (rest[0] === "users") {
-    return [{ ...root }, { label: labels.users, current: true }];
+    return [{ ...root }, { label: labels.shared.userManagement, current: true }];
   }
 
   if (rest[0] !== "events") {
@@ -80,13 +52,16 @@ export function resolveAdminBreadcrumbs(input: {
   }
 
   if (rest.length === 1) {
-    return [{ ...root }, { label: labels.events, current: true }];
+    return [{ ...root }, { label: labels.shared.eventManagement, current: true }];
   }
 
-  const events: AdminBreadcrumb = { label: labels.events, href: adminCatalogUrl(locale) };
+  const events: AdminBreadcrumb = {
+    label: labels.shared.eventManagement,
+    href: adminCatalogUrl(locale),
+  };
 
   if (rest[1] === "new") {
-    return [{ ...root }, events, { label: labels.newEvent, current: true }];
+    return [{ ...root }, events, { label: labels.shared.newEvent, current: true }];
   }
 
   if (rest[1] !== "view") {
@@ -101,13 +76,15 @@ export function resolveAdminBreadcrumbs(input: {
     return [{ ...root }, events, { label: event.label, current: true }];
   }
 
-  let labelKey = SUBPAGE_LABELS[subpage];
-
+  let label = subpage;
   if (subpage === "ticket-type") {
-    labelKey = rest[3] === "edit" ? "editTicketType" : "newTicketType";
+    const action = rest[3] === "edit" ? "edit" : "new";
+    label = labels.breadcrumb["ticket-type"][action];
+  } else if (subpage in labels.breadcrumb) {
+    label = labels.breadcrumb[subpage as keyof Omit<typeof labels.breadcrumb, "ticket-type">];
   }
-
-  const label = labelKey === undefined ? subpage : labels[labelKey];
 
   return [{ ...root }, events, event, { label, current: true }];
 }
+
+export type { AdminBreadcrumbsLabels as AdminBreadcrumbLabels } from "~/generated/client/AdminBreadcrumbs";

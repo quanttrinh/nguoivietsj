@@ -1,15 +1,12 @@
 // @boundary client
-import type { DeclaredLocales } from "intlayer";
 import type { JSX } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
 import { css } from "styled-system/css";
 import { adminQueries } from "~/events/admin/ui/shared/queries";
 import { adminEventUrl } from "~/events/admin/ui/shared/routes";
-import type { AdminContentValues } from "~/events/content/admin.content";
 import { localized } from "~/events/domain/localized";
 import { registrationPaymentStatusText } from "~/events/domain/presentation";
-import type { RegistrationCardLabels } from "~/events/ui/registration/labels";
 import {
   RegistrationAnswersCard,
   RegistrationContactsCard,
@@ -18,19 +15,18 @@ import {
   RegistrationTicketsCard,
 } from "~/events/ui/registration/RegistrationCards";
 import { registrationViewStyles as styles } from "~/events/ui/registration/styles";
+import type { AdminRegistrationLabels } from "~/generated/client/AdminRegistration";
+import type { AllLabels } from "~/generated/client/all";
 import { apiErrorMessage } from "~/shared/client/api/client";
 import { useQuery } from "~/shared/client/query/use-query";
+import type { Locale as DeclaredLocales } from "~/shared/i18n";
 import { dateTimeFormatter, moneyFormatter } from "~/shared/utils/format";
 
 import EventTitle from "../shared/EventTitle";
 
 interface AdminRegistrationProps {
   locale: DeclaredLocales;
-  labels: RegistrationCardLabels &
-    Pick<
-      AdminContentValues,
-      "loadFailed" | "loading" | "qrCode" | "registrationDetail" | "supportLink"
-    >;
+  labels: AdminRegistrationLabels;
 }
 
 export default function AdminRegistration({ locale, labels }: AdminRegistrationProps): JSX.Element {
@@ -58,20 +54,20 @@ export default function AdminRegistration({ locale, labels }: AdminRegistrationP
 
     const title = localized(payload.event.title, locale, "", payload.event.defaultLocale);
 
-    document.title = `${labels.registrationDetail}: ${title}`;
+    document.title = `${labels.shared.registrationDetails}: ${title}`;
   }, [payload, locale, labels]);
 
   if (params === undefined || loading) {
-    return <p class={styles.note}>{labels.loading}</p>;
+    return <p class={styles.note}>{labels.engineAdmin.loading}</p>;
   }
   if (params === null) {
-    return <p class={styles.error}>{labels.registrationNotFound}</p>;
+    return <p class={styles.error}>{labels.engineAdmin.registrationNotFound}</p>;
   }
   if (error !== null && payload === null) {
-    return <p class={styles.error}>{apiErrorMessage(error, labels.loadFailed)}</p>;
+    return <p class={styles.error}>{apiErrorMessage(error, labels.engineAdmin.loadFailed)}</p>;
   }
   if (payload === null) {
-    return <p class={styles.note}>{labels.loading}</p>;
+    return <p class={styles.note}>{labels.engineAdmin.loading}</p>;
   }
 
   const { registration, payment, checkin, answerFields } = payload;
@@ -87,20 +83,24 @@ export default function AdminRegistration({ locale, labels }: AdminRegistrationP
         class={css({ textStyle: { base: "headline-sm", md: "headline-md" } })}
       />
       <RegistrationOverviewCard
-        title={labels.registrationDetail}
+        title={labels.shared.registrationDetails}
         eventTitle={eventTitle}
         registration={registration}
         payment={payment}
         amountDue={payload.amountDue}
-        paymentStatusText={registrationPaymentStatusText(payment, payload.amountDue, labels)}
+        paymentStatusText={registrationPaymentStatusText(payment, payload.amountDue, {
+          paid: labels.engineAdmin.paid,
+          unpaid: labels.engineAdmin.unpaid,
+          noPaymentRequired: labels.shared.noPaymentRequired,
+        })}
         checkinStatusText={
           checkin === null
-            ? labels.notCheckedIn
-            : `${labels.checkedIn} · ${dateTime.format(new Date(checkin.checkedInAt))}`
+            ? labels.shared.notCheckedIn
+            : `${labels.shared.checkedIn} · ${dateTime.format(new Date(checkin.checkedInAt))}`
         }
         money={money}
         dateTime={dateTime}
-        labels={labels}
+        labels={labels as AllLabels}
         actions={
           <>
             <a
@@ -111,7 +111,7 @@ export default function AdminRegistration({ locale, labels }: AdminRegistrationP
                 params: new URLSearchParams({ registration: registration.id }),
               })}
             >
-              {labels.qrCode}
+              {labels.shared.qRCode}
             </a>
             <a
               class={styles.link}
@@ -120,28 +120,28 @@ export default function AdminRegistration({ locale, labels }: AdminRegistrationP
                 eventId: payload.event.id,
               })}
             >
-              {labels.supportLink}
+              {labels.engineAdmin.supportLink}
             </a>
           </>
         }
       />
       <div class={styles.grid}>
-        <RegistrationContactsCard contacts={registration.contacts} labels={labels} />
+        <RegistrationContactsCard contacts={registration.contacts} labels={labels as AllLabels} />
         <RegistrationTicketsCard
           tickets={registration.tickets}
           locale={locale}
           defaultLocale={payload.event.defaultLocale}
           money={money}
-          labels={labels}
+          labels={labels as AllLabels}
         />
         <RegistrationAnswersCard
           answers={registration.answers}
           answerFields={answerFields}
           locale={locale}
           defaultLocale={payload.event.defaultLocale}
-          labels={labels}
+          labels={labels as AllLabels}
         />
-        <RegistrationMetadataCard metadata={registration.metadata} labels={labels} />
+        <RegistrationMetadataCard metadata={registration.metadata} labels={labels as AllLabels} />
       </div>
     </div>
   );

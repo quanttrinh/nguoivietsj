@@ -1,12 +1,8 @@
 ---
 // @boundary client
-import { getBasePlugins, getDictionary } from "@intlayer/core/interpreter";
-import type { DeclaredLocales } from "intlayer";
+import { localized } from "~/generated/client/TicketTypeForm";
+import type { Locale as DeclaredLocales } from "~/shared/i18n";
 
-import engineContent from "~/events/content/admin.content";
-import { pick } from "~/shared/content/pick";
-
-import { ticketTypeFormLabelKeys } from "./form-labels";
 import TicketTypeFormIsland from "./TicketTypeForm.tsx";
 
 interface Props {
@@ -16,10 +12,7 @@ interface Props {
 
 const { locale, mode }: Props = Astro.props;
 
-const labels = pick(
-  getDictionary(engineContent, locale, getBasePlugins(locale)),
-  ticketTypeFormLabelKeys,
-);
+const labels = localized(locale);
 ---
 
 <TicketTypeFormIsland client:load mode={mode} locale={locale} labels={labels} />

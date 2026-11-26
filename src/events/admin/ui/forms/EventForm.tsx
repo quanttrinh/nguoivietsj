@@ -2,7 +2,6 @@
 /* oxlint-disable eslint/complexity, import/max-dependencies, eslint/max-lines, eslint/max-lines-per-function, eslint/no-negated-condition, eslint/no-nested-ternary, eslint/no-plusplus, oxc/no-map-spread, react/no-array-index-key, react/purity, unicorn/no-negated-condition, unicorn/no-nested-ternary -- Admin forms keep related editable sections together and copy nested note blocks before mutating state. */
 import { navigate } from "astro:transitions/client";
 import type { InferRequestType } from "hono/client";
-import { locales, type DeclaredLocales } from "intlayer";
 import type { JSX } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 
@@ -29,14 +28,14 @@ import type {
   EventStatus,
   TicketTypeInput,
 } from "~/events/domain/types";
+import type { EventFormLabels } from "~/generated/client/EventForm";
 import { apiClient, apiResponseMessage } from "~/shared/client/api/client";
 import { readFormChecked, readFormValue } from "~/shared/client/form-controls";
 import { clientLogger } from "~/shared/client/logger";
 import { useQuery } from "~/shared/client/query/use-query";
-import { DEFAULT_LOCALE } from "~/shared/constants/locales";
+import { DEFAULT_LOCALE, locales, type Locale as DeclaredLocales } from "~/shared/i18n";
 import { toIsoDateTime, toLocalDateTime } from "~/shared/utils/datetime";
 
-import type { EventFormLabels } from "./form-labels";
 import { NoteBlockFields } from "./NoteBlockFields";
 import {
   TicketTypeFields,
@@ -46,7 +45,7 @@ import {
   type TicketTypeDraft,
 } from "./TicketTypeFields";
 
-const LANGUAGES = locales as readonly string[];
+const LANGUAGES = locales;
 const EVENT_STATUSES = Object.values(EVENT_STATUS);
 
 const createEvent = apiClient.api.admin.events.$post;
@@ -92,16 +91,16 @@ function aliasValues(value: string): string[] {
 function eventStatusLabel(status: EventStatus, text: EventFormLabels) {
   switch (status) {
     case EVENT_STATUS.draft: {
-      return text.statusDraft;
+      return text.shared.draft;
     }
     case EVENT_STATUS.upcoming: {
-      return text.statusUpcoming;
+      return text.shared.upcoming;
     }
     case EVENT_STATUS.active: {
-      return text.statusActive;
+      return text.shared.active;
     }
     case EVENT_STATUS.archived: {
-      return text.statusArchived;
+      return text.shared.archived;
     }
     default: {
       return status;
@@ -311,7 +310,7 @@ function EventFormBody({
       (startsAtRaw.length > 0 && startsAt === null) ||
       (endsAtRaw.length > 0 && endsAt === null)
     ) {
-      setNotice({ message: labels.invalidPayload, tone: "error" });
+      setNotice({ message: labels.engineAdmin.invalidPayload, tone: "error" });
       return;
     }
 
@@ -322,7 +321,7 @@ function EventFormBody({
       (ticketInputs.length === 0 || ticketInputs.some((ticket) => ticket === null));
 
     if (invalidTickets) {
-      setNotice({ message: labels.invalidPayload, tone: "error" });
+      setNotice({ message: labels.engineAdmin.invalidPayload, tone: "error" });
       return;
     }
 
@@ -330,7 +329,7 @@ function EventFormBody({
     const defaultLocale = selectedLocale(value("defaultLocale"));
 
     if (status === null || defaultLocale === null) {
-      setNotice({ message: labels.invalidPayload, tone: "error" });
+      setNotice({ message: labels.engineAdmin.invalidPayload, tone: "error" });
       return;
     }
 
@@ -401,7 +400,7 @@ function EventFormBody({
               : [];
           const fieldSuffix = fields.length > 0 ? ` (${fields.join(", ")})` : "";
           setNotice({
-            message: `${apiResponseMessage(body, labels.saveFailed)}${fieldSuffix}`,
+            message: `${apiResponseMessage(body, labels.engineAdmin.saveFailed)}${fieldSuffix}`,
             tone: "error",
           });
           return;
@@ -417,10 +416,10 @@ function EventFormBody({
           return;
         }
 
-        setNotice({ message: labels.saved, tone: "success" });
+        setNotice({ message: labels.engineAdmin.saved, tone: "success" });
       } catch (error) {
         clientLogger.error(error);
-        setNotice({ message: labels.saveFailed, tone: "error" });
+        setNotice({ message: labels.engineAdmin.saveFailed, tone: "error" });
       } finally {
         setSaving(false);
       }
@@ -430,13 +429,17 @@ function EventFormBody({
   const text = labels;
   const ticketConfig = labels;
   const submitLabel =
-    mode === "create" ? text.createEvent : mode === "clone" ? text.cloneEvent : text.saveEvent;
+    mode === "create"
+      ? text.engineAdmin.createEvent
+      : mode === "clone"
+        ? text.shared.cloneEvent
+        : text.engineAdmin.saveEvent;
   const intro =
     mode === "create"
-      ? text.createEventIntro
+      ? text.engineAdmin.createEventIntro
       : mode === "clone"
-        ? text.cloneEventIntro
-        : text.editEventIntro;
+        ? text.engineAdmin.cloneEventIntro
+        : text.engineAdmin.editEventIntro;
   const defaultStatus = clone ? EVENT_STATUS.draft : (source?.status ?? EVENT_STATUS.draft);
   const detailHref =
     source === null ? adminCatalogUrl(locale) : adminEventUrl(locale, { eventId: source.id });
@@ -456,22 +459,22 @@ function EventFormBody({
       </div>
 
       <div class={styles.panel}>
-        <h2 class={styles.sectionTitle}>{text.eventIdentity}</h2>
+        <h2 class={styles.sectionTitle}>{text.engineAdmin.eventIdentity}</h2>
         <p class={styles.sectionDescription}>{intro}</p>
 
         <div class={`${styles.fieldGrid} ${styles.sectionBody}`}>
           {mode === "edit" ? (
             <div class={styles.fieldWide}>
               <p class={styles.readOnly}>
-                {text.slug}: <strong>{source?.slug}</strong> · {text.eventType}:{" "}
-                <strong>{source?.eventType}</strong> · {text.editionYear}:{" "}
-                <strong>{source?.editionYear}</strong>
+                {text.engineAdmin.slug}: <strong>{source?.slug}</strong> ·{" "}
+                {text.engineAdmin.eventType}: <strong>{source?.eventType}</strong> ·{" "}
+                {text.engineAdmin.editionYear}: <strong>{source?.editionYear}</strong>
               </p>
             </div>
           ) : (
             <>
               <qui-field class={styles.field}>
-                <qui-field-label>{text.slug}</qui-field-label>
+                <qui-field-label>{text.engineAdmin.slug}</qui-field-label>
                 <qui-input
                   name="slug"
                   inputPattern="[a-z0-9]+(?:-[a-z0-9]+)*"
@@ -482,7 +485,7 @@ function EventFormBody({
                 <qui-field-helper-text>lowercase-with-hyphens</qui-field-helper-text>
               </qui-field>
               <qui-field class={styles.field}>
-                <qui-field-label>{text.eventType}</qui-field-label>
+                <qui-field-label>{text.engineAdmin.eventType}</qui-field-label>
                 <qui-input
                   name="eventType"
                   inputPattern="[a-z][a-z0-9-]*"
@@ -493,7 +496,7 @@ function EventFormBody({
                 <qui-field-helper-text>lowercase-with-hyphens</qui-field-helper-text>
               </qui-field>
               <qui-field class={styles.field}>
-                <qui-field-label>{text.editionYear}</qui-field-label>
+                <qui-field-label>{text.engineAdmin.editionYear}</qui-field-label>
                 <qui-input
                   name="editionYear"
                   inputType="number"
@@ -513,7 +516,7 @@ function EventFormBody({
           )}
 
           <qui-field class={styles.field}>
-            <qui-field-label>{text.status}</qui-field-label>
+            <qui-field-label>{text.engineAdmin.status}</qui-field-label>
             <qui-select
               name="status"
               defaultValue={[defaultStatus]}
@@ -526,7 +529,7 @@ function EventFormBody({
           </qui-field>
 
           <qui-field class={styles.field}>
-            <qui-field-label>{text.defaultLocale}</qui-field-label>
+            <qui-field-label>{text.engineAdmin.defaultLocale}</qui-field-label>
             <qui-select
               name="defaultLocale"
               defaultValue={[defaultEventLocale]}
@@ -536,22 +539,22 @@ function EventFormBody({
                 disabled: false,
               }))}
             />
-            <qui-field-helper-text>{text.defaultLocaleHelp}</qui-field-helper-text>
+            <qui-field-helper-text>{text.engineAdmin.defaultLocaleHelp}</qui-field-helper-text>
           </qui-field>
 
           <qui-field class={styles.field}>
-            <qui-field-label>{text.aliases}</qui-field-label>
+            <qui-field-label>{text.engineAdmin.aliases}</qui-field-label>
             <qui-textarea
               name="aliases"
               rows={3}
               maxLength={MAX_EVENT_ALIASES_TEXT_LENGTH}
               defaultValue={clone ? "" : (source?.aliases ?? []).join("\n")}
             />
-            <qui-field-helper-text>{text.aliasesHelp}</qui-field-helper-text>
+            <qui-field-helper-text>{text.engineAdmin.aliasesHelp}</qui-field-helper-text>
           </qui-field>
 
           <qui-field class={styles.field}>
-            <qui-field-label>{text.timezone}</qui-field-label>
+            <qui-field-label>{text.engineAdmin.timezone}</qui-field-label>
             <qui-input
               name="timezone"
               defaultValue={source?.timezone ?? DEFAULT_TIMEZONE}
@@ -564,7 +567,7 @@ function EventFormBody({
               name="enabled"
               defaultChecked={clone ? false : (source?.enabled ?? false)}
             >
-              {text.enabled}
+              {text.engineAdmin.enabled}
             </qui-checkbox>
           </div>
           <div class={styles.fieldWide}>
@@ -572,30 +575,32 @@ function EventFormBody({
               name="registrationOpen"
               defaultChecked={clone ? false : (source?.registrationOpen ?? false)}
             >
-              {text.registrationOpen}
+              {text.engineAdmin.registrationOpen}
             </qui-checkbox>
           </div>
         </div>
       </div>
 
       <div class={styles.panel}>
-        <h2 class={styles.sectionTitle}>{text.localizedContent}</h2>
+        <h2 class={styles.sectionTitle}>{text.engineAdmin.localizedContent}</h2>
         <div class={styles.fieldGrid}>
           {LANGUAGES.map((language) => (
             <qui-field key={`title-${language}`} class={styles.field}>
               <qui-field-label>
-                {text.eventTitle} · {language.toUpperCase()}
+                {text.engineAdmin.eventTitle} · {language.toUpperCase()}
               </qui-field-label>
               <qui-input name={`title-${language}`} defaultValue={source?.title[language] ?? ""} />
               {language === defaultEventLocale ? null : (
-                <qui-field-helper-text>{text.optionalTranslation}</qui-field-helper-text>
+                <qui-field-helper-text>
+                  {text.engineAdmin.optionalTranslation}
+                </qui-field-helper-text>
               )}
             </qui-field>
           ))}
           {LANGUAGES.map((language) => (
             <qui-field key={`summary-${language}`} class={styles.field}>
               <qui-field-label>
-                {text.summary} · {language.toUpperCase()}
+                {text.engineAdmin.summary} · {language.toUpperCase()}
               </qui-field-label>
               <qui-textarea
                 name={`summary-${language}`}
@@ -604,12 +609,14 @@ function EventFormBody({
                 maxLength={MAX_EVENT_SUMMARY_LENGTH}
               />
               {language === defaultEventLocale ? null : (
-                <qui-field-helper-text>{text.optionalTranslation}</qui-field-helper-text>
+                <qui-field-helper-text>
+                  {text.engineAdmin.optionalTranslation}
+                </qui-field-helper-text>
               )}
             </qui-field>
           ))}
           <qui-field class={styles.field}>
-            <qui-field-label>{text.startsAt}</qui-field-label>
+            <qui-field-label>{text.engineAdmin.startsAt}</qui-field-label>
             <qui-input
               name="startsAt"
               defaultValue={toLocalDateTime(source?.startsAt ?? null)}
@@ -617,7 +624,7 @@ function EventFormBody({
             />
           </qui-field>
           <qui-field class={styles.field}>
-            <qui-field-label>{text.endsAt}</qui-field-label>
+            <qui-field-label>{text.engineAdmin.endsAt}</qui-field-label>
             <qui-input
               name="endsAt"
               defaultValue={toLocalDateTime(source?.endsAt ?? null)}
@@ -628,24 +635,24 @@ function EventFormBody({
       </div>
 
       <div class={styles.panel}>
-        <h2 class={styles.sectionTitle}>{text.eventLocation}</h2>
-        <p class={styles.sectionDescription}>{text.optionalUrl}</p>
+        <h2 class={styles.sectionTitle}>{text.shared.location}</h2>
+        <p class={styles.sectionDescription}>{text.engineAdmin.optionalUrl}</p>
         <div class={styles.fieldGrid}>
           <qui-field class={styles.field}>
-            <qui-field-label>{text.locationName}</qui-field-label>
+            <qui-field-label>{text.engineAdmin.locationName}</qui-field-label>
             <qui-input name="locationName" defaultValue={source?.location.name ?? ""} />
           </qui-field>
           <qui-field class={styles.field}>
-            <qui-field-label>{text.locationMapUrl}</qui-field-label>
+            <qui-field-label>{text.engineAdmin.locationMapUrl}</qui-field-label>
             <qui-input
               name="locationMapUrl"
               inputModeHint="url"
               defaultValue={source?.location.mapUrl ?? ""}
             />
-            <qui-field-helper-text>{text.optionalUrl}</qui-field-helper-text>
+            <qui-field-helper-text>{text.engineAdmin.optionalUrl}</qui-field-helper-text>
           </qui-field>
           <qui-field class={`${styles.field} ${styles.fieldWide}`}>
-            <qui-field-label>{text.locationAddress}</qui-field-label>
+            <qui-field-label>{text.engineAdmin.locationAddress}</qui-field-label>
             <qui-textarea
               name="locationAddress"
               rows={3}
@@ -654,22 +661,22 @@ function EventFormBody({
             />
           </qui-field>
           <qui-field class={`${styles.field} ${styles.fieldWide}`}>
-            <qui-field-label>{text.locationMapEmbedUrl}</qui-field-label>
+            <qui-field-label>{text.engineAdmin.locationMapEmbedUrl}</qui-field-label>
             <qui-input
               name="locationMapEmbedUrl"
               inputModeHint="url"
               defaultValue={source?.location.mapEmbedUrl ?? ""}
             />
-            <qui-field-helper-text>{text.optionalUrl}</qui-field-helper-text>
+            <qui-field-helper-text>{text.engineAdmin.optionalUrl}</qui-field-helper-text>
           </qui-field>
         </div>
       </div>
 
       <div class={styles.panel}>
-        <h2 class={styles.sectionTitle}>{text.eventLimits}</h2>
+        <h2 class={styles.sectionTitle}>{text.engineAdmin.eventLimits}</h2>
         <div class={styles.fieldGrid}>
           <qui-field class={styles.field}>
-            <qui-field-label>{text.currency}</qui-field-label>
+            <qui-field-label>{text.engineAdmin.currency}</qui-field-label>
             <qui-input
               name="currency"
               maxLength={MAX_CURRENCY_CODE_LENGTH}
@@ -679,7 +686,7 @@ function EventFormBody({
             />
           </qui-field>
           <qui-field class={styles.field}>
-            <qui-field-label>{text.maxTicketsPerRegistration}</qui-field-label>
+            <qui-field-label>{text.engineAdmin.maxTicketsPerRegistration}</qui-field-label>
             <qui-input
               name="maxTicketsPerRegistration"
               inputType="number"
@@ -692,10 +699,10 @@ function EventFormBody({
                   : String(source.limits.maxTicketsPerRegistration)
               }
             />
-            <qui-field-helper-text>{text.noLimit}</qui-field-helper-text>
+            <qui-field-helper-text>{text.engineAdmin.noLimit}</qui-field-helper-text>
           </qui-field>
           <qui-field class={styles.field}>
-            <qui-field-label>{text.maxTotalTickets}</qui-field-label>
+            <qui-field-label>{text.engineAdmin.maxTotalTickets}</qui-field-label>
             <qui-input
               name="maxTotalTickets"
               inputType="number"
@@ -706,24 +713,24 @@ function EventFormBody({
                 source?.limits.maxTotalTickets == null ? "" : String(source.limits.maxTotalTickets)
               }
             />
-            <qui-field-helper-text>{text.noLimit}</qui-field-helper-text>
+            <qui-field-helper-text>{text.engineAdmin.noLimit}</qui-field-helper-text>
           </qui-field>
         </div>
       </div>
 
       <div class={styles.panel}>
-        <h2 class={styles.sectionTitle}>{text.paymentMethods}</h2>
+        <h2 class={styles.sectionTitle}>{text.engineAdmin.paymentMethods}</h2>
         <div class={styles.fieldGrid}>
           <div class={styles.fieldWide}>
             <qui-checkbox
               name="etransferEnabled"
               defaultChecked={source?.payments.etransfer.enabled ?? false}
             >
-              {text.etransferPayment}
+              {text.shared.eTransfer}
             </qui-checkbox>
           </div>
           <qui-field class={styles.field}>
-            <qui-field-label>{text.etransferEmail}</qui-field-label>
+            <qui-field-label>{text.engineAdmin.etransferEmail}</qui-field-label>
             <qui-input
               name="etransferEmail"
               inputType="text"
@@ -738,11 +745,11 @@ function EventFormBody({
               name="cashEnabled"
               defaultChecked={source?.payments.cash.enabled ?? false}
             >
-              {text.cashPayment}
+              {text.shared.cash}
             </qui-checkbox>
           </div>
           <qui-field class={`${styles.field} ${styles.fieldWide}`}>
-            <qui-field-label>{text.cashAddress}</qui-field-label>
+            <qui-field-label>{text.engineAdmin.cashAddress}</qui-field-label>
             <qui-textarea
               name="cashAddress"
               rows={3}
@@ -751,34 +758,34 @@ function EventFormBody({
             />
           </qui-field>
           <qui-field class={styles.field}>
-            <qui-field-label>{text.cashMapUrl}</qui-field-label>
+            <qui-field-label>{text.engineAdmin.cashMapUrl}</qui-field-label>
             <qui-input
               name="cashMapUrl"
               inputModeHint="url"
               defaultValue={source?.payments.cash.mapUrl ?? ""}
             />
-            <qui-field-helper-text>{text.optionalUrl}</qui-field-helper-text>
+            <qui-field-helper-text>{text.engineAdmin.optionalUrl}</qui-field-helper-text>
           </qui-field>
           <qui-field class={styles.field}>
-            <qui-field-label>{text.cashMapEmbedUrl}</qui-field-label>
+            <qui-field-label>{text.engineAdmin.cashMapEmbedUrl}</qui-field-label>
             <qui-input
               name="cashMapEmbedUrl"
               inputModeHint="url"
               defaultValue={source?.payments.cash.mapEmbedUrl ?? ""}
             />
-            <qui-field-helper-text>{text.optionalUrl}</qui-field-helper-text>
+            <qui-field-helper-text>{text.engineAdmin.optionalUrl}</qui-field-helper-text>
           </qui-field>
         </div>
       </div>
 
       <div class={styles.panel}>
-        <h2 class={styles.sectionTitle}>{text.notesSection}</h2>
-        <p class={styles.sectionDescription}>{text.notesHelp}</p>
+        <h2 class={styles.sectionTitle}>{text.engineAdmin.notesSection}</h2>
+        <p class={styles.sectionDescription}>{text.engineAdmin.notesHelp}</p>
         <qui-accordion multiple>
           {LANGUAGES.map((language) => (
             <qui-accordion-item key={language} value={language}>
               <qui-accordion-trigger>
-                {text.notesSection} · {language.toUpperCase()}
+                {text.engineAdmin.notesSection} · {language.toUpperCase()}
               </qui-accordion-trigger>
               <qui-accordion-content>
                 <div class={styles.noteEditor}>
@@ -809,7 +816,7 @@ function EventFormBody({
                         addNote(language, "paragraph");
                       }}
                     >
-                      {text.addParagraph}
+                      {text.engineAdmin.addParagraph}
                     </qui-button>
                     <qui-button
                       variant="outlined"
@@ -818,7 +825,7 @@ function EventFormBody({
                         addNote(language, "bullets");
                       }}
                     >
-                      {text.addBulletList}
+                      {text.engineAdmin.addBulletList}
                     </qui-button>
                     <qui-button
                       variant="outlined"
@@ -827,7 +834,7 @@ function EventFormBody({
                         addNote(language, "link");
                       }}
                     >
-                      {text.addLink}
+                      {text.engineAdmin.addLink}
                     </qui-button>
                   </div>
                 </div>
@@ -839,7 +846,7 @@ function EventFormBody({
 
       {mode !== "edit" ? (
         <div class={styles.panel}>
-          <h2 class={styles.sectionTitle}>{text.initialTicketTypes}</h2>
+          <h2 class={styles.sectionTitle}>{text.engineAdmin.initialTicketTypes}</h2>
           <div class={styles.form}>
             {ticketStates.map((ticket, index) => (
               <TicketTypeFields
@@ -866,7 +873,7 @@ function EventFormBody({
                 setTicketStates((current) => [...current, newTicket(emptyTicketDraft())]);
               }}
             >
-              {text.addTicketType}
+              {text.engineAdmin.addTicketType}
             </qui-button>
           </div>
         </div>
@@ -874,10 +881,10 @@ function EventFormBody({
 
       <div class={styles.actions}>
         <qui-button type="submit" variant="filled" disabled={saving}>
-          {saving ? labels.saving : submitLabel}
+          {saving ? labels.shared.saving : submitLabel}
         </qui-button>
         <qui-button href={detailHref} variant="outlined">
-          {text.cancel}
+          {text.shared.cancel}
         </qui-button>
       </div>
     </form>
@@ -918,7 +925,7 @@ export function EventForm({
   if (error !== null || event === null) {
     return (
       <p class={styles.notice} data-tone="error" role="alert">
-        {labels.loadFailed}
+        {labels.engineAdmin.loadFailed}
       </p>
     );
   }

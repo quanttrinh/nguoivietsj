@@ -1,5 +1,4 @@
 // @boundary client
-import type { DeclaredLocales } from "intlayer";
 import type { JSX } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
@@ -8,33 +7,16 @@ import { vstack, wrap } from "styled-system/patterns";
 import { can } from "~/auth/permissions";
 import { adminQueries } from "~/events/admin/ui/shared/queries";
 import { adminEventUrl, adminNewEventUrl } from "~/events/admin/ui/shared/routes";
-import { eventStatusText } from "~/events/admin/ui/shared/status-label";
 import { adminPageStyles } from "~/events/admin/ui/shared/styles/admin-styles";
-import type { AdminContentValues } from "~/events/content/admin.content";
 import { localized } from "~/events/domain/localized";
+import type { AdminCatalogLabels } from "~/generated/client/AdminCatalog";
 import { apiErrorMessage } from "~/shared/client/api/client";
 import { useQuery } from "~/shared/client/query/use-query";
+import type { Locale as DeclaredLocales } from "~/shared/i18n";
 import { dateFormatter } from "~/shared/utils/format";
 
 interface AdminCatalogProps {
-  labels: Pick<
-    AdminContentValues,
-    | "active"
-    | "archived"
-    | "draft"
-    | "intro"
-    | "loadFailed"
-    | "newEvent"
-    | "nextPage"
-    | "noEvents"
-    | "previousPage"
-    | "registrationCount"
-    | "staffIntro"
-    | "staffTitle"
-    | "ticketsTotal"
-    | "title"
-    | "upcoming"
-  >;
+  labels: AdminCatalogLabels;
   locale: DeclaredLocales;
   pageOfParts: string[];
 }
@@ -126,8 +108,10 @@ export default function AdminCatalog({
   const canCreate = can(data?.role, { event: ["create"] });
   const events = data?.events ?? [];
   const totalPages = data?.totalPages ?? 1;
-  const title = data === null || canCreate ? labels.title : labels.staffTitle;
-  const intro = data === null || canCreate ? labels.intro : labels.staffIntro;
+  const title =
+    data === null || canCreate ? labels.engineAdmin.title : labels.engineAdmin.staffTitle;
+  const intro =
+    data === null || canCreate ? labels.engineAdmin.intro : labels.engineAdmin.staffIntro;
   const [before = "", between = "", after = ""] = pageOfParts;
 
   useEffect(() => {
@@ -150,7 +134,7 @@ export default function AdminCatalog({
         {canCreate ? (
           <div class={adminPageStyles.actions}>
             <qui-button href={adminNewEventUrl(locale)} variant="filled">
-              {labels.newEvent}
+              {labels.shared.newEvent}
             </qui-button>
           </div>
         ) : null}
@@ -158,11 +142,11 @@ export default function AdminCatalog({
 
       {error !== null && !loading ? (
         <p class={styles.error} role="alert">
-          {apiErrorMessage(error, labels.loadFailed)}
+          {apiErrorMessage(error, labels.engineAdmin.loadFailed)}
         </p>
       ) : null}
       {!loading && error === null && events.length === 0 ? (
-        <p class={adminPageStyles.empty}>{labels.noEvents}</p>
+        <p class={adminPageStyles.empty}>{labels.engineAdmin.noEvents}</p>
       ) : null}
       {events.length > 0 ? (
         <div class={styles.list}>
@@ -174,13 +158,13 @@ export default function AdminCatalog({
             >
               <h2 class={styles.rowTitle}>{localized(event.title, locale, event.slug)}</h2>
               <div class={styles.meta}>
-                <span class={styles.badge}>{eventStatusText(event.status, labels)}</span>
+                <span class={styles.badge}>{labels.shared[event.status]}</span>
                 <span>{event.slug}</span>
                 <span>
-                  {labels.registrationCount}: {event.registrationCount}
+                  {labels.engineAdmin.registrationCount}: {event.registrationCount}
                 </span>
                 <span>
-                  {labels.ticketsTotal}: {event.ticketsTotal}
+                  {labels.engineAdmin.ticketsTotal}: {event.ticketsTotal}
                 </span>
                 {event.startsAt === null ? null : (
                   <span>
@@ -203,7 +187,7 @@ export default function AdminCatalog({
                 setPage((current) => Math.max(1, current - 1));
               }}
             >
-              {labels.previousPage}
+              {labels.engineAdmin.previousPage}
             </button>
             <button
               type="button"
@@ -213,7 +197,7 @@ export default function AdminCatalog({
                 setPage((current) => Math.min(totalPages, current + 1));
               }}
             >
-              {labels.nextPage}
+              {labels.engineAdmin.nextPage}
             </button>
           </div>
           <span class={styles.pagerNote}>

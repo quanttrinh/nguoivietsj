@@ -1,51 +1,53 @@
 ---
 // @boundary astro
-import { useDictionary, useLocale } from "astro-intlayer";
-import { locales } from "intlayer";
-
 import AdminHomeCards from "~/events/admin/ui/shared/AdminHomeCards";
 import AdminLayout from "~/events/admin/ui/shared/AdminLayout.astro";
 import AdminPageHeader from "~/events/admin/ui/shared/AdminPageHeader.astro";
 import { adminCatalogUrl, adminUsersUrl } from "~/events/admin/ui/shared/routes";
 import { adminPageStyles } from "~/events/admin/ui/shared/styles/admin-styles";
-import engineContent from "~/events/content/admin.content";
+import { localized as all } from "~/generated/client/all";
+import { locales, useLocale } from "~/shared/i18n";
 import Panel from "~/shared/ui/Panel.astro";
 
 export function getStaticPaths(): { params: { locale: string } }[] {
   return locales.map((locale) => ({ params: { locale } }));
 }
 
-const { locale } = useLocale();
-const content = useDictionary(engineContent, locale);
+const { locale } = useLocale(Astro.url);
+const content = all(locale);
 
 const cards = [
   {
     href: adminUsersUrl(locale),
-    title: content.manageUsers.value,
-    help: content.manageUsersHelp.value,
-    action: content.openSection.value,
+    title: content.shared.userManagement,
+    help: content.engineAdmin.manageUsersHelp,
+    action: content.engineAdmin.openSection,
     permission: "users" as const,
   },
   {
     href: adminCatalogUrl(locale),
-    title: content.manageEvents.value,
-    help: content.manageEventsHelp.value,
-    action: content.openSection.value,
+    title: content.shared.eventManagement,
+    help: content.engineAdmin.manageEventsHelp,
+    action: content.engineAdmin.openSection,
     permission: "events" as const,
   },
 ];
 ---
 
-<AdminLayout title={content.adminHome.value} description={content.adminHomeIntro.value} noindex>
+<AdminLayout
+  title={content.shared.administration}
+  description={content.engineAdmin.adminHomeIntro}
+  noindex
+>
   <section class={adminPageStyles.section} id="engine-admin-home">
     <AdminPageHeader
       locale={locale}
-      title={content.adminHome.value}
-      intro={content.adminHomeIntro.value}
+      title={content.shared.administration}
+      intro={content.engineAdmin.adminHomeIntro}
     />
 
     <Panel padding="lg">
-      <AdminHomeCards client:load cards={cards} empty={content.noAdminSections.value} />
+      <AdminHomeCards client:load cards={cards} empty={content.engineAdmin.noAdminSections} />
     </Panel>
   </section>
 </AdminLayout>

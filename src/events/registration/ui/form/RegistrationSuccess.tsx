@@ -8,11 +8,11 @@ import type { RegistrationSuccess as RegistrationSuccessState } from "./registra
 function warningTitle(code: string, staff: boolean, config: PublicRegistrationConfig) {
   if (code === "event_registration_email_not_queued") {
     return staff
-      ? config.labels.success.staffEmailFailedTitle
-      : config.labels.success.emailFailedTitle;
+      ? config.labels.engineRegistration.success.staffEmailFailedTitle
+      : config.labels.engineRegistration.success.emailFailedTitle;
   }
 
-  return config.labels.errors.warningTitle;
+  return config.labels.engineRegistration.errors.warningTitle;
 }
 
 function warningMessage(
@@ -25,7 +25,9 @@ function warningMessage(
   }
 
   if (warning.code === "event_registration_email_not_queued") {
-    return staff ? config.labels.success.staffEmailFailed : config.labels.success.emailFailed;
+    return staff
+      ? config.labels.engineRegistration.success.staffEmailFailed
+      : config.labels.engineRegistration.success.emailFailed;
   }
 
   return warning.code;
@@ -55,11 +57,11 @@ export function RegistrationSuccess({
         </div>
       ))}
       <span class={styles.reference}>
-        {config.labels.success.reference}: <code>{success.id}</code>
+        {config.labels.engineRegistration.success.reference}: <code>{success.id}</code>
       </span>
       {success.statusUrl && (
         <a class={styles.statusLink} href={success.statusUrl}>
-          {config.labels.success.statusLink}
+          {config.labels.engineRegistration.success.statusLink}
         </a>
       )}
     </>

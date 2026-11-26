@@ -1,7 +1,7 @@
 // @boundary shared
 import { type } from "arktype";
 
-import { SUPPORTED_LOCALES } from "~/shared/constants/locales";
+import { SUPPORTED_LOCALES } from "~/shared/i18n";
 
 import { LIMITS } from "../limits";
 

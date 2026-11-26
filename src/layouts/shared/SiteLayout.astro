@@ -1,14 +1,19 @@
 ---
 // @boundary astro
-import { useLocale } from "astro-intlayer";
 import { PUBLIC_CLOUDFLARE_ANALYTICS_TOKEN } from "astro:env/client";
-import { getHTMLTextDir, getLocaleName, getLocalizedUrl, getPathWithoutLocale } from "intlayer";
 
 import { Image } from "astro:assets";
 import { ClientRouter } from "astro:transitions";
 
 import { css } from "styled-system/css";
 import { container, grid, hstack, vstack, visuallyHidden, wrap } from "styled-system/patterns";
+import {
+  useLocale,
+  getHTMLTextDir,
+  getLocaleName,
+  getLocalizedUrl,
+  getPathWithoutLocale,
+} from "~/shared/i18n";
 import Eyebrow from "~/shared/ui/Eyebrow.astro";
 
 import packageJson from "../../../package.json";
@@ -43,7 +48,7 @@ const {
   builtBy,
   noindex = false,
 }: Props = Astro.props;
-const { locale, availableLocales } = useLocale();
+const { locale, availableLocales } = useLocale(Astro.url);
 const capitalize = (value: string): string =>
   value.charAt(0).toLocaleUpperCase(locale) + value.slice(1);
 const pathWithoutLocale = getPathWithoutLocale(Astro.url.pathname);

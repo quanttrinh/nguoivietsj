@@ -108,7 +108,7 @@ describe("transport security headers", () => {
     { label: "a successful health check", path: "/api/health", init: {} },
     {
       label: "a sign-in validation error",
-      path: "/api/auth/sign-in/email",
+      path: "/api/auth/sign-in/email-otp",
       init: {
         method: "POST",
         headers: { "content-type": JSON_CONTENT_TYPE },
@@ -217,7 +217,7 @@ describe("request body and method handling", () => {
   test("oversized bodies return a JSON envelope that still carries secure headers", async ({
     api,
   }) => {
-    const response = await api.request("/api/auth/sign-in/email", {
+    const response = await api.request("/api/auth/sign-in/email-otp", {
       method: "POST",
       headers: { "content-type": JSON_CONTENT_TYPE },
       body: JSON.stringify({ email: "a@example.com", password: "x".repeat(1024 * 1024) }),
@@ -233,7 +233,7 @@ describe("request body and method handling", () => {
   });
 
   test("malformed JSON returns a 4xx JSON error body", async ({ api }) => {
-    const response = await api.request("/api/auth/sign-in/email", {
+    const response = await api.request("/api/auth/sign-in/email-otp", {
       method: "POST",
       headers: { "content-type": JSON_CONTENT_TYPE },
       body: "{not-json",

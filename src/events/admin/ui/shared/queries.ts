@@ -1,11 +1,11 @@
 // @boundary client
-import { resolveBrowserLocale } from "@intlayer/core/localization";
 import type { FetcherStore } from "@nanostores/query";
 
 import type { UserRole } from "~/auth/roles";
 import { apiClient, readApiJson, requirePagination } from "~/shared/client/api/client";
 import { mutateCache, revalidateKeys } from "~/shared/client/query/client";
 import { queryStore } from "~/shared/client/query/registry";
+import { resolveBrowserLocale } from "~/shared/i18n";
 
 import { rememberEventTitle, rememberEventTitles } from "./event-titles";
 

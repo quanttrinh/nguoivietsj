@@ -5,7 +5,8 @@ import type {
   RegistrationFailureError,
   RegistrationFailureCode,
 } from "~/events/services/registration-service";
-import { apiError } from "~/server/api-response";
+
+import { eventApiError } from "./event-errors";
 
 const STATUS_BY_CODE: Record<RegistrationFailureCode, 400 | 409 | 500> = {
   event_registration_closed: 409,
@@ -21,7 +22,7 @@ const STATUS_BY_CODE: Record<RegistrationFailureCode, 400 | 409 | 500> = {
 };
 
 export function registrationFailureResponse(ctx: Context, failure: RegistrationFailureError) {
-  return apiError(ctx, failure.code, {
+  return eventApiError(ctx, failure.code, {
     status: STATUS_BY_CODE[failure.code],
     ...(failure.fields === undefined ? {} : { fields: failure.fields }),
     ...(failure.issues === undefined ? {} : { issues: failure.issues }),

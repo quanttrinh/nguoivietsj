@@ -64,7 +64,7 @@ export function RegistrationForm({
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState<RegistrationSuccessState | null>(initialSuccess ?? null);
   const client = form.client;
-  const messages = publicConfig.labels.errors;
+  const messages = publicConfig.labels.engineRegistration.errors;
   const showTurnstile = !preview && !staff && publicConfig.turnstile.siteKey.length > 0;
   const state = useMemo(() => computeState(values, client), [values, client]);
 
@@ -246,7 +246,7 @@ export function RegistrationForm({
     <>
       {preview ? (
         <div class={styles.errorBox} role="status">
-          {publicConfig.labels.previewNotice}
+          {publicConfig.labels.shared.previewOnlySubmissionIsDisabled}
         </div>
       ) : null}
 
@@ -289,7 +289,7 @@ export function RegistrationForm({
           )}
         </div>
         <noscript class={styles.notice}>
-          <p class={styles.text}>{publicConfig.labels.form.noscript}</p>
+          <p class={styles.text}>{publicConfig.labels.engineRegistration.form.noscript}</p>
         </noscript>
 
         {form.sections.map((section) => (
@@ -324,7 +324,9 @@ export function RegistrationForm({
               size="lg"
               disabled={submitting}
             >
-              {submitting ? publicConfig.labels.form.submitting : publicConfig.labels.form.submit}
+              {submitting
+                ? publicConfig.labels.engineRegistration.form.submitting
+                : publicConfig.labels.shared.register}
             </qui-button>
           </div>
         )}

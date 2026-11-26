@@ -1,13 +1,9 @@
 ---
 // @boundary client
-import { getBasePlugins, getDictionary } from "@intlayer/core/interpreter";
-import type { DeclaredLocales } from "intlayer";
-
-import engineContent from "~/events/content/admin.content";
-import { pick } from "~/shared/content/pick";
+import { localized } from "~/generated/client/EventForm";
+import type { Locale as DeclaredLocales } from "~/shared/i18n";
 
 import EventFormIsland from "./EventForm.tsx";
-import { eventFormLabelKeys } from "./form-labels";
 
 interface Props {
   locale: DeclaredLocales;
@@ -16,10 +12,7 @@ interface Props {
 
 const { locale, mode }: Props = Astro.props;
 
-const labels = pick(
-  getDictionary(engineContent, locale, getBasePlugins(locale)),
-  eventFormLabelKeys,
-);
+const labels = localized(locale);
 ---
 
 <EventFormIsland client:only="preact" mode={mode} locale={locale} labels={labels} />
