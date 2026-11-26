@@ -1,6 +1,6 @@
 import { Miniflare } from "miniflare";
 
-import { seedEventSql, seedUsersSql } from "../../../src/backfills/seed";
+import { seedEventSql, seedUsersSql } from "~/platform/jobs/backfills/seed";
 
 type D1 = Awaited<ReturnType<Miniflare["getD1Database"]>>;
 type KV = Awaited<ReturnType<Miniflare["getKVNamespace"]>>;

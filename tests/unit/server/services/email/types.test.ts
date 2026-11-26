@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 
-import { EmailError } from "../../../../../src/server/services/email/types";
+import { EmailError } from "~/platform/server/email/types";
 
 test("EmailError records status and retryability", () => {
   const error = new EmailError("Mailtrap quota exceeded", 429, true);

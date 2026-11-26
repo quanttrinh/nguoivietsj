@@ -1,12 +1,13 @@
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 
-import { APP_TABLES, EVENT_TABLES } from "../../src/backfills/check/schema-tables";
+import { APP_TABLES, EVENT_TABLES } from "~/platform/jobs/backfills/check/schema-tables";
+
 import {
   COLUMNS_SQL,
   compareColumns,
   expectedColumns,
   parseColumns,
-} from "../../src/db/schema-parity";
+} from "../../src/platform/server/db/schema-parity";
 import { startDatabase, type TestDatabase } from "./helpers/d1";
 
 let db: TestDatabase;

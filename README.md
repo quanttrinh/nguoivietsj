@@ -19,8 +19,9 @@ bun run db:seed
 bun run dev
 ```
 
-Seeded local accounts: `admin@example.com`, `staff@example.com` (password
-`dev-password`). Event list: `http://localhost:4321/en/events/`.
+Seeded local accounts: `admin@example.com`, `staff@example.com`. Sign in by
+requesting a one-time code sent to your email. Event list:
+`http://localhost:4321/en/events/`.
 
 `bun install` generates Panda CSS and Wrangler types; `doppler run -- bun install`
 also supplies the GitHub Packages token.

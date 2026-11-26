@@ -6,7 +6,7 @@ import {
   apiError,
   apiPartial,
   apiSuccess,
-} from "../../../src/server/helpers/responses/api-response";
+} from "~/platform/server/api/helpers/responses/api-response";
 import {
   badRequest,
   forbidden,
@@ -15,8 +15,9 @@ import {
   rateLimited,
   serviceUnavailable,
   unauthorized,
-} from "../../../src/server/helpers/responses/common-responses";
-import { defaultValidationHandler } from "../../../src/server/helpers/validation/validation-handler";
+} from "~/platform/server/api/helpers/responses/common-responses";
+import { defaultValidationHandler } from "~/platform/server/api/helpers/validation/validation-handler";
+
 import { test, type ApiHarness } from "./harness";
 
 interface SessionUser {
@@ -386,7 +387,7 @@ describe("production app configuration", () => {
     vi.stubEnv("DEV", false);
 
     try {
-      const module = await import("../../../src/server/app");
+      const module = await import("~/platform/app");
 
       expect(module.api).toBeDefined();
     } finally {

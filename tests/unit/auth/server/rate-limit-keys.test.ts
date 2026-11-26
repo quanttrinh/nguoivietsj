@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 
-import { accountKey } from "../../../../src/auth/server/rate-limit-keys";
+import { accountKey } from "~/features/auth/server/rate-limit-keys";
 
 const SCOPE = "auth:send-otp:account";
 

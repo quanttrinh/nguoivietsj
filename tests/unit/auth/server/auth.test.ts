@@ -30,7 +30,7 @@ const mocks = vi.hoisted(() => ({
   betterAuth: vi.fn<(options: CapturedOptions) => unknown>(),
   drizzle: vi.fn<(db: unknown, config: unknown) => unknown>(),
   drizzleAdapter: vi.fn<(db: unknown, config: unknown) => unknown>(),
-  enqueueTwoFactorCodeEmail: vi.fn<(env: unknown, input: unknown) => Promise<boolean>>(),
+  enqueueOtpCodeEmail: vi.fn<(env: unknown, input: unknown) => Promise<boolean>>(),
   kvGet: vi.fn<(key: string) => Promise<string | null>>(),
   kvPut:
     vi.fn<(key: string, value: string, options?: { expirationTtl: number }) => Promise<void>>(),
@@ -42,11 +42,11 @@ vi.mock("drizzle-orm/d1", () => ({ drizzle: mocks.drizzle }));
 vi.mock("@better-auth/drizzle-adapter/relations-v2", () => ({
   drizzleAdapter: mocks.drizzleAdapter,
 }));
-vi.mock("~/auth/server/email/two-factor", () => ({
-  enqueueTwoFactorCodeEmail: mocks.enqueueTwoFactorCodeEmail,
+vi.mock("~/features/auth/server/email/otp", () => ({
+  enqueueOtpCodeEmail: mocks.enqueueOtpCodeEmail,
 }));
 
-const { auth } = await import("../../../../src/auth/server/auth");
+const { auth } = await import("~/features/auth/server/auth");
 
 interface TestEnv {
   APP_DB: { name: string };
@@ -110,7 +110,7 @@ beforeEach(() => {
   mocks.drizzle.mockReturnValue({ fakeDb: true });
   mocks.drizzleAdapter.mockReturnValue({ fakeAdapter: true });
   mocks.betterAuth.mockImplementation((options) => ({ options, marker: "auth-instance" }));
-  mocks.enqueueTwoFactorCodeEmail.mockResolvedValue(true);
+  mocks.enqueueOtpCodeEmail.mockResolvedValue(true);
 });
 
 afterEach(() => {
@@ -194,7 +194,7 @@ describe("auth", () => {
 
     await sendOTP({ email: "staff@example.com", otp: "123456", type: "sign-in" });
 
-    expect(mocks.enqueueTwoFactorCodeEmail).toHaveBeenCalledExactlyOnceWith(env, {
+    expect(mocks.enqueueOtpCodeEmail).toHaveBeenCalledExactlyOnceWith(env, {
       email: "staff@example.com",
       code: "123456",
       expiresMinutes: 10,
@@ -204,7 +204,7 @@ describe("auth", () => {
   test("throws when the sign-in code email cannot be queued", async () => {
     createAuthFor(makeEnv());
     const sendOTP = sendOtpFrom(lastOptions());
-    mocks.enqueueTwoFactorCodeEmail.mockResolvedValueOnce(false);
+    mocks.enqueueOtpCodeEmail.mockResolvedValueOnce(false);
 
     await expect(
       sendOTP({ email: "staff@example.com", otp: "123456", type: "sign-in" }),

@@ -1,28 +1,28 @@
 /* oxlint-disable typescript/TS2740 -- Env is a generated Cloudflare binding interface; handlers only receive an opaque stub in this unit test. */
 import { afterEach, describe, expect, test, vi } from "vitest";
 
-import type { TwoFactorCodeEmailJob } from "~/auth/server/email/two-factor";
-import type { EventEmailJob } from "~/events/services/email-queue";
+import type { OtpEmailJob } from "~/features/auth/server/email/otp";
+import type { EventEmailJob } from "~/features/events/server/services/email-queue";
 
-const { isTwoFactorCodeEmailJob, handleTwoFactorCodeEmail, eventHandle } = vi.hoisted(() => ({
-  isTwoFactorCodeEmailJob: vi.fn((job: { type: string }) => job.type === "auth.two_factor.code"),
-  handleTwoFactorCodeEmail: vi.fn(),
+const { isOtpEmailJob, handleOtpEmail, eventHandle } = vi.hoisted(() => ({
+  isOtpEmailJob: vi.fn((job: { type: string }) => job.type === "auth.two_factor.code"),
+  handleOtpEmail: vi.fn(),
   eventHandle: vi.fn(),
 }));
 
-vi.mock("~/auth/server/email/two-factor", () => ({
-  isTwoFactorCodeEmailJob,
-  handleTwoFactorCodeEmail,
+vi.mock("~/features/auth/server/email/otp", () => ({
+  isOtpEmailJob,
+  handleOtpEmail,
 }));
 
-vi.mock("~/events/services/email-queue", () => ({
+vi.mock("~/features/events/server/services/email-queue", () => ({
   eventEmailQueue: {
     dedupeKey: (job: { idempotencyKey: string }) => job.idempotencyKey,
     handle: eventHandle,
   },
 }));
 
-const { appEmailQueue } = await import("../../../../../src/server/services/email/app-queue");
+const { appEmailQueue } = await import("~/platform/server/email/app-queue");
 
 type TestEnv = Record<string, unknown>;
 const env: TestEnv = {};
@@ -46,8 +46,8 @@ describe("appEmailQueue", () => {
     expect(appEmailQueue.dedupeKey(job)).toBe("event.status.otp:reg-1:otp-1");
   });
 
-  test("dispatches two-factor jobs to the auth email handler", async () => {
-    const job: TwoFactorCodeEmailJob = {
+  test("dispatches OTP jobs to the auth email handler", async () => {
+    const job: OtpEmailJob = {
       type: "auth.two_factor.code",
       idempotencyKey: "auth.two_factor.code:uuid",
       email: "staff@example.com",
@@ -57,8 +57,8 @@ describe("appEmailQueue", () => {
 
     await appEmailQueue.handle(job, env);
 
-    expect(isTwoFactorCodeEmailJob).toHaveBeenCalledExactlyOnceWith(job);
-    expect(handleTwoFactorCodeEmail).toHaveBeenCalledExactlyOnceWith(job, env);
+    expect(isOtpEmailJob).toHaveBeenCalledExactlyOnceWith(job);
+    expect(handleOtpEmail).toHaveBeenCalledExactlyOnceWith(job, env);
     expect(eventHandle).not.toHaveBeenCalled();
   });
 
@@ -74,7 +74,7 @@ describe("appEmailQueue", () => {
 
     await appEmailQueue.handle(job, env);
 
-    expect(handleTwoFactorCodeEmail).not.toHaveBeenCalled();
+    expect(handleOtpEmail).not.toHaveBeenCalled();
     expect(eventHandle).toHaveBeenCalledExactlyOnceWith(job, env);
   });
 });

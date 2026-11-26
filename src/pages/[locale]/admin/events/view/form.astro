@@ -1,11 +1,11 @@
 ---
 // @boundary astro
-import FormEditor from "~/events/admin/ui/forms/FormEditor.astro";
-import AdminLayout from "~/events/admin/ui/shared/AdminLayout.astro";
-import AdminPageHeader from "~/events/admin/ui/shared/AdminPageHeader.astro";
-import { adminPageStyles } from "~/events/admin/ui/shared/styles/admin-styles";
+import FormEditor from "~/features/events/admin/ui/forms/FormEditor.astro";
+import AdminLayout from "~/features/events/admin/ui/shared/AdminLayout.astro";
+import AdminPageHeader from "~/features/events/admin/ui/shared/AdminPageHeader.astro";
+import { adminPageStyles } from "~/features/events/admin/ui/shared/styles/admin-styles";
 import { localized as all } from "~/generated/client/all";
-import { locales, useLocale } from "~/shared/i18n";
+import { locales, useLocale } from "~/platform/i18n";
 
 export function getStaticPaths(): { params: { locale: string } }[] {
   return locales.map((locale) => ({ params: { locale } }));

@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 
-import { fullTextSearchQuery } from "../../../../src/db/events/search";
+import { fullTextSearchQuery } from "../../../../src/platform/server/db/events/search";
 
 describe("fullTextSearchQuery", () => {
   test("builds required prefix tokens from a name", () => {

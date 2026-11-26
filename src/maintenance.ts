@@ -1,5 +1,5 @@
 // @boundary server
-import { serverLogger } from "~/shared/server/logger";
+import { serverLogger } from "~/platform/server/logger";
 
 /** One independent maintenance job that can be scheduled by the Worker. */
 export interface MaintenanceTask {

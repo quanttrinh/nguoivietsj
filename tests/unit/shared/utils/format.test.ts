@@ -5,7 +5,7 @@ import {
   dateTimeFormatter,
   formatMoney,
   moneyFormatter,
-} from "../../../../src/shared/utils/format";
+} from "~/platform/utils/format";
 
 describe("format helpers", () => {
   test("cache formatters by locale and time zone", () => {

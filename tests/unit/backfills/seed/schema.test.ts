@@ -1,7 +1,8 @@
 import { describe, expect, test } from "vitest";
 
-import { seedFormSchemas } from "../../../../src/backfills/seed";
-import { formSchemaSchema } from "../../../../src/events/domain/form-schema/schema/schema";
+import { formSchemaSchema } from "~/features/events/domain/form-schema/schema/schema";
+import { seedFormSchemas } from "~/platform/jobs/backfills/seed";
+
 import { expectSchema } from "../../helpers/assertions";
 
 describe("seed fixtures", () => {

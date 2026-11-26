@@ -106,7 +106,7 @@ describe("generateI18n", () => {
     expect(types).toContain('export type Locale = "en" | "fr" | "vi";');
 
     const client = readFileSync(clientModule, "utf8");
-    expect(client).toContain('import type { Locale } from "~/shared/i18n";');
+    expect(client).toContain('import type { Locale } from "~/platform/i18n";');
     expect(client).toContain("export function localized(locale: Locale): Labels {");
     expect(client).toContain("export type FakeIslandLabels = Labels;");
     for (const locale of options.locales) {

@@ -2,7 +2,8 @@
 import type { ExecutionContext } from "@cloudflare/workers-types";
 import { describe, expect } from "vitest";
 
-import { api as apiApp } from "../../../../src/server/app";
+import { api as apiApp } from "~/platform/app";
+
 import { test, type ApiHarness } from "../harness";
 
 const BASE_URL = "http://localhost:4321";

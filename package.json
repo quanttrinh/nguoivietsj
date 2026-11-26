@@ -10,7 +10,7 @@
   },
   "type": "module",
   "imports": {
-    "#tooling/*": "./src/tooling/*.ts"
+    "#tooling/*": "./src/platform/jobs/tooling/*.ts"
   },
   "scripts": {
     "dev": "doppler run -- astro dev",
@@ -28,7 +28,7 @@
     "test:watch": "vitest",
     "db:migrations:events": "drizzle-kit generate --config=drizzle.events.config.ts",
     "db:migrations:app": "drizzle-kit generate --config=drizzle.app.config.ts",
-    "auth:schema": "auth generate --config ./better-auth.config.ts --dialect sqlite --output ./src/db/app/schemas/auth-schema.ts -y && bunx oxfmt src/db/app/schemas/auth-schema.ts",
+    "auth:schema": "auth generate --config ./better-auth.config.ts --dialect sqlite --output ./src/platform/server/db/app/schemas/auth-schema.ts -y && bunx oxfmt src/platform/server/db/app/schemas/auth-schema.ts",
     "db:migrate": "bun manage.ts migrate",
     "db:seed": "bun manage.ts seed",
     "db:check": "bun manage.ts check",

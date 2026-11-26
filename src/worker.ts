@@ -1,12 +1,12 @@
 // @boundary server
 import { handle } from "@astrojs/cloudflare/handler";
 
-import { runAppMaintenance } from "~/auth/server/maintenance";
-import { runEventMaintenance } from "~/events/services/maintenance";
+import { runAppMaintenance } from "~/features/auth/server/maintenance";
+import { runEventMaintenance } from "~/features/events/server/services/maintenance";
 import { runMaintenance, type MaintenanceTask } from "~/maintenance";
-import { api } from "~/server/app";
-import { appEmailQueue } from "~/server/services/email/app-queue";
-import { isEmailQueue, processEmailBatch } from "~/server/services/email/queue";
+import { api } from "~/platform/app";
+import { appEmailQueue } from "~/platform/server/email/app-queue";
+import { isEmailQueue, processEmailBatch } from "~/platform/server/email/queue";
 
 export default {
   fetch(request: Request, env: Env, ctx: ExecutionContext): Response | Promise<Response> {

@@ -1,8 +1,9 @@
 import type { ExecutionContext } from "@cloudflare/workers-types";
 import { test as baseTest, vi } from "vitest";
 
-import { api } from "../../../src/server/app";
-import { isRecord } from "../../../src/shared/utils/records";
+import { api } from "~/platform/app";
+import { isRecord } from "~/platform/utils/records";
+
 import { startDatabase, type TestDatabase } from "../helpers/d1";
 
 const BASE_URL = "http://localhost:4321";

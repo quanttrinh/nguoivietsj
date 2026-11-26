@@ -3,9 +3,10 @@ import { createHash } from "node:crypto";
 
 import { describe, expect, onTestFinished, vi } from "vitest";
 
-import { getRegistrationStatusRepository } from "../../../../src/db/events";
-import { STATUS_OTP_MAX_ATTEMPTS } from "../../../../src/events/domain/status";
-import { issueStatusOtp } from "../../../../src/events/services/status";
+import { STATUS_OTP_MAX_ATTEMPTS } from "~/features/events/domain/status";
+import { issueStatusOtp } from "~/features/events/server/services/status";
+
+import { getRegistrationStatusRepository } from "../../../../src/platform/server/db/events";
 import type { TestDatabase } from "../../helpers/d1";
 import { statusSessionToken } from "../../helpers/status-session";
 import { test, type ApiHarness } from "../harness";

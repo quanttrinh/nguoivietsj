@@ -1,0 +1,245 @@
+---
+// @boundary client
+import { css } from "styled-system/css";
+import { vstack } from "styled-system/patterns";
+import BaseLayout from "~/features/shell/layouts/BaseLayout.astro";
+import { localized as all } from "~/generated/client/all";
+import { useLocale } from "~/platform/i18n";
+import { noticeStyles } from "~/platform/ui/notice-styles";
+import Panel from "~/platform/ui/Panel.astro";
+import QuiFormRuntime from "~/platform/ui/QuiFormRuntime.astro";
+
+const { locale } = useLocale(Astro.url);
+const content = all(locale);
+
+const styles = {
+  section: vstack({ alignItems: "stretch", gap: "6", paddingBlockStart: { base: "2", md: "3" } }),
+  title: css({
+    margin: "0",
+    fontFamily: "display",
+    fontSize: { base: "4xl", md: "5xl" },
+    lineHeight: "none",
+    letterSpacing: "tight",
+    fontWeight: "bold",
+  }),
+  intro: css({ margin: "0", maxWidth: "2xl", fontSize: "md", color: "onSurfaceVariant" }),
+  form: vstack({ alignItems: "stretch", gap: "4", maxW: "xl", "&[hidden]": { display: "none" } }),
+  codeHeading: css({ margin: "0", textStyle: "title-sm" }),
+  codeHint: css({ margin: "0", textStyle: "body-md" }),
+  noticeShell: css({ paddingBlockEnd: "5" }),
+  notice: noticeStyles.error,
+};
+---
+
+<BaseLayout title={content.login.metaTitle} description={content.login.metaDescription} noindex>
+  <section id="login" class={styles.section}>
+    <h1 class={styles.title}>{content.login.heading}</h1>
+    <p class={styles.intro}>{content.login.intro}</p>
+
+    <Panel padding="lg" maxWidth="2xl">
+      <div data-login-notice class={styles.noticeShell} hidden>
+        <div class={styles.notice} role="alert" tabindex="-1"></div>
+      </div>
+
+      <form
+        data-login-form
+        class={styles.form}
+        novalidate
+        data-submitting-label={content.login.submitting}
+        data-failed-message={content.login.signInFailed}
+        data-unavailable-message={content.login.unavailable}
+        data-required-message={content.login.fieldsRequired}
+        data-locale={locale}
+      >
+        <qui-field>
+          <qui-field-label>{content.shared.email}</qui-field-label>
+          <qui-input
+            id="login-email"
+            name="email"
+            input-type="text"
+            input-mode-hint="email"
+            input-pattern="[^\s@]+@[^\s@]+\.[^\s@]+"
+            autocomplete="email"
+            required
+          />
+        </qui-field>
+        <qui-button type="submit" variant="filled">
+          {content.shared.register}
+        </qui-button>
+      </form>
+
+      <form
+        data-login-code
+        class={styles.form}
+        novalidate
+        hidden
+        data-failed-message={content.login.signInFailed}
+        data-unavailable-message={content.login.unavailable}
+        data-required-message={content.login.codeRequired}
+      >
+        <h2 class={styles.codeHeading}>{content.login.codeHeading}</h2>
+        <p class={styles.codeHint}>{content.login.codeHintEmail}</p>
+        <qui-field>
+          <qui-field-label>{content.login.codeLabel}</qui-field-label>
+          <qui-input
+            id="login-code"
+            name="code"
+            input-type="text"
+            input-mode-hint="numeric"
+            autocomplete="one-time-code"
+            required
+          />
+        </qui-field>
+        <qui-button type="submit" variant="filled">
+          {content.login.verify}
+        </qui-button>
+      </form>
+    </Panel>
+  </section>
+
+  <QuiFormRuntime />
+</BaseLayout>
+
+<script>
+  import { navigate } from "astro:transitions/client";
+  import "virtual:qui/register?components=qui-field,qui-field-label,qui-input,qui-checkbox,qui-button";
+
+  import { sendSignInCode, signInWithCode } from "~/features/auth/client/sign-in";
+  import { readFormValue } from "~/platform/client/form-controls";
+  import { clientLogger } from "~/platform/client/logger";
+  import { safeRedirect } from "~/platform/client/navigation";
+
+  let pendingEmail = "";
+
+  function showNotice(message: string): void {
+    const shell = document.querySelector<HTMLElement>("[data-login-notice]");
+    const box = shell?.querySelector<HTMLElement>("[role='alert']");
+
+    if (shell == null || box == null || message.length === 0) {
+      return;
+    }
+
+    box.textContent = message;
+    shell.hidden = false;
+    box.focus();
+  }
+
+  function formMessage(form: HTMLFormElement, key: string): string {
+    return form.dataset[key] ?? "";
+  }
+
+  function codeForm(): HTMLFormElement | null {
+    return document.querySelector<HTMLFormElement>("[data-login-code]");
+  }
+
+  function redirect(): Promise<void> {
+    return navigate(
+      safeRedirect(globalThis.location.search, { origin: globalThis.location.origin }),
+    );
+  }
+
+  async function submitEmail(form: HTMLFormElement): Promise<void> {
+    const button = form.querySelector<HTMLQuiButtonElement>("qui-button[type='submit']");
+    const email = readFormValue(form, "email").trim();
+
+    if (email.length === 0) {
+      showNotice(formMessage(form, "requiredMessage"));
+      return;
+    }
+
+    if (button?.disabled === true) {
+      return;
+    }
+
+    if (button != null) {
+      button.disabled = true;
+      button.label = formMessage(form, "submittingLabel");
+    }
+
+    try {
+      const result = await sendSignInCode({
+        email,
+        ...(form.dataset.locale === undefined ? {} : { locale: form.dataset.locale }),
+      });
+
+      if (result.status === "error") {
+        showNotice(result.message.length > 0 ? result.message : formMessage(form, "failedMessage"));
+        return;
+      }
+
+      pendingEmail = email;
+      form.hidden = true;
+      const code = codeForm();
+
+      if (code !== null) {
+        code.hidden = false;
+        code.querySelector<HTMLElement>("#login-code")?.focus();
+      }
+    } catch (error) {
+      clientLogger.error(error);
+      showNotice(formMessage(form, "unavailableMessage"));
+    } finally {
+      if (button != null) {
+        button.disabled = false;
+        button.removeAttribute("label");
+      }
+    }
+  }
+
+  async function submitCode(form: HTMLFormElement): Promise<void> {
+    const code = readFormValue(form, "code").trim();
+
+    if (code.length === 0) {
+      showNotice(formMessage(form, "requiredMessage"));
+      return;
+    }
+
+    const loginForm = document.querySelector<HTMLFormElement>("[data-login-form]");
+
+    const result = await signInWithCode({
+      email: pendingEmail,
+      code,
+      ...(loginForm?.dataset.locale === undefined ? {} : { locale: loginForm.dataset.locale }),
+    });
+
+    if (result.status === "error") {
+      showNotice(result.message.length > 0 ? result.message : formMessage(form, "failedMessage"));
+      return;
+    }
+
+    await redirect();
+  }
+
+  async function guarded(form: HTMLFormElement, task: () => Promise<void>): Promise<void> {
+    try {
+      await task();
+    } catch (error) {
+      clientLogger.error(error);
+      showNotice(formMessage(form, "unavailableMessage"));
+    }
+  }
+
+  function initForms(): void {
+    for (const form of document.querySelectorAll<HTMLFormElement>("[data-login-form]")) {
+      if (form.dataset.ready !== "true") {
+        form.dataset.ready = "true";
+        form.addEventListener("submit", (event) => {
+          event.preventDefault();
+          void guarded(form, () => submitEmail(form));
+        });
+      }
+    }
+
+    const code = codeForm();
+
+    if (code !== null && code.dataset.ready !== "true") {
+      code.dataset.ready = "true";
+      code.addEventListener("submit", (event) => {
+        event.preventDefault();
+        void guarded(code, () => submitCode(code));
+      });
+    }
+  }
+
+  document.addEventListener("astro:page-load", initForms);
+</script>

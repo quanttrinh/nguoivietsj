@@ -20,12 +20,12 @@ const mocks = vi.hoisted(() => {
   };
 });
 
-vi.mock("~/server/services/email", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("~/server/services/email")>();
+vi.mock("~/platform/server/email", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("~/platform/server/email")>();
   return { ...actual, createEmailSender: mocks.createEmailSender };
 });
 
-const { isEventEmailConfigured } = await import("../../../../src/events/services/email");
+const { isEventEmailConfigured } = await import("~/features/events/server/services/event-email");
 
 beforeEach(() => {
   vi.clearAllMocks();

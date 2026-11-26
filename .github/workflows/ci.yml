@@ -40,7 +40,7 @@ jobs:
           bun run db:migrations:app
           bun run db:migrations:events
           git diff --exit-code -- drizzle
-          git diff --exit-code -- src/db/app/schemas/auth-schema.ts
+          git diff --exit-code -- src/platform/server/db/app/schemas/auth-schema.ts
           bun x drizzle-kit check --config=drizzle.events.config.ts
           bun x drizzle-kit check --config=drizzle.app.config.ts
       - name: Test

@@ -1,7 +1,7 @@
 /* oxlint-disable typescript/no-unsafe-type-assertion -- API response bodies are asserted in tests. */
 import { describe, expect, vi } from "vitest";
 
-import { getTicketTypeRepository } from "~/db/events";
+import { getTicketTypeRepository } from "~/platform/server/db/events";
 
 import { test, type ApiHarness } from "./harness";
 

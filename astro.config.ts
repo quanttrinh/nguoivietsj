@@ -47,7 +47,7 @@ export default defineConfig({
     securityHeadersFile({ fileName: "_headers" }),
     modulePreloads({
       global: {
-        preload: ["astro:transitions/client", "preact", "~/shared/client/api/client"],
+        preload: ["astro:transitions/client", "preact", "~/platform/client/api/client"],
       },
       routes: [{ match: /\/admin\/events\/view\/checkin\/$/u, prefetch: [{ package: "qr" }] }],
       budget: 120_000,

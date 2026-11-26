@@ -1,7 +1,8 @@
 /* oxlint-disable typescript/no-unsafe-type-assertion -- API response bodies and raw D1 JSON columns are asserted in tests. */
 import { describe, expect, onTestFinished } from "vitest";
 
-import { seedFormSchema } from "../../../src/backfills/seed";
+import { seedFormSchema } from "~/platform/jobs/backfills/seed";
+
 import { eventIdBySlug } from "../helpers/events";
 import { test, type ApiHarness } from "./harness";
 

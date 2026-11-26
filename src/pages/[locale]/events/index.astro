@@ -2,11 +2,11 @@
 // @boundary astro
 import { css } from "styled-system/css";
 import { vstack } from "styled-system/patterns";
-import EventList from "~/events/list/ui/EventList";
+import EventList from "~/features/events/list/ui/EventList";
+import BaseLayout from "~/features/shell/layouts/BaseLayout.astro";
 import { localized as all } from "~/generated/client/all";
-import BaseLayout from "~/layouts/BaseLayout.astro";
-import { locales, useLocale } from "~/shared/i18n";
-import Panel from "~/shared/ui/Panel.astro";
+import { locales, useLocale } from "~/platform/i18n";
+import Panel from "~/platform/ui/Panel.astro";
 
 export function getStaticPaths(): { params: { locale: string } }[] {
   return locales.map((locale) => ({ params: { locale } }));

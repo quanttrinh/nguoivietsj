@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 
-import { resolveAuthBaseUrl } from "~/auth/server/base-url";
+import { resolveAuthBaseUrl } from "~/features/auth/server/base-url";
 
 describe("resolveAuthBaseUrl", () => {
   test("passes a production origin through unchanged", () => {

@@ -1,9 +1,9 @@
 ---
 // @boundary astro
+import BaseLayout from "~/features/shell/layouts/BaseLayout.astro";
 import { localized as all } from "~/generated/client/all";
-import BaseLayout from "~/layouts/BaseLayout.astro";
-import { useLocale, getLocalizedUrl } from "~/shared/i18n";
-import { guardPageStyles as styles } from "~/shared/ui/guard-page-styles";
+import { useLocale, getLocalizedUrl } from "~/platform/i18n";
+import { guardPageStyles as styles } from "~/platform/ui/guard-page-styles";
 
 Astro.response.status = 404;
 

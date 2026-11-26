@@ -2,11 +2,12 @@
 import type { Context } from "hono";
 import { describe, expect, onTestFinished } from "vitest";
 
+import { registrationFailureResponse } from "~/features/events/server/api/registration-errors";
 import {
   RegistrationFailureError,
   type RegistrationFailureCode,
-} from "../../../src/events/services/registration-service";
-import { registrationFailureResponse } from "../../../src/server/routes/events/registration-errors";
+} from "~/features/events/server/services/registration-service";
+
 import type { TestDatabase } from "../helpers/d1";
 import { parseJson } from "../helpers/http";
 import { test } from "./harness";

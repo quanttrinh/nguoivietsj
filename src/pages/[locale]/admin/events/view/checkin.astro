@@ -1,14 +1,14 @@
 ---
 // @boundary astro
-import AdminCheckinScanner from "~/events/admin/ui/checkin/AdminCheckinScanner";
-import AdminEventTitleLoader from "~/events/admin/ui/shared/AdminEventTitleLoader.astro";
-import AdminLayout from "~/events/admin/ui/shared/AdminLayout.astro";
-import AdminPageHeader from "~/events/admin/ui/shared/AdminPageHeader.astro";
-import { adminPageStyles } from "~/events/admin/ui/shared/styles/admin-styles";
+import AdminCheckinScanner from "~/features/events/admin/ui/checkin/AdminCheckinScanner";
+import AdminEventTitleLoader from "~/features/events/admin/ui/shared/AdminEventTitleLoader.astro";
+import AdminLayout from "~/features/events/admin/ui/shared/AdminLayout.astro";
+import AdminPageHeader from "~/features/events/admin/ui/shared/AdminPageHeader.astro";
+import { adminPageStyles } from "~/features/events/admin/ui/shared/styles/admin-styles";
 import { localized } from "~/generated/client/AdminCheckinScanner";
 import { localized as all } from "~/generated/client/all";
-import { locales, useLocale } from "~/shared/i18n";
-import Panel from "~/shared/ui/Panel.astro";
+import { locales, useLocale } from "~/platform/i18n";
+import Panel from "~/platform/ui/Panel.astro";
 
 export function getStaticPaths(): { params: { locale: string } }[] {
   return locales.map((locale) => ({ params: { locale } }));

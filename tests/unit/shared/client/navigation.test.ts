@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 
-import { safeRedirect } from "../../../../src/shared/client/navigation";
+import { safeRedirect } from "~/platform/client/navigation";
 
 const ORIGIN = "https://example.com";
 const FALLBACK = "/vi/admin/";

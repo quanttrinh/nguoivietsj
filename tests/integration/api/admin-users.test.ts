@@ -525,8 +525,8 @@ async function mountMockedRouter(
   user?: { id: string; role?: string },
 ): Promise<Hono> {
   const actingUser = user ?? { id: "self", role: "admin" };
-  vi.doMock("~/auth/server/auth", () => ({ auth: () => ({ api: apiMock }) }));
-  vi.doMock("~/auth/server/middleware", () => ({
+  vi.doMock("~/features/auth/server/auth", () => ({ auth: () => ({ api: apiMock }) }));
+  vi.doMock("~/features/auth/server/middleware", () => ({
     requireAuth: (ctx: Context, next: Next) => {
       ctx.set("user", actingUser);
       return next();
@@ -535,11 +535,11 @@ async function mountMockedRouter(
   }));
   vi.resetModules();
   try {
-    const { adminUsers } = await import("~/server/routes/admin-users");
+    const { adminUsers } = await import("~/features/auth/server/api/admin-users");
     return new Hono().route("/api/admin/users", adminUsers);
   } finally {
-    vi.doUnmock("~/auth/server/auth");
-    vi.doUnmock("~/auth/server/middleware");
+    vi.doUnmock("~/features/auth/server/auth");
+    vi.doUnmock("~/features/auth/server/middleware");
     vi.resetModules();
   }
 }

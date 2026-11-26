@@ -1,10 +1,10 @@
 ---
 // @boundary astro
-import AdminEventDetail from "~/events/admin/ui/detail/AdminEventDetail";
-import AdminLayout from "~/events/admin/ui/shared/AdminLayout.astro";
+import AdminEventDetail from "~/features/events/admin/ui/detail/AdminEventDetail";
+import AdminLayout from "~/features/events/admin/ui/shared/AdminLayout.astro";
 import { localized } from "~/generated/client/AdminEventDetail";
 import { localized as all } from "~/generated/client/all";
-import { locales, useLocale } from "~/shared/i18n";
+import { locales, useLocale } from "~/platform/i18n";
 
 export function getStaticPaths(): { params: { locale: string } }[] {
   return locales.map((locale) => ({ params: { locale } }));

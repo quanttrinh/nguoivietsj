@@ -1,7 +1,10 @@
 /* oxlint-disable typescript/no-unsafe-type-assertion -- API response bodies are asserted in tests. */
 import { describe, expect, onTestFinished, vi } from "vitest";
 
-import { getEventRepository, getRegistrationRepository } from "../../../src/db/events";
+import {
+  getEventRepository,
+  getRegistrationRepository,
+} from "../../../src/platform/server/db/events";
 import { eventIdBySlug } from "../helpers/events";
 import { test, type ApiHarness } from "./harness";
 

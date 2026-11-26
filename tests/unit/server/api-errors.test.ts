@@ -1,8 +1,8 @@
 import { Hono } from "hono";
 import { describe, expect, test } from "vitest";
 
-import { sharedApiError } from "../../../src/server/helpers/responses/shared-api-error";
-import { eventApiError } from "../../../src/server/routes/events/event-errors";
+import { eventApiError } from "~/features/events/server/api/event-errors";
+import { sharedApiError } from "~/platform/server/api/helpers/responses/shared-api-error";
 
 type AnyErrorHelper = (
   ctx: Parameters<typeof sharedApiError>[0],

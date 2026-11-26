@@ -2,13 +2,13 @@
 // @boundary astro
 import { css } from "styled-system/css";
 import { vstack } from "styled-system/patterns";
-import StatusRequest from "~/events/status/ui/StatusRequest";
+import StatusRequest from "~/features/events/status/ui/StatusRequest";
+import BaseLayout from "~/features/shell/layouts/BaseLayout.astro";
 import { localized as all } from "~/generated/client/all";
 import { localized } from "~/generated/client/StatusRequest";
-import BaseLayout from "~/layouts/BaseLayout.astro";
-import { locales, useLocale } from "~/shared/i18n";
-import Panel from "~/shared/ui/Panel.astro";
-import QuiFormRuntime from "~/shared/ui/QuiFormRuntime.astro";
+import { locales, useLocale } from "~/platform/i18n";
+import Panel from "~/platform/ui/Panel.astro";
+import QuiFormRuntime from "~/platform/ui/QuiFormRuntime.astro";
 
 export function getStaticPaths(): { params: { locale: string } }[] {
   return locales.map((locale) => ({ params: { locale } }));

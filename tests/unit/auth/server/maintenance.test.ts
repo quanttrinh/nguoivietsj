@@ -1,8 +1,8 @@
 import { SQL } from "drizzle-orm";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-import { session, verification } from "../../../../src/db/app/schemas/auth-schema";
-import { emailDeliveries } from "../../../../src/db/app/schemas/email-deliveries";
+import { session, verification } from "../../../../src/platform/server/db/app/schemas/auth-schema";
+import { emailDeliveries } from "../../../../src/platform/server/db/app/schemas/email-deliveries";
 
 interface DeleteStatement {
   table: unknown;
@@ -17,7 +17,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("drizzle-orm/d1", () => ({ drizzle: mocks.drizzle }));
 
-const { runAppMaintenance } = await import("../../../../src/auth/server/maintenance");
+const { runAppMaintenance } = await import("~/features/auth/server/maintenance");
 
 const db = { name: "app-db" };
 

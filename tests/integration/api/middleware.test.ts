@@ -3,6 +3,8 @@
 import { Hono } from "hono";
 import { describe, expect, test as unitTest, vi } from "vitest";
 
+import { authMessage, resolveAuthLocale } from "~/features/auth/server/api/auth";
+import { DEFAULT_LOCALE } from "~/platform/i18n";
 import {
   bodyEmailKey,
   checkRateLimit,
@@ -11,10 +13,9 @@ import {
   emailKey,
   rateLimit,
   type RateLimitSettings,
-} from "../../../src/server/middleware/rate-limit";
-import { requireTurnstile } from "../../../src/server/middleware/turnstle";
-import { authMessage, resolveAuthLocale } from "../../../src/server/routes/auth";
-import { DEFAULT_LOCALE } from "../../../src/shared/i18n";
+} from "~/platform/server/middleware/rate-limit";
+import { requireTurnstile } from "~/platform/server/middleware/turnstile";
+
 import { test } from "./harness";
 
 interface LimiterBinding {
@@ -574,7 +575,7 @@ describe("API locale resolution", () => {
       try {
         const module =
           // oxlint-disable-next-line eslint/no-await-in-loop -- each case loads a freshly mocked module.
-          await import("../../../src/server/routes/auth");
+          await import("~/features/auth/server/api/auth");
 
         expect(module.authMessage(code, "fr")).toBe(expected);
       } finally {

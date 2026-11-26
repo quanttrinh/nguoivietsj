@@ -8,9 +8,9 @@ import {
   processEmailBatch,
   type EmailJob,
   type EmailQueueHandler,
-} from "../../../../../src/server/services/email/queue";
-import { EmailError } from "../../../../../src/server/services/email/types";
-import { serverLogger } from "../../../../../src/shared/server/logger";
+} from "~/platform/server/email/queue";
+import { EmailError } from "~/platform/server/email/types";
+import { serverLogger } from "~/platform/server/logger";
 
 interface TestJob extends EmailJob {
   idempotencyKey: string;

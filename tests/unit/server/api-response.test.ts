@@ -5,7 +5,7 @@ import {
   apiError,
   apiPartial,
   apiSuccess,
-} from "../../../src/server/helpers/responses/api-response";
+} from "~/platform/server/api/helpers/responses/api-response";
 
 const app = new Hono()
   .get("/success", (ctx) => apiSuccess(ctx, { value: 1 }))

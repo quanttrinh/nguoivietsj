@@ -55,15 +55,15 @@ function messagesFor(relative: string, code: string): string[] {
   });
 }
 
-const SERVER = "server/app";
-const CLIENT = "events/admin/ui/catalog/AdminCatalog";
+const SERVER = "platform/app";
+const CLIENT = "features/events/admin/ui/catalog/AdminCatalog";
 
 describe("boundary/scopes", () => {
   describe("valid", () => {
     test("file with a marker and no imports", () => {
       expect(
         messagesFor(
-          "src/shared/utils/placeholder.ts",
+          "src/platform/utils/placeholder.ts",
           "// @boundary shared\nexport const a = 1;\n",
         ),
       ).toEqual([]);
@@ -72,8 +72,8 @@ describe("boundary/scopes", () => {
     test("server file importing shared", () => {
       expect(
         messagesFor(
-          "src/server/placeholder.ts",
-          '// @boundary server\nimport { a } from "~/shared/utils/format";\n',
+          "src/platform/server/placeholder.ts",
+          '// @boundary server\nimport { a } from "~/platform/utils/format";\n',
         ),
       ).toEqual([]);
     });
@@ -81,7 +81,7 @@ describe("boundary/scopes", () => {
     test("client file importing allowed server types", () => {
       expect(
         messagesFor(
-          "src/shared/client/placeholder.ts",
+          "src/platform/client/placeholder.ts",
           '// @boundary client\nimport type { Api } from "~/types/api";\n',
         ),
       ).toEqual([]);
@@ -93,52 +93,52 @@ describe("boundary/scopes", () => {
 
     test("import-exempt file keeps its marker but skips imports", () => {
       expect(
-        messagesFor("src/types/api.d.ts", '// @boundary shared\nimport "~/server/app";\n'),
+        messagesFor("src/types/api.d.ts", '// @boundary shared\nimport "~/platform/app";\n'),
       ).toEqual([]);
     });
   });
 
   describe("invalid", () => {
     test("missing marker", () => {
-      expect(messagesFor("src/shared/utils/placeholder.ts", "export const a = 1;\n")).toEqual([
-        "src/shared/utils/placeholder.ts is missing a valid // @boundary marker",
+      expect(messagesFor("src/platform/utils/placeholder.ts", "export const a = 1;\n")).toEqual([
+        "src/platform/utils/placeholder.ts is missing a valid // @boundary marker",
       ]);
     });
 
     test("client imports server", () => {
       expect(
         messagesFor(
-          "src/shared/client/placeholder.ts",
+          "src/platform/client/placeholder.ts",
           `// @boundary client\nimport { a } from "~/${SERVER}";\n`,
         ),
-      ).toEqual([`src/shared/client/placeholder.ts (client) imports ~/${SERVER} (server)`]);
+      ).toEqual([`src/platform/client/placeholder.ts (client) imports ~/${SERVER} (server)`]);
     });
 
     test("server imports client", () => {
       expect(
         messagesFor(
-          "src/server/placeholder.ts",
+          "src/platform/server/placeholder.ts",
           `// @boundary server\nimport { b } from "~/${CLIENT}";\n`,
         ),
-      ).toEqual([`src/server/placeholder.ts (server) imports ~/${CLIENT} (client)`]);
+      ).toEqual([`src/platform/server/placeholder.ts (server) imports ~/${CLIENT} (client)`]);
     });
 
     test("shared imports client", () => {
       expect(
         messagesFor(
-          "src/shared/utils/placeholder.ts",
+          "src/platform/utils/placeholder.ts",
           `// @boundary shared\nimport { b } from "~/${CLIENT}";\n`,
         ),
-      ).toEqual([`src/shared/utils/placeholder.ts (shared) imports ~/${CLIENT} (client)`]);
+      ).toEqual([`src/platform/utils/placeholder.ts (shared) imports ~/${CLIENT} (client)`]);
     });
 
     test("shared re-exports server", () => {
       expect(
         messagesFor(
-          "src/shared/utils/placeholder.ts",
+          "src/platform/utils/placeholder.ts",
           `// @boundary shared\nexport { a } from "~/${SERVER}";\n`,
         ),
-      ).toEqual([`src/shared/utils/placeholder.ts (shared) imports ~/${SERVER} (server)`]);
+      ).toEqual([`src/platform/utils/placeholder.ts (shared) imports ~/${SERVER} (server)`]);
     });
   });
 });

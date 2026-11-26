@@ -202,10 +202,10 @@ export default defineConfig({
     {
       files: [
         "*.config.ts",
-        "src/backfills/**/*.ts",
+        "src/platform/jobs/backfills/**/*.ts",
         "plugins/**/*.ts",
         "scripts/**/*.ts",
-        "src/tooling/**/*.ts",
+        "src/platform/jobs/tooling/**/*.ts",
         "manage.ts",
         "tests/**/*.ts",
       ],
@@ -269,8 +269,13 @@ export default defineConfig({
     {
       files: [
         "src/**/server/**/*.ts",
-        "src/events/services/**/*.ts",
-        "src/db/**/*.ts",
+        "src/platform/app.ts",
+        "src/platform/server/api/helpers/**/*.ts",
+        "src/platform/api/routes/**/*.ts",
+        "src/platform/server/middleware/**/*.ts",
+        "src/platform/server/email/**/*.ts",
+        "src/features/events/server/services/**/*.ts",
+        "src/platform/server/db/**/*.ts",
         "src/worker.ts",
         "src/middleware.ts",
       ],
@@ -281,7 +286,7 @@ export default defineConfig({
       },
     },
     {
-      files: ["src/db/app/schemas/auth-schema.ts"],
+      files: ["src/platform/server/db/app/schemas/auth-schema.ts"],
       rules: {
         "boundary/scopes": "off",
         "eslint/id-length": "off",

@@ -1,0 +1,102 @@
+---
+// @boundary client
+interface Props {
+  label: string;
+  fallbackUrl: string;
+  loginLabel?: string;
+  loginUrl?: string;
+}
+
+const { label, fallbackUrl, loginLabel, loginUrl }: Props = Astro.props;
+const showLogin = loginLabel !== undefined && loginUrl !== undefined;
+---
+
+{showLogin ? (
+  <qui-button data-login-button data-login-url={loginUrl} variant="filled" size="sm" hidden>
+    {loginLabel}
+  </qui-button>
+) : null}
+<qui-button data-logout-button data-fallback-url={fallbackUrl} variant="filled" size="sm" hidden>
+  {label}
+</qui-button>
+
+<script>
+  import "virtual:qui/register?components=qui-button";
+  import { navigate } from "astro:transitions/client";
+
+  import { getSharedSession, signOut } from "~/features/auth/client/session";
+  import { clientLogger } from "~/platform/client/logger";
+
+  async function logout(button: HTMLQuiButtonElement): Promise<void> {
+    button.disabled = true;
+
+    try {
+      const error = await signOut();
+
+      if (error !== null) {
+        throw new Error(error);
+      }
+
+      await navigate(button.dataset.fallbackUrl ?? "/");
+    } catch (error) {
+      button.disabled = false;
+      clientLogger.error(error);
+    }
+  }
+
+  async function login(button: HTMLQuiButtonElement): Promise<void> {
+    const loginUrl = button.dataset.loginUrl;
+
+    if (loginUrl === undefined) {
+      return;
+    }
+
+    const redirect = `${globalThis.location.pathname}${globalThis.location.search}`;
+
+    await navigate(`${loginUrl}?redirect=${encodeURIComponent(redirect)}`);
+  }
+
+  function initAuthButtons(): void {
+    void (async () => {
+      try {
+        const { data, error } = await getSharedSession();
+
+        if (error) {
+          throw new Error(error.message ?? "Unable to get session");
+        }
+
+        const signedIn = Boolean(data);
+
+        for (const button of document.querySelectorAll<HTMLQuiButtonElement>(
+          "[data-login-button]",
+        )) {
+          button.hidden = signedIn;
+
+          if (!signedIn && button.dataset.ready !== "true") {
+            button.dataset.ready = "true";
+            button.addEventListener("click", () => {
+              void login(button);
+            });
+          }
+        }
+
+        for (const button of document.querySelectorAll<HTMLQuiButtonElement>(
+          "[data-logout-button]",
+        )) {
+          button.hidden = !signedIn;
+
+          if (signedIn && button.dataset.ready !== "true") {
+            button.dataset.ready = "true";
+            button.addEventListener("click", () => {
+              void logout(button);
+            });
+          }
+        }
+      } catch (error) {
+        clientLogger.error(error);
+      }
+    })();
+  }
+
+  document.addEventListener("astro:page-load", initAuthButtons);
+</script>

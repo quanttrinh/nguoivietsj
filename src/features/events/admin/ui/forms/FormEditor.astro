@@ -1,0 +1,17 @@
+---
+// @boundary client
+import { localized } from "~/generated/client/FormEditor";
+import type { Locale as DeclaredLocales } from "~/platform/i18n";
+
+import FormEditorIsland from "./FormEditor.tsx";
+
+interface Props {
+  locale: DeclaredLocales;
+}
+
+const { locale }: Props = Astro.props;
+
+const labels = localized(locale);
+---
+
+<FormEditorIsland client:only="preact" locale={locale} labels={labels} />

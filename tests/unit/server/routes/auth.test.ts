@@ -4,7 +4,8 @@ import {
   authMessage,
   localizeAuthResponse,
   resolveAuthLocale,
-} from "../../../../src/server/routes/auth";
+} from "~/features/auth/server/api/auth";
+
 import enMessages from "../../../../translations/en.json";
 import frMessages from "../../../../translations/fr.json";
 import viMessages from "../../../../translations/vi.json";

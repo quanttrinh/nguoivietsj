@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 
-import { can } from "../../../src/auth/permissions";
+import { can } from "~/features/auth/permissions";
 
 describe("role permissions", () => {
   const cases: {

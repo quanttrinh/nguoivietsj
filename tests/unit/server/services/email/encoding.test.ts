@@ -1,10 +1,6 @@
 import { describe, expect, test } from "vitest";
 
-import {
-  toBase64,
-  toBase64Url,
-  wrapBase64,
-} from "../../../../../src/server/services/email/encoding";
+import { toBase64, toBase64Url, wrapBase64 } from "~/platform/server/email/encoding";
 
 // oxlint-disable-next-line unicorn/number-literal-case -- byte-array fixtures read best in lowercase hex.
 const BYTES = new Uint8Array([0xfb, 0xff, 0x00]);

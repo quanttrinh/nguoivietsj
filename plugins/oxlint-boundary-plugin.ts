@@ -18,6 +18,8 @@ interface RuleOptions {
 interface NodeLike {
   type: string;
   source?: unknown;
+  importKind?: string;
+  exportKind?: string;
 }
 
 interface RuleContext {
@@ -261,6 +263,11 @@ const boundaryRule: Rule = {
     }
 
     const checkImport = (node: NodeLike): void => {
+      // Type-only edges erase at compile time and create no runtime dependency.
+      if (node.importKind === "type" || node.exportKind === "type") {
+        return;
+      }
+
       const specifier = specifierOf(node);
 
       if (specifier === null) {

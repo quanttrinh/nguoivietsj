@@ -1,11 +1,10 @@
 import { describe, expect, test } from "vitest";
 
-import { localized } from "~/generated/client/AdminBreadcrumbs";
-
 import {
   type AdminBreadcrumb,
   resolveAdminBreadcrumbs,
-} from "../../../../../../src/events/admin/ui/shared/breadcrumbs";
+} from "~/features/events/admin/ui/shared/breadcrumbs";
+import { localized } from "~/generated/client/AdminBreadcrumbs";
 
 const labels = localized("en");
 

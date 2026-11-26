@@ -3,7 +3,7 @@ import { fileURLToPath } from "node:url";
 
 import type { AstroIntegration } from "astro";
 
-import { CSP_HEADER_DIRECTIVES } from "../src/shared/constants/csp";
+import { CSP_HEADER_DIRECTIVES } from "../src/platform/constants/csp";
 import { cspHeaderValue } from "./csp-serialization";
 
 /** Header name/value pairs used by both the Worker and the static `_headers` file. */

@@ -1,7 +1,7 @@
 /* oxlint-disable typescript/no-unsafe-type-assertion, eslint/max-lines -- API bodies are asserted in tests and route groups stay together. */
 import { describe, expect, onTestFinished, vi } from "vitest";
 
-import { getRegistrationRepository } from "../../../src/db/events";
+import { getRegistrationRepository } from "../../../src/platform/server/db/events";
 import type { TestDatabase } from "../helpers/d1";
 import { test } from "./harness";
 

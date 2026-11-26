@@ -1,10 +1,10 @@
 import { describe, expect, test, vi } from "vitest";
 
-import type { RegistrationPayload } from "../../../../src/events/registration/ui/form/registration-form-state";
+import type { RegistrationPayload } from "~/features/events/registration/ui/form/registration-form-state";
 import {
   postRegistration,
   type RegistrationErrorMessages,
-} from "../../../../src/events/registration/ui/form/registration-submit";
+} from "~/features/events/registration/ui/form/registration-submit";
 
 function testMessages(): RegistrationErrorMessages {
   return {

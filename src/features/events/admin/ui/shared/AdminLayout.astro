@@ -1,0 +1,57 @@
+---
+// @boundary client
+import { css, cx } from "styled-system/css";
+import BaseLayout from "~/features/shell/layouts/BaseLayout.astro";
+import { localized as breadcrumbLocalized } from "~/generated/client/AdminBreadcrumbs";
+import { localized as all } from "~/generated/client/all";
+import { useLocale } from "~/platform/i18n";
+
+import AdminAuthGate from "./AdminAuthGate.astro";
+import AdminBreadcrumbs from "./AdminBreadcrumbs";
+import AdminLogout from "./AdminLogout.astro";
+import AdminRefresh from "./AdminRefresh.astro";
+
+interface Props {
+  title: string;
+  description: string;
+  noindex?: boolean;
+}
+
+const { title, description, noindex = false }: Props = Astro.props;
+const { locale } = useLocale(Astro.url);
+const content = all(locale);
+const breadcrumbLabels = breadcrumbLocalized(locale);
+
+const styles = {
+  headerActions: css({ display: "flex", alignItems: "center", gap: "3" }),
+  protectedContent: css({
+    "&[hidden]": { display: "none !important" },
+  }),
+};
+---
+
+<BaseLayout title={title} description={description} noindex={noindex}>
+  <Fragment slot="header-actions">
+    <div data-admin-protected hidden class={cx(styles.headerActions, styles.protectedContent)}>
+      <AdminRefresh label={content.engineAdmin.refresh} />
+      <AdminLogout locale={locale} />
+    </div>
+  </Fragment>
+  <div data-admin-protected hidden class={styles.protectedContent}>
+    <AdminBreadcrumbs client:load locale={locale} labels={breadcrumbLabels} />
+  </div>
+  <div data-admin-protected hidden class={styles.protectedContent}>
+    <slot />
+  </div>
+  <AdminAuthGate
+    required={content.engineAdmin.authRequired}
+    message={content.engineAdmin.authRequiredMessage}
+    login={content.engineAdmin.login}
+    loginHref={`/${locale}/login`}
+  />
+  <script>
+    import { getSharedSession } from "~/features/auth/client/session";
+
+    void getSharedSession();
+  </script>
+</BaseLayout>
