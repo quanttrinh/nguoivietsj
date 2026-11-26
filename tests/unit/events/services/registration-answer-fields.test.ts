@@ -16,4 +16,14 @@ describe("answerFieldsFromSchema", () => {
     expect(Object.isFrozen(first)).toBe(true);
     expect(second).toBe(first);
   });
+
+  test("accepts a stable version key so callers can skip JSON.stringify", () => {
+    expect.assert(schema !== undefined, "expected a seeded form schema");
+
+    const byVersion = answerFieldsFromSchema(schema, "evt-1:7");
+    const byVersionAgain = answerFieldsFromSchema({ ...schema }, "evt-1:7");
+
+    expect(byVersion.length).toBeGreaterThan(0);
+    expect(byVersionAgain).toBe(byVersion);
+  });
 });

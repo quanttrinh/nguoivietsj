@@ -16,7 +16,7 @@ import type {
 import { newId } from "~/platform/utils/uuid";
 
 import { databaseSingleton, type EngineOrm } from "./orm";
-import { cached } from "./prepared";
+import { statementCache } from "./prepared";
 import {
   eventAliases,
   eventSlugClaims,
@@ -154,39 +154,42 @@ export interface EventRepository {
   update: (id: string, input: EventUpdateInput) => Promise<EventDetail | null>;
 }
 
+// Static-shape hot reads: one prepare per D1 binding, parameters via placeholders.
+const listStatementCache = statementCache((orm: EngineOrm) =>
+  orm
+    .select({
+      ...getTableColumns(events),
+      total: sql<number>`count(*) over ()`,
+      aliases: sql<string>`(
+        select json_group_array(${eventAliases.alias})
+        from ${eventAliases}
+        where ${eventAliases.eventId} = ${events.id}
+      )`.mapWith(parseAliases),
+      stats: sql<string | null>`(
+        select json_object(
+          'registrationCount', ${registrationStats.registrationCount},
+          'ticketsTotal', ${registrationStats.ticketsTotal}
+        )
+        from ${registrationStats}
+        where ${registrationStats.eventId} = ${events.id}
+      )`.mapWith(parseStats),
+    })
+    .from(events)
+    .orderBy(desc(events.createdAt), desc(events.id))
+    .limit(sql.placeholder("limit"))
+    .offset(sql.placeholder("offset"))
+    .prepare(),
+);
+const countStatementCache = statementCache((orm: EngineOrm) =>
+  orm
+    .select({ total: sql<number>`count(*)`.mapWith(Number) })
+    .from(events)
+    .prepare(),
+);
+
 function createEventRepository(orm: EngineOrm): EventRepository {
-  // Static-shape hot reads: one prepare per D1 binding, parameters via placeholders.
-  const listStatement = cached(orm, "events.list", () =>
-    orm
-      .select({
-        ...getTableColumns(events),
-        total: sql<number>`count(*) over ()`,
-        aliases: sql<string>`(
-          select json_group_array(${eventAliases.alias})
-          from ${eventAliases}
-          where ${eventAliases.eventId} = ${events.id}
-        )`.mapWith(parseAliases),
-        stats: sql<string | null>`(
-          select json_object(
-            'registrationCount', ${registrationStats.registrationCount},
-            'ticketsTotal', ${registrationStats.ticketsTotal}
-          )
-          from ${registrationStats}
-          where ${registrationStats.eventId} = ${events.id}
-        )`.mapWith(parseStats),
-      })
-      .from(events)
-      .orderBy(desc(events.createdAt), desc(events.id))
-      .limit(sql.placeholder("limit"))
-      .offset(sql.placeholder("offset"))
-      .prepare(),
-  );
-  const countStatement = cached(orm, "events.list.count", () =>
-    orm
-      .select({ total: sql<number>`count(*)`.mapWith(Number) })
-      .from(events)
-      .prepare(),
-  );
+  const listStatement = listStatementCache(orm);
+  const countStatement = countStatementCache(orm);
 
   async function findEvent(id: string): Promise<EventWithLimits | null> {
     const row = await orm.query.events.findFirst({

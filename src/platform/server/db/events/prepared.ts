@@ -1,25 +1,23 @@
 // @boundary server
-/* oxlint-disable typescript/no-unsafe-type-assertion -- Cached statements are keyed by literal strings; the cast restores the concrete statement type. */
 import type { EngineOrm } from "./orm";
 
-const caches = new WeakMap<EngineOrm, Map<string, unknown>>();
+/**
+ * Build a prepared statement once per ORM instance and reuse it for the
+ * binding's lifetime. Each call site owns a typed cache, so no cast is needed.
+ */
+export function statementCache<TValue>(
+  build: (orm: EngineOrm) => TValue,
+): (orm: EngineOrm) => TValue {
+  const cache = new WeakMap<EngineOrm, TValue>();
 
-/** Build a value once per ORM instance and key, then reuse it for the binding's lifetime. */
-export function cached<TValue>(orm: EngineOrm, key: string, build: () => TValue): TValue {
-  let cache = caches.get(orm);
+  return (orm) => {
+    let value = cache.get(orm);
 
-  if (cache === undefined) {
-    cache = new Map();
-    caches.set(orm, cache);
-  }
+    if (value === undefined) {
+      value = build(orm);
+      cache.set(orm, value);
+    }
 
-  const existing = cache.get(key);
-
-  if (existing !== undefined) {
-    return existing as TValue;
-  }
-
-  const value = build();
-  cache.set(key, value);
-  return value;
+    return value;
+  };
 }

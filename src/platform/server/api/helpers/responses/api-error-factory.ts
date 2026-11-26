@@ -38,11 +38,7 @@ export function createFeatureApiError<TCatalog extends Catalog>(options: {
 
     return apiError(ctx, plainCode, {
       ...errorOptions,
-      message:
-        errorOptions.message ??
-        // oxlint-disable-next-line typescript/no-unnecessary-condition -- test helpers pass a context without a request.
-        catalog(ctx.req === undefined ? "default" : resolveLocale(ctx.req.raw))[plainCode] ??
-        fallback,
+      message: errorOptions.message ?? catalog(resolveLocale(ctx.req.raw))[plainCode] ?? fallback,
     });
   };
 }

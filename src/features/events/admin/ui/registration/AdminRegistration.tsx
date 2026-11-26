@@ -16,7 +16,6 @@ import {
   RegistrationTicketsCard,
 } from "~/features/events/registration/ui/shared/RegistrationOverviewCards";
 import type { AdminRegistrationLabels } from "~/generated/client/AdminRegistration";
-import type { AllLabels } from "~/generated/client/all";
 import { apiErrorMessage } from "~/platform/client/api/client";
 import { useQuery } from "~/platform/client/query/use-query";
 import type { Locale as DeclaredLocales } from "~/platform/i18n";
@@ -100,7 +99,7 @@ export default function AdminRegistration({ locale, labels }: AdminRegistrationP
         }
         money={money}
         dateTime={dateTime}
-        labels={labels as AllLabels}
+        labels={labels}
         actions={
           <>
             <a
@@ -126,22 +125,22 @@ export default function AdminRegistration({ locale, labels }: AdminRegistrationP
         }
       />
       <div class={styles.grid}>
-        <RegistrationContactsCard contacts={registration.contacts} labels={labels as AllLabels} />
+        <RegistrationContactsCard contacts={registration.contacts} labels={labels} />
         <RegistrationTicketsCard
           tickets={registration.tickets}
           locale={locale}
           defaultLocale={payload.event.defaultLocale}
           money={money}
-          labels={labels as AllLabels}
+          labels={labels}
         />
         <RegistrationAnswersCard
           answers={registration.answers}
           answerFields={answerFields}
           locale={locale}
           defaultLocale={payload.event.defaultLocale}
-          labels={labels as AllLabels}
+          labels={labels}
         />
-        <RegistrationMetadataCard metadata={registration.metadata} labels={labels as AllLabels} />
+        <RegistrationMetadataCard metadata={registration.metadata} labels={labels} />
       </div>
     </div>
   );

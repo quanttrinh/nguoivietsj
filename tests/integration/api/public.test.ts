@@ -1,5 +1,6 @@
 /* oxlint-disable typescript/no-unsafe-type-assertion, typescript/no-unsafe-assignment, typescript/no-unsafe-call, typescript/no-unsafe-member-access, typescript/no-unsafe-return -- API response bodies and proxy test doubles are asserted here. */
 import type { Context } from "hono";
+import { HonoRequest } from "hono/request";
 import { describe, expect, onTestFinished } from "vitest";
 
 import { registrationFailureResponse } from "~/features/events/server/api/registration-errors";
@@ -77,6 +78,7 @@ function responseBody(response: Response): Promise<PublicResponseBody> {
 
 function fakeContext(): Context {
   return {
+    req: new HonoRequest(new Request("https://example.com/api/events")),
     json: (body: unknown, status?: number, headers?: Record<string, string>) =>
       Response.json(body, {
         ...(status === undefined ? {} : { status }),

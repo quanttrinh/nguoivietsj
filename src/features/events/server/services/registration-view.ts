@@ -90,7 +90,13 @@ export async function loadRegistrationView({
       amountDue,
       currency,
       due: { amountMinor: amountDue, currency },
-      answerFields: formVersion === null ? [] : answerFieldsFromSchema(formVersion.schema),
+      answerFields:
+        formVersion === null
+          ? []
+          : answerFieldsFromSchema(
+              formVersion.schema,
+              `${formVersion.eventId}:${formVersion.version}`,
+            ),
       paid: isRegistrationPaid(payment, amountDue),
     },
   };

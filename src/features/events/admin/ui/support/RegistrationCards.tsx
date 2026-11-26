@@ -10,10 +10,27 @@ import {
   ticketSummary,
 } from "~/features/events/domain/presentation";
 import type { CheckinRecord, PaymentRecord } from "~/features/events/domain/types";
-import type { AllLabels } from "~/generated/client/all";
-import type { Locale as DeclaredLocales } from "~/platform/i18n";
+import type { Locale as DeclaredLocales, SubsetLabels } from "~/platform/i18n";
 
 import type { SupportData } from "./AdminSupport";
+
+/** The label subset the support mobile cards read. */
+type SupportCardLabels = SubsetLabels<{
+  engineAdmin: {
+    checkinFilter: true;
+    confirmPayment: true;
+    contact: true;
+    notAvailable: true;
+    ticketsTotal: true;
+    updatePayment: true;
+  };
+  shared: {
+    amountDue: true;
+    created: true;
+    payment: true;
+    qRCode: true;
+  };
+}>;
 
 export default function RegistrationCards({
   data,
@@ -27,7 +44,7 @@ export default function RegistrationCards({
 }: {
   data: SupportData;
   locale: DeclaredLocales;
-  labels: AllLabels;
+  labels: SupportCardLabels;
   money: Intl.NumberFormat;
   dateTime: Intl.DateTimeFormat;
   eventId: string;

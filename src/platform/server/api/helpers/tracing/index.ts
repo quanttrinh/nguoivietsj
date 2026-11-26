@@ -18,20 +18,18 @@ export interface TracingLike {
   startSpan: (name: string) => TracingSpanLike;
 }
 
-interface TracedExecutionContext {
-  tracing?: TracingLike;
+interface TracingContext {
+  readonly executionCtx: {
+    readonly waitUntil: (promise: Promise<unknown>) => void;
+    readonly tracing?: TracingLike;
+  };
 }
 
-function isTracedExecutionContext(value: unknown): value is TracedExecutionContext {
-  return typeof value === "object" && value !== null && "tracing" in value;
-}
-
-export function getTracing(ctx: { readonly executionCtx: unknown }): TracingLike | undefined {
+export function getTracing(ctx: TracingContext): TracingLike | undefined {
   try {
-    const executionCtx = ctx.executionCtx;
-
-    return isTracedExecutionContext(executionCtx) ? executionCtx.tracing : undefined;
+    return ctx.executionCtx.tracing;
   } catch {
+    // Hono's executionCtx getter throws when no Worker context was supplied.
     return undefined;
   }
 }

@@ -31,7 +31,7 @@ import { newId } from "~/platform/utils/uuid";
 
 import { toFormVersion } from "./form-versions";
 import { databaseSingleton, type EngineOrm } from "./orm";
-import { cached } from "./prepared";
+import { statementCache } from "./prepared";
 import {
   checkins,
   eventFormVersions,
@@ -298,50 +298,52 @@ function formVersionCondition(eventId: string, formVersion: number | null): SQL 
   );
 }
 
+// Static-shape hot read: one prepare per D1 binding, parameters via placeholders.
+const summaryStatementCache = statementCache((orm: EngineOrm) =>
+  orm
+    .select({
+      ...getTableColumns(registrations),
+      contacts: sql<string>`(
+        select json_group_array(json_object(
+          'id', ${registrationContacts.id},
+          'kind', ${registrationContacts.kind},
+          'label', ${registrationContacts.label},
+          'isPrimary', ${registrationContacts.isPrimary},
+          'isConfirmationMethod', ${registrationContacts.isConfirmationMethod},
+          'emailAddress', ${registrationContacts.emailAddress},
+          'phoneNumber', ${registrationContacts.phoneNumber},
+          'addressLine1', ${registrationContacts.addressLine1},
+          'addressLine2', ${registrationContacts.addressLine2},
+          'city', ${registrationContacts.city},
+          'province', ${registrationContacts.province},
+          'postalCode', ${registrationContacts.postalCode},
+          'country', ${registrationContacts.country},
+          'valueJson', json(${registrationContacts.valueJson})
+        ))
+        from ${registrationContacts}
+        where ${registrationContacts.registrationId} = ${registrations.id}
+      )`.mapWith(parseContacts),
+      tickets: sql<string>`(
+        select json_group_array(json_object(
+          'ticketTypeKey', ${registrationTickets.ticketTypeKey},
+          'quantity', ${registrationTickets.quantity},
+          'unitPriceMinor', ${registrationTickets.unitPriceMinor},
+          'currency', ${registrationTickets.currency},
+          'labelSnapshotJson', json(${registrationTickets.labelSnapshotJson})
+        ))
+        from ${registrationTickets}
+        where ${registrationTickets.registrationId} = ${registrations.id}
+      )`.mapWith(parseTickets),
+    })
+    .from(registrations)
+    .where(eq(registrations.eventId, sql.placeholder("eventId")))
+    .orderBy(desc(registrations.createdAt), desc(registrations.id))
+    .limit(sql.placeholder("limit"))
+    .prepare(),
+);
+
 function createRegistrationRepository(orm: EngineOrm): RegistrationRepository {
-  // Static-shape hot read: one prepare per D1 binding, parameters via placeholders.
-  const summaryStatement = cached(orm, "registrations.listSummariesByEvent", () =>
-    orm
-      .select({
-        ...getTableColumns(registrations),
-        contacts: sql<string>`(
-          select json_group_array(json_object(
-            'id', ${registrationContacts.id},
-            'kind', ${registrationContacts.kind},
-            'label', ${registrationContacts.label},
-            'isPrimary', ${registrationContacts.isPrimary},
-            'isConfirmationMethod', ${registrationContacts.isConfirmationMethod},
-            'emailAddress', ${registrationContacts.emailAddress},
-            'phoneNumber', ${registrationContacts.phoneNumber},
-            'addressLine1', ${registrationContacts.addressLine1},
-            'addressLine2', ${registrationContacts.addressLine2},
-            'city', ${registrationContacts.city},
-            'province', ${registrationContacts.province},
-            'postalCode', ${registrationContacts.postalCode},
-            'country', ${registrationContacts.country},
-            'valueJson', json(${registrationContacts.valueJson})
-          ))
-          from ${registrationContacts}
-          where ${registrationContacts.registrationId} = ${registrations.id}
-        )`.mapWith(parseContacts),
-        tickets: sql<string>`(
-          select json_group_array(json_object(
-            'ticketTypeKey', ${registrationTickets.ticketTypeKey},
-            'quantity', ${registrationTickets.quantity},
-            'unitPriceMinor', ${registrationTickets.unitPriceMinor},
-            'currency', ${registrationTickets.currency},
-            'labelSnapshotJson', json(${registrationTickets.labelSnapshotJson})
-          ))
-          from ${registrationTickets}
-          where ${registrationTickets.registrationId} = ${registrations.id}
-        )`.mapWith(parseTickets),
-      })
-      .from(registrations)
-      .where(eq(registrations.eventId, sql.placeholder("eventId")))
-      .orderBy(desc(registrations.createdAt), desc(registrations.id))
-      .limit(sql.placeholder("limit"))
-      .prepare(),
-  );
+  const summaryStatement = summaryStatementCache(orm);
 
   return {
     async findCreateContext(eventId, formVersion, identity) {

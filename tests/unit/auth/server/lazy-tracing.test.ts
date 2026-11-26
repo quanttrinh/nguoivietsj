@@ -1,6 +1,7 @@
-/* oxlint-disable typescript/no-unsafe-type-assertion -- the fake execution context is intentionally partial. */
-import { Hono } from "hono";
+import { Hono, type ExecutionContext } from "hono";
 import { beforeEach, describe, expect, test, vi } from "vitest";
+
+import type { TracingLike } from "~/platform/server/api/helpers/tracing";
 
 const mocks = vi.hoisted(() => ({
   routePath: vi.fn<() => string>(() => "/api/auth/get-session"),
@@ -45,13 +46,14 @@ describe("lazy auth tracing attributes", () => {
       setStatus: vi.fn(),
       end: vi.fn(),
     };
-    const executionCtx = {
-      waitUntil: vi.fn(),
-      passThroughOnException: vi.fn(),
+    const executionCtx: ExecutionContext & { tracing: TracingLike } = {
+      waitUntil: vi.fn<() => void>(),
+      passThroughOnException: vi.fn<() => void>(),
+      props: {},
       tracing: { startSpan: vi.fn(() => span) },
     };
 
-    const response = await testApp().request(SESSION_URL, {}, {}, executionCtx as never);
+    const response = await testApp().request(SESSION_URL, {}, {}, executionCtx);
 
     expect(response.status).toBe(200);
     expect(mocks.routePath).toHaveBeenCalledTimes(1);

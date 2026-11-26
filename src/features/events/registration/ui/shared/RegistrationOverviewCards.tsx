@@ -11,10 +11,57 @@ import type {
   RegistrationRecord,
   RegistrationTicketRecord,
 } from "~/features/events/domain/types";
-import type { AllLabels } from "~/generated/client/all";
-import type { Locale as DeclaredLocales } from "~/platform/i18n";
+import type { Locale as DeclaredLocales, SubsetLabels } from "~/platform/i18n";
 
 import { registrationViewStyles as styles } from "./registration-overview-styles";
+
+/**
+ * The label subset the overview cards read. Islands pass their generated
+ * labels directly because they are structural supersets of this shape.
+ */
+export type RegistrationOverviewLabels = SubsetLabels<{
+  engineAdmin: {
+    addressLine1: true;
+    addressLine2: true;
+    answerKey: true;
+    answerValue: true;
+    confirmationContact: true;
+    contactLabel: true;
+    contacts: true;
+    customAnswers: true;
+    formVersion: true;
+    mail: true;
+    metadata: true;
+    noAnswers: true;
+    noContacts: true;
+    paymentConfirmedAt: true;
+    paymentMethod: true;
+    paymentNote: true;
+    phone: true;
+    postalCode: true;
+    primaryContact: true;
+    province: true;
+    quantity: true;
+    registrationId: true;
+    unitPrice: true;
+  };
+  shared: {
+    amountDue: true;
+    amountPaid: true;
+    cash: true;
+    checkedIn: true;
+    city: true;
+    country: true;
+    created: true;
+    eTransfer: true;
+    email: true;
+    event: true;
+    name: true;
+    other: true;
+    payment: true;
+    tickets: true;
+  };
+}>;
 
 interface AnswerFieldView {
   key: string;
@@ -72,7 +119,7 @@ export function RegistrationOverviewCard({
   checkinStatusText: string;
   money: Intl.NumberFormat;
   dateTime: Intl.DateTimeFormat;
-  labels: AllLabels;
+  labels: RegistrationOverviewLabels;
   title?: string;
   actions?: ComponentChildren;
 }): JSX.Element {
@@ -119,7 +166,10 @@ export function RegistrationOverviewCard({
   );
 }
 
-function contactFields(contact: RegistrationContactRecord, labels: AllLabels): [string, string][] {
+function contactFields(
+  contact: RegistrationContactRecord,
+  labels: RegistrationOverviewLabels,
+): [string, string][] {
   const fields: [string, string][] = [];
 
   if (contact.emailAddress !== null) {
@@ -157,7 +207,7 @@ function contactFields(contact: RegistrationContactRecord, labels: AllLabels): [
   return fields;
 }
 
-function contactKindLabel(kind: string, labels: AllLabels) {
+function contactKindLabel(kind: string, labels: RegistrationOverviewLabels) {
   if (kind === CONTACT_KIND.email) {
     return labels.shared.email;
   }
@@ -172,7 +222,7 @@ export function RegistrationContactsCard({
   labels,
 }: {
   contacts: RegistrationContactRecord[];
-  labels: AllLabels;
+  labels: RegistrationOverviewLabels;
 }): JSX.Element {
   return (
     <Card title={labels.engineAdmin.contacts} count={contacts.length}>
@@ -221,7 +271,7 @@ export function RegistrationTicketsCard({
   locale: DeclaredLocales;
   defaultLocale: string;
   money: Intl.NumberFormat;
-  labels: AllLabels;
+  labels: RegistrationOverviewLabels;
 }): JSX.Element {
   return (
     <Card title={labels.shared.tickets} count={tickets.length}>
@@ -267,7 +317,7 @@ export function RegistrationAnswersCard({
   answerFields: readonly AnswerFieldView[];
   locale: DeclaredLocales;
   defaultLocale: string;
-  labels: AllLabels;
+  labels: RegistrationOverviewLabels;
 }): JSX.Element {
   const entries = Object.entries(answers);
   const fields = new Map(answerFields.map((field) => [field.key, field]));
@@ -316,7 +366,7 @@ export function RegistrationMetadataCard({
   labels,
 }: {
   metadata: Record<string, unknown>;
-  labels: AllLabels;
+  labels: RegistrationOverviewLabels;
 }): JSX.Element {
   const entries = Object.entries(metadata);
 

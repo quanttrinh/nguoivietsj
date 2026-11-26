@@ -12,9 +12,8 @@ export interface AnswerFieldView {
 }
 
 /**
- * D1 hands back a fresh object for every read, so object identity is useless as
- * a cache key: the stable JSON serialization of the immutable stored schema is
- * used instead. The cap bounds memory to the small set of published versions.
+ * Form versions are immutable (only status changes), so `eventId:version` is a
+ * stable cache key. The cap bounds memory to the small set of recent versions.
  */
 const ANSWER_FIELDS_CACHE_LIMIT = 128;
 const answerFieldsCache = new Map<string, readonly AnswerFieldView[]>();
@@ -42,8 +41,8 @@ function remember(key: string, fields: AnswerFieldView[]): readonly AnswerFieldV
  */
 export function answerFieldsFromSchema(
   schema: Record<string, unknown>,
+  cacheKey: string = JSON.stringify(schema),
 ): readonly AnswerFieldView[] {
-  const cacheKey = JSON.stringify(schema);
   const cached = answerFieldsCache.get(cacheKey);
 
   if (cached !== undefined) {

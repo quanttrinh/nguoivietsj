@@ -26,7 +26,6 @@ import {
 } from "~/features/events/domain/presentation";
 import type { CheckinRecord, PaymentRecord } from "~/features/events/domain/types";
 import type { AdminSupportLabels } from "~/generated/client/AdminSupport";
-import type { AllLabels } from "~/generated/client/all";
 import { apiClient, apiErrorMessage } from "~/platform/client/api/client";
 import { useQuery } from "~/platform/client/query/use-query";
 import type { Locale as DeclaredLocales } from "~/platform/i18n";
@@ -358,7 +357,7 @@ function RegistrationResults({
       <RegistrationCards
         data={data}
         locale={locale}
-        labels={labels as AllLabels}
+        labels={labels}
         money={money}
         dateTime={dateTime}
         eventId={eventId}

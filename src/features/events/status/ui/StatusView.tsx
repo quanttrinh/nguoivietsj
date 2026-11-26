@@ -14,7 +14,6 @@ import {
   RegistrationOverviewCard,
   RegistrationTicketsCard,
 } from "~/features/events/registration/ui/shared/RegistrationOverviewCards";
-import type { AllLabels } from "~/generated/client/all";
 import type { StatusViewLabels } from "~/generated/client/StatusView";
 import { apiClient, readApiJson } from "~/platform/client/api/client";
 import { useApiQuery } from "~/platform/client/api/use-api-query";
@@ -204,33 +203,27 @@ export default function StatusView({ locale, labels }: StatusViewProps): JSX.Ele
           }
           money={money}
           dateTime={dateTime}
-          labels={labels as AllLabels}
+          labels={labels}
         />
-        <QrPanel
-          payload={data}
-          locale={locale}
-          // oxlint-disable-next-line typescript/no-unnecessary-type-assertion -- shared panel accepts the wider generated catalog.
-          labels={labels as AllLabels}
-          eventUrl={eventUrl}
-        />
+        <QrPanel payload={data} locale={locale} labels={labels} eventUrl={eventUrl} />
       </div>
       <div class={styles.grid}>
-        <RegistrationContactsCard contacts={registration.contacts} labels={labels as AllLabels} />
+        <RegistrationContactsCard contacts={registration.contacts} labels={labels} />
         <RegistrationTicketsCard
           tickets={registration.tickets}
           locale={locale}
           defaultLocale={data.event.defaultLocale}
           money={money}
-          labels={labels as AllLabels}
+          labels={labels}
         />
         <RegistrationAnswersCard
           answers={registration.answers}
           answerFields={answerFields}
           locale={locale}
           defaultLocale={data.event.defaultLocale}
-          labels={labels as AllLabels}
+          labels={labels}
         />
-        <RegistrationMetadataCard metadata={registration.metadata} labels={labels as AllLabels} />
+        <RegistrationMetadataCard metadata={registration.metadata} labels={labels} />
       </div>
     </section>
   );
