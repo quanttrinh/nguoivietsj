@@ -1,10 +1,12 @@
 import { globSync } from "node:fs";
 
+import { precompile } from "@ark/aot/unplugin";
 import { playwright } from "@vitest/browser-playwright";
 import { defineConfig } from "vitest/config";
 
 /** Vite options shared by every project. */
 const shared = {
+  plugins: [precompile.vite()],
   resolve: { tsconfigPaths: true },
 };
 

@@ -1,7 +1,8 @@
 // @boundary client
 import type { JSX } from "preact";
 
-import { FORM_CUSTOM_FIELD_TYPE, customRef } from "~/features/events/domain/form-schema/constants";
+import { FORM_CUSTOM_FIELD_TYPE } from "~/features/events/domain/form-schema/constants";
+import { customRef } from "~/features/events/domain/form-schema/refs";
 import type { ResolvedCustomField } from "~/features/events/domain/form-schema/resolve/resolve";
 import { defaultValueText } from "~/features/events/domain/presentation";
 import { stripNulishProps } from "~/platform/client/strip-props";

@@ -14,11 +14,10 @@ import {
   FORM_SCHEMA_VERSION,
 } from "~/features/events/domain/form-schema/constants";
 import { LIMITS } from "~/features/events/domain/limits";
-import { FORM_KEY_REGEX, FORM_REF_REGEX } from "~/features/events/domain/patterns";
-import { localizedTextSchema, patternStringSchema } from "~/features/events/domain/schemas/common";
+import { localizedTextSchema } from "~/features/events/domain/schemas/common";
 
-const formKeySchema = patternStringSchema(FORM_KEY_REGEX, 64);
-const formRefSchema = patternStringSchema(FORM_REF_REGEX, 160);
+const formKeySchema = type("1 <= string <= 64").matching(/^[a-z][a-zA-Z0-9_]{0,63}$/u);
+const formRefSchema = type("1 <= string <= 160").matching(/^[a-z][a-zA-Z0-9_.]{0,159}$/u);
 const widthSchema = type.valueOf(FORM_FIELD_WIDTH);
 const contactKindSchema = type.valueOf(CONTACT_KIND);
 

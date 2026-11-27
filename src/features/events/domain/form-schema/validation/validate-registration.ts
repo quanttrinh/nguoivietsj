@@ -12,14 +12,15 @@ import {
   FORM_REF,
   FORM_REF_PREFIX,
   REGISTRATION_VALIDATION_CODE,
+} from "~/features/events/domain/form-schema/constants";
+import {
   contactRef,
   customRef,
   groupRef,
   mailFieldName,
   refKey,
   ticketFieldName,
-} from "~/features/events/domain/form-schema/constants";
-import { customFieldAnswersSchema } from "~/features/events/domain/form-schema/schema/custom-field-schema";
+} from "~/features/events/domain/form-schema/refs";
 import {
   computeConditionalState,
   type FormStateConditions,
@@ -32,8 +33,9 @@ import type {
   RegistrationFormIssue,
   RegistrationFormValidationResult,
 } from "~/features/events/domain/form-schema/types";
-import { POSTAL_CODE_REGEX } from "~/features/events/domain/patterns";
 import type { ContactInput, RegistrationInput } from "~/features/events/domain/types";
+
+const canadianPostalCodeSchema = type(/^[A-Z]\d[A-Z] \d[A-Z]\d$/u);
 
 type FormValue = string | number | boolean | null | undefined;
 
@@ -313,7 +315,7 @@ function validateContacts(
       );
     }
 
-    if (!POSTAL_CODE_REGEX.test(mail.postalCode.trim().toUpperCase())) {
+    if (!canadianPostalCodeSchema.allows(mail.postalCode.trim().toUpperCase())) {
       issue(
         issues,
         mailFieldName(FORM_MAIL_SUBFIELD.postalCode),
@@ -392,6 +394,44 @@ function isEmptyCustomValue(field: FormCustomField, value: unknown) {
   return typeof value === "string" && value.trim().length === 0;
 }
 
+/** Validate one submitted answer against its stored field definition. */
+function isValidCustomValue(field: FormCustomField, value: unknown, required: boolean): boolean {
+  switch (field.type) {
+    case FORM_CUSTOM_FIELD_TYPE.text:
+    case FORM_CUSTOM_FIELD_TYPE.textarea: {
+      if (typeof value !== "string") {
+        return false;
+      }
+      const minimum = Math.max(field.minLength ?? 0, required ? 1 : 0);
+
+      return (
+        value.length >= minimum &&
+        (field.maxLength === undefined || value.length <= field.maxLength)
+      );
+    }
+    case FORM_CUSTOM_FIELD_TYPE.number: {
+      if (typeof value !== "number" || !Number.isFinite(value)) {
+        return false;
+      }
+
+      return (
+        (field.min === undefined || value >= field.min) &&
+        (field.max === undefined || value <= field.max)
+      );
+    }
+    case FORM_CUSTOM_FIELD_TYPE.select:
+    case FORM_CUSTOM_FIELD_TYPE.radio: {
+      return (field.options ?? []).some((option) => option.value === value);
+    }
+    case FORM_CUSTOM_FIELD_TYPE.checkbox: {
+      return typeof value === "boolean" && (!required || value);
+    }
+    default: {
+      return false;
+    }
+  }
+}
+
 function customValueIssueCode(
   field: FormCustomField,
   required: boolean,
@@ -444,37 +484,10 @@ function validateCustomFields(
     }
 
     visibleAnswers[field.key] = value;
-  }
 
-  const answersSchema = customFieldAnswersSchema(visibleFields, state.required);
-  const validation = answersSchema(visibleAnswers);
-
-  if (!(validation instanceof type.errors)) {
-    return visibleAnswers;
-  }
-
-  const seen = new Set<string>();
-
-  for (const error of validation) {
-    const key = String(error.path[0] ?? "");
-    const field = maps.customFields.get(key);
-
-    if (field === undefined) {
-      continue;
+    if (!isValidCustomValue(field, value, required)) {
+      issue(issues, customRef(field.key), customValueIssueCode(field, required, value));
     }
-
-    const ref = customRef(key);
-
-    if (seen.has(ref)) {
-      continue;
-    }
-
-    seen.add(ref);
-    issue(
-      issues,
-      ref,
-      customValueIssueCode(field, state.required.get(ref) === true, visibleAnswers[key]),
-    );
   }
 
   return visibleAnswers;

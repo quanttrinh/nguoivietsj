@@ -5,9 +5,9 @@ import { useEffect, useRef, useState } from "preact/hooks";
 
 import { css, cx } from "styled-system/css";
 import { vstack } from "styled-system/patterns";
-import { EMAIL_PATTERN } from "~/features/events/domain/patterns";
 import { STATUS_OTP_CODE_LENGTH } from "~/features/events/domain/status";
 import { statusViewPath } from "~/features/events/domain/status-paths";
+import { EMAIL_PATTERN } from "~/features/events/registration/ui/shared/contact-patterns";
 import type { StatusRequestLabels } from "~/generated/client/StatusRequest";
 import { apiClient, apiErrorMessage, readApiJson } from "~/platform/client/api/client";
 import { focusControl, readControlValue } from "~/platform/client/form-controls";

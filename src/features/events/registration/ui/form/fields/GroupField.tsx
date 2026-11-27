@@ -4,8 +4,8 @@ import type { JSX } from "preact";
 import {
   FORM_GROUP_MODE,
   FORM_GROUP_RENDERER,
-  groupRef,
 } from "~/features/events/domain/form-schema/constants";
+import { groupRef } from "~/features/events/domain/form-schema/refs";
 import type {
   ResolvedGroup,
   ResolvedGroupField,

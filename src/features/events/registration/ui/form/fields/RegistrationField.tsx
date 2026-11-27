@@ -1,7 +1,8 @@
 // @boundary client
 import type { JSX } from "preact";
 
-import { FORM_FIELD_KIND, ticketFieldName } from "~/features/events/domain/form-schema/constants";
+import { FORM_FIELD_KIND } from "~/features/events/domain/form-schema/constants";
+import { ticketFieldName } from "~/features/events/domain/form-schema/refs";
 import type { ResolvedField } from "~/features/events/domain/form-schema/resolve/resolve";
 import type { FormStateVisibility } from "~/features/events/domain/form-schema/state";
 import type { EngineClientConfig } from "~/features/events/domain/form-schema/types";

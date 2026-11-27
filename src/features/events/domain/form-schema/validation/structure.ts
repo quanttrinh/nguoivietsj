@@ -10,10 +10,9 @@ import {
   FORM_REF_PREFIX,
   FORM_VALIDATION_MODE,
   RESERVED_CUSTOM_FIELD_KEY,
-  isContactRef,
-  refKey,
 } from "~/features/events/domain/form-schema/constants";
 import type { FormSchemaIssues } from "~/features/events/domain/form-schema/issues";
+import { isContactRef, refKey } from "~/features/events/domain/form-schema/refs";
 import type {
   FormContactsConfig,
   FormCustomField,

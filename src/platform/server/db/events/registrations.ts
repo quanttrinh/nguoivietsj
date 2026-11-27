@@ -463,7 +463,7 @@ function createRegistrationRepository(orm: EngineOrm): RegistrationRepository {
 
       const ticketStats = new Map<string, number>();
 
-      for (const ticket of registration.tickets) {
+      for (const ticket of registration.tickets as readonly RegistrationTicketRecord[]) {
         // Insert before updating the counters.
         // The capacity triggers see pre-insert totals and later lines see updated totals.
         statements.push(

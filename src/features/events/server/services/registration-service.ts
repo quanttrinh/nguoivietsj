@@ -11,8 +11,7 @@ import { validateRegistrationForm } from "~/features/events/domain/form-schema";
 import { formSchemaSchema } from "~/features/events/domain/form-schema/schema/schema";
 import type { RegistrationFormIssue } from "~/features/events/domain/form-schema/types";
 import { LIMITS } from "~/features/events/domain/limits";
-import { FORM_KEY_REGEX, FULL_NAME_REGEX } from "~/features/events/domain/patterns";
-import { patternStringSchema, unknownRecordSchema } from "~/features/events/domain/schemas/common";
+import { unknownRecordSchema } from "~/features/events/domain/schemas/common";
 import type {
   ContactInput,
   EventDetail,
@@ -86,7 +85,9 @@ function jsonByteLength(value: unknown) {
   return TEXT_ENCODER.encode(JSON.stringify(value)).byteLength;
 }
 
-const fullNameSchema = patternStringSchema(FULL_NAME_REGEX, LIMITS.text.fullName);
+const fullNameSchema = ark(`1 <= string <= ${LIMITS.text.fullName}`).matching(
+  /^\p{L}[\p{L}\p{M}]*(?:[ '’-]+\p{L}[\p{L}\p{M}]*)*$/u,
+);
 const metadataSchema = unknownRecordSchema.narrow(
   (value) => jsonByteLength(value) <= LIMITS.registration.metadataBytes,
 );
@@ -102,9 +103,9 @@ const serviceContactsSchema = serviceContactSchema
       contacts.filter((contact) => contact.isPrimary).length <= 1 &&
       contacts.filter((contact) => contact.isConfirmation).length <= 1,
   );
-const answerKeySchema = patternStringSchema(FORM_KEY_REGEX, LIMITS.text.jsonKey).narrow(
-  (key) => !RESERVED_FIELD_KEYS.has(key),
-);
+const answerKeySchema = ark(`1 <= string <= ${LIMITS.text.jsonKey}`)
+  .matching(/^[a-z][a-zA-Z0-9_]{0,63}$/u)
+  .narrow((key) => !RESERVED_FIELD_KEYS.has(key));
 const answerValuesSchema = ark.Record(
   answerKeySchema,
   ark("unknown").narrow((value) => jsonByteLength(value) <= LIMITS.registration.answerBytes),

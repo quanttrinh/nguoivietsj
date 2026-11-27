@@ -2,6 +2,7 @@
 import { type } from "arktype";
 
 import { LIMITS } from "~/features/events/domain/limits";
+import { urlSchema } from "~/features/events/domain/schemas/common";
 import { SUPPORTED_LOCALES } from "~/platform/i18n";
 
 const noteBulletSchema = type(`1 <= string <= ${LIMITS.event.noteBullet}`);
@@ -19,7 +20,7 @@ const bulletsBlockSchema = type({
 const linkBlockSchema = type({
   type: type("'link'"),
   label: type(`1 <= string <= ${LIMITS.event.noteLinkLabel}`),
-  href: type(`1 <= string.url <= ${LIMITS.event.url}`),
+  href: urlSchema,
 });
 
 export const noteBlockSchema = paragraphBlockSchema.or(bulletsBlockSchema).or(linkBlockSchema);

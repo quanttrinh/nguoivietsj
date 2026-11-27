@@ -1,5 +1,6 @@
 import { fileURLToPath } from "node:url";
 
+import { precompile } from "@ark/aot/unplugin";
 import cloudflare from "@astrojs/cloudflare";
 import preact from "@astrojs/preact";
 import pandacss from "@pandacss/vite";
@@ -60,7 +61,7 @@ export default defineConfig({
     inlineStylesheets: "never",
   },
   vite: {
-    plugins: [pandacss({ transform: true }), Qui.vite({ styles: false })],
+    plugins: [precompile.vite(), pandacss({ transform: true }), Qui.vite({ styles: false })],
     resolve: {
       tsconfigPaths: true,
     },

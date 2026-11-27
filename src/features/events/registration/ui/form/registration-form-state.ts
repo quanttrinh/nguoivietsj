@@ -10,6 +10,8 @@ import {
   FORM_OVERRIDE_KEY,
   FORM_REF,
   FORM_REF_PREFIX,
+} from "~/features/events/domain/form-schema/constants";
+import {
   contactFieldName,
   contactKindFromConditionRef,
   contactRef,
@@ -24,7 +26,7 @@ import {
   mailFieldName,
   refKey,
   ticketFieldName,
-} from "~/features/events/domain/form-schema/constants";
+} from "~/features/events/domain/form-schema/refs";
 import {
   computeConditionalState,
   type FormStateVisibility,

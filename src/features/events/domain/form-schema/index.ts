@@ -9,6 +9,7 @@ export { resolveRegistrationForm } from "~/features/events/domain/form-schema/re
 export { resolvePublishedForm } from "~/features/events/domain/form-schema/resolve/resolve-published-form";
 export { createStarterFormSchema } from "~/features/events/domain/form-schema/schema/starter";
 export * from "~/features/events/domain/form-schema/constants";
+export * from "~/features/events/domain/form-schema/refs";
 
 export type { FormValue } from "~/features/events/domain/form-schema/conditions/evaluate";
 export type {

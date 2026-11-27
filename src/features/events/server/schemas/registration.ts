@@ -2,8 +2,7 @@
 import { type } from "arktype";
 
 import { LIMITS } from "~/features/events/domain/limits";
-import { PHONE_REGEX } from "~/features/events/domain/patterns";
-import { patternStringSchema, unknownRecordSchema } from "~/features/events/domain/schemas/common";
+import { emailSchema, unknownRecordSchema } from "~/features/events/domain/schemas/common";
 import { isRecord } from "~/platform/utils/records";
 
 import { ticketKeySchema } from "./tickets";
@@ -36,7 +35,7 @@ function contactDefaults(value: {
 
 const emailContactPayloadSchema = type(contactPayloadBase, "&", {
   kind: type("'email'"),
-  email: type(`1 <= string.email <= ${LIMITS.text.email}`),
+  email: emailSchema,
 });
 export const emailContactSchema = emailContactPayloadSchema.pipe((value) => ({
   ...value,
@@ -46,7 +45,9 @@ export type EmailContact = typeof emailContactSchema.infer;
 
 const phoneContactPayloadSchema = type(contactPayloadBase, "&", {
   kind: type("'phone'"),
-  phone: patternStringSchema(PHONE_REGEX, LIMITS.text.phone),
+  phone: type(`1 <= string <= ${LIMITS.text.phone}`).matching(
+    /^(?=(?:\D*\d){10,15}\D*$)\+?[\d\s().-]+$/u,
+  ),
 });
 export const phoneContactSchema = phoneContactPayloadSchema.pipe((value) => ({
   ...value,

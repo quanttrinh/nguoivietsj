@@ -80,17 +80,19 @@ const eventAndTicketKeyParamSchema = type({
   key: ticketKeySchema,
 });
 
+const integerStringSchema = type("string.integer.parse");
+
 const pageSchema = type.pipe(
-  type("string.integer.parse"),
+  integerStringSchema,
   type(`number.integer >= 1 & number.integer <= ${LIMITS.list.supportMaxPage}`),
 );
 
 const registrationLimitSchema = type.pipe(
-  type("string.integer.parse"),
+  integerStringSchema,
   type(`number.integer >= 1 & number.integer <= ${LIMITS.list.registrations}`),
 );
 
-const previewVersionSchema = type.pipe(type("string.integer.parse"), type("number.integer >= 1"));
+const previewVersionSchema = type.pipe(integerStringSchema, type("number.integer >= 1"));
 
 const eventsQuerySchema = type({
   "page?": pageSchema,

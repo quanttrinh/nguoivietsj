@@ -8,6 +8,9 @@ import {
   FORM_REF,
   FORM_REF_PREFIX,
   FORM_VALIDATION_MODE,
+} from "~/features/events/domain/form-schema/constants";
+import type { FormSchemaIssues } from "~/features/events/domain/form-schema/issues";
+import {
   customRef,
   groupRef,
   isContactRef,
@@ -18,8 +21,7 @@ import {
   refKey,
   requiresFullWidthRef,
   ticketRef,
-} from "~/features/events/domain/form-schema/constants";
-import type { FormSchemaIssues } from "~/features/events/domain/form-schema/issues";
+} from "~/features/events/domain/form-schema/refs";
 import type {
   FormGroup,
   FormSchema,

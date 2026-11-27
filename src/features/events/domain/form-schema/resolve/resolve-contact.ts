@@ -5,8 +5,8 @@ import {
   FORM_FIELD_KIND,
   FORM_FIELD_WIDTH,
   FORM_REF,
-  contactRef,
 } from "~/features/events/domain/form-schema/constants";
+import { contactRef } from "~/features/events/domain/form-schema/refs";
 import type {
   FormConfirmationMode,
   FormContactKind,

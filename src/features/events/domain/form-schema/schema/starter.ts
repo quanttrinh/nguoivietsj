@@ -5,8 +5,8 @@ import {
   FORM_FIELD_WIDTH,
   FORM_REF,
   FORM_SCHEMA_VERSION,
-  ticketRef,
 } from "~/features/events/domain/form-schema/constants";
+import { ticketRef } from "~/features/events/domain/form-schema/refs";
 import type { FormSchema, LocalizedText } from "~/features/events/domain/form-schema/types";
 
 function text(en: string, fr: string, vi: string): LocalizedText {

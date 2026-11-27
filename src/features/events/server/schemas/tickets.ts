@@ -1,44 +1,41 @@
 // @boundary server
 import { type } from "arktype";
 
-import { TICKET_KEY_REGEX } from "~/features/events/domain/patterns";
 import {
   localizedTextOrNullSchema,
   localizedTextSchema,
-  patternStringSchema,
 } from "~/features/events/domain/schemas/common";
 
-export const ticketKeySchema = patternStringSchema(TICKET_KEY_REGEX, 64);
+export const ticketKeySchema = type("1 <= string <= 64").matching(/^[a-z][a-z0-9_]{0,63}$/u);
 
-const ticketTypePayloadSchema = type({
+const priceMinorSchema = type("0 <= number.integer <= 100000000");
+const quantitySchema = type("0 <= number.integer <= 1000");
+const nullableQuantitySchema = type("0 <= number.integer <= 1000 | null");
+const capacitySchema = type("0 <= number.integer <= 1000000 | null");
+const sortOrderSchema = type("-1000 <= number.integer <= 1000");
+
+export const ticketTypeSchema = type({
   key: ticketKeySchema,
   label: localizedTextSchema,
-  "description?": localizedTextOrNullSchema,
-  priceMinor: type("0 <= number.integer <= 100000000"),
-  minPerRegistration: type("0 <= number.integer <= 1000"),
-  "maxPerRegistration?": type("0 <= number.integer <= 1000 | null"),
-  defaultQuantity: type("0 <= number.integer <= 1000"),
-  "capacity?": type("0 <= number.integer <= 1000000 | null"),
+  description: localizedTextOrNullSchema.default(null),
+  priceMinor: priceMinorSchema,
+  minPerRegistration: quantitySchema,
+  maxPerRegistration: nullableQuantitySchema.default(null),
+  defaultQuantity: quantitySchema,
+  capacity: capacitySchema.default(null),
   active: type("boolean"),
-  sortOrder: type("-1000 <= number.integer <= 1000"),
+  sortOrder: sortOrderSchema,
 });
-
-export const ticketTypeSchema = ticketTypePayloadSchema.pipe((value) => ({
-  ...value,
-  description: value.description ?? null,
-  maxPerRegistration: value.maxPerRegistration ?? null,
-  capacity: value.capacity ?? null,
-}));
 export type TicketTypeInput = typeof ticketTypeSchema.infer;
 
 export const ticketTypeUpdateSchema = type({
   "label?": localizedTextSchema,
   "description?": localizedTextOrNullSchema,
-  "priceMinor?": type("0 <= number.integer <= 100000000"),
-  "minPerRegistration?": type("0 <= number.integer <= 1000"),
-  "maxPerRegistration?": type("0 <= number.integer <= 1000 | null"),
-  "defaultQuantity?": type("0 <= number.integer <= 1000"),
-  "capacity?": type("0 <= number.integer <= 1000000 | null"),
+  "priceMinor?": priceMinorSchema,
+  "minPerRegistration?": quantitySchema,
+  "maxPerRegistration?": nullableQuantitySchema,
+  "defaultQuantity?": quantitySchema,
+  "capacity?": capacitySchema,
   "active?": type("boolean"),
-  "sortOrder?": type("-1000 <= number.integer <= 1000"),
+  "sortOrder?": sortOrderSchema,
 });

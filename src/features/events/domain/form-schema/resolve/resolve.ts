@@ -6,13 +6,15 @@ import {
   FORM_FIELD_WIDTH,
   FORM_REF,
   FORM_REF_PREFIX,
+} from "~/features/events/domain/form-schema/constants";
+import {
   customRef,
   groupRef,
   isCustomRef,
   isGroupRef,
   isSystemTicketRef,
   refKey,
-} from "~/features/events/domain/form-schema/constants";
+} from "~/features/events/domain/form-schema/refs";
 import {
   contactLabel,
   resolveContactConfig,

@@ -1,7 +1,7 @@
 // @boundary client
 import type { JSX } from "preact";
 
-import { ticketFieldName } from "~/features/events/domain/form-schema/constants";
+import { ticketFieldName } from "~/features/events/domain/form-schema/refs";
 import type {
   ResolvedTicketField,
   ResolvedTicketType,

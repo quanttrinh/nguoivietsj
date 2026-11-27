@@ -1,0 +1,20 @@
+{
+  "$schema": "./node_modules/@ark/aot/ark.schema.json",
+  "precompile": {
+    "optimize": "size",
+    "optimizeErrors": "speed",
+    "members": {
+      "assert": true,
+      "description": false,
+      "expression": false,
+      "json": false,
+      "meta": false,
+      "methods": false,
+      "toJSON": false,
+      "toJsonSchema": false,
+      "withContext": false,
+      "~standard": true,
+      "~standard.jsonSchema": false
+    }
+  }
+}

@@ -5,8 +5,8 @@ import type { JSX } from "preact";
 import {
   FORM_DEFAULT_MAIL_COUNTRY,
   FORM_MAIL_SUBFIELD,
-  mailFieldName,
 } from "~/features/events/domain/form-schema/constants";
+import { mailFieldName } from "~/features/events/domain/form-schema/refs";
 import type { ResolvedMailField } from "~/features/events/domain/form-schema/resolve/resolve";
 import {
   MAX_ADDRESS_LINE_LENGTH,

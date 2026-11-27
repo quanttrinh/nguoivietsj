@@ -11,12 +11,6 @@ import {
   FORM_CONDITION_TARGET,
   FORM_CUSTOM_FIELD_TYPE,
   FORM_REF_PREFIX,
-  contactKindFromConditionRef,
-  isContactConditionRef,
-  isCustomRef,
-  isGroupConditionRef,
-  isTicketConditionRef,
-  refKey,
 } from "~/features/events/domain/form-schema/constants";
 import type { FormSchemaIssues } from "~/features/events/domain/form-schema/issues";
 import {
@@ -24,6 +18,14 @@ import {
   MAX_FORM_SCHEMA_CONDITIONS_PER_FIELD,
   MAX_FORM_SCHEMA_CONDITION_DEPTH,
 } from "~/features/events/domain/form-schema/limits";
+import {
+  contactKindFromConditionRef,
+  isContactConditionRef,
+  isCustomRef,
+  isGroupConditionRef,
+  isTicketConditionRef,
+  refKey,
+} from "~/features/events/domain/form-schema/refs";
 import type {
   FormCondition,
   FormContactKind,

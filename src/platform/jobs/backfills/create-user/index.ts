@@ -8,7 +8,7 @@ import { createD1Context } from "#tooling/d1/d1";
 import { toSqlStatement } from "#tooling/d1/sql";
 import { defineBackfill } from "#tooling/manage/backfill";
 import { USER_ROLE, type UserRole } from "~/features/auth/roles";
-import { EMAIL_REGEX } from "~/features/events/domain/patterns";
+import { emailSchema } from "~/features/events/domain/schemas/common";
 import { user } from "~/platform/server/db/app/schemas/auth-schema";
 import { newId } from "~/platform/utils/uuid";
 
@@ -42,7 +42,7 @@ export default defineBackfill({
     });
     const email = positionals[0]?.trim().toLowerCase() ?? "";
 
-    if (!EMAIL_REGEX.test(email)) {
+    if (!emailSchema.allows(email)) {
       throw new Error("Enter a valid email address.");
     }
 

@@ -131,16 +131,6 @@ const FORM_CONTACT_REF = {
 
 export const FORM_CONTACT_REF_VALUES = Object.values(FORM_CONTACT_REF);
 
-const FORM_STATIC_REF_VALUES = [
-  FORM_REF.fullName,
-  FORM_REF.consent,
-  FORM_REF.confirmation,
-  ...FORM_CONTACT_REF_VALUES,
-] as const;
-
-const FORM_CONTACT_REF_SET: ReadonlySet<string> = new Set(FORM_CONTACT_REF_VALUES);
-const FORM_STATIC_REF_SET: ReadonlySet<string> = new Set(FORM_STATIC_REF_VALUES);
-
 export const FORM_OVERRIDE_KEY = {
   fullName: "fullName",
   consent: "consent",
@@ -183,83 +173,3 @@ export const REGISTRATION_VALIDATION_CODE = {
   unknownAnswer: "unknown_answer",
   invalidValue: "invalid_value",
 } as const;
-
-// Reference helpers
-
-export function customRef(key: string): string {
-  return `${FORM_REF_PREFIX.custom}.${key}`;
-}
-
-export function groupRef(key: string): string {
-  return `${FORM_REF_PREFIX.group}.${key}`;
-}
-
-export function ticketRef(key: string): string {
-  return `${FORM_REF_PREFIX.tickets}.${key}`;
-}
-
-export function contactRef(kind: string): string {
-  return `${FORM_REF_PREFIX.contacts}.${kind}`;
-}
-
-export function contactFieldName(kind: string): string {
-  return `${FORM_REF_PREFIX.contact}.${kind}`;
-}
-
-export function mailFieldName(subfield: string): string {
-  return `${contactFieldName(CONTACT_KIND.mail)}.${subfield}`;
-}
-
-export function ticketFieldName(key: string): string {
-  return `${FORM_REF_PREFIX.ticket}.${key}`;
-}
-
-export function refKey(ref: string, prefix: string): string | null {
-  const expected = `${prefix}.`;
-  return ref.startsWith(expected) ? ref.slice(expected.length) : null;
-}
-
-function hasRefPrefix(ref: string, prefix: string) {
-  return refKey(ref, prefix) !== null;
-}
-
-export function isContactRef(ref: string): boolean {
-  return FORM_CONTACT_REF_SET.has(ref);
-}
-
-export function isStaticFormRef(ref: string): boolean {
-  return FORM_STATIC_REF_SET.has(ref);
-}
-
-export function isCustomRef(ref: string): boolean {
-  return hasRefPrefix(ref, FORM_REF_PREFIX.custom);
-}
-
-export function isGroupRef(ref: string): boolean {
-  return hasRefPrefix(ref, FORM_REF_PREFIX.group);
-}
-
-export function isSystemTicketRef(ref: string): boolean {
-  return hasRefPrefix(ref, FORM_REF_PREFIX.tickets);
-}
-
-export function isContactConditionRef(ref: string): boolean {
-  const kind = refKey(ref, FORM_REF_PREFIX.contact);
-  return kind !== null && Object.hasOwn(CONTACT_KIND, kind);
-}
-
-export function contactKindFromConditionRef(ref: string): string | null {
-  return isContactConditionRef(ref) ? refKey(ref, FORM_REF_PREFIX.contact) : null;
-}
-
-export function isGroupConditionRef(ref: string): boolean {
-  return hasRefPrefix(ref, FORM_REF_PREFIX.group);
-}
-
-export function isTicketConditionRef(ref: string): boolean {
-  return hasRefPrefix(ref, FORM_REF_PREFIX.ticket);
-}
-
-export function requiresFullWidthRef(ref: string): boolean {
-  return isGroupRef(ref) || ref === FORM_REF.confirmation || ref === FORM_REF.contactMail;
-}

@@ -21,7 +21,6 @@ import {
   MAX_EVENT_SUMMARY_LENGTH,
   MAX_EVENT_TYPE_LENGTH,
 } from "~/features/events/domain/limits";
-import { EMAIL_PATTERN } from "~/features/events/domain/patterns";
 import type {
   EventDetail,
   EventNoteBlock,
@@ -29,6 +28,7 @@ import type {
   EventStatus,
   TicketTypeInput,
 } from "~/features/events/domain/types";
+import { EMAIL_PATTERN } from "~/features/events/registration/ui/shared/contact-patterns";
 import type { EventFormLabels } from "~/generated/client/EventForm";
 import { apiClient, apiResponseMessage } from "~/platform/client/api/client";
 import { readFormChecked, readFormValue } from "~/platform/client/form-controls";

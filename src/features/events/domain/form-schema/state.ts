@@ -3,7 +3,7 @@ import {
   evaluateCondition,
   type FormValue,
 } from "~/features/events/domain/form-schema/conditions/evaluate";
-import { customRef } from "~/features/events/domain/form-schema/constants";
+import { customRef } from "~/features/events/domain/form-schema/refs";
 import type { FormCondition } from "~/features/events/domain/form-schema/types";
 
 export interface FormStateVisibility {

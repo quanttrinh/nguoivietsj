@@ -5,9 +5,7 @@ import { LIMITS } from "~/features/events/domain/limits";
 import { SUPPORTED_LOCALES } from "~/platform/i18n";
 
 /** A JSON object with bounded keys and arbitrary values. */
-export const unknownRecordSchema = type
-  .Record(type.string, "unknown")
-  .narrow((value) => Object.keys(value).every((key) => key.length <= LIMITS.text.jsonKey));
+export const unknownRecordSchema = type.Record(type(`string <= ${LIMITS.text.jsonKey}`), "unknown");
 
 const localizedTextValueSchema = type(`1 <= string <= ${LIMITS.form.text}`);
 
@@ -27,11 +25,6 @@ export const localizedTextOrNullSchema = localizedTextSchema.or(type("null"));
 export const emailSchema = type(`1 <= string.email <= ${LIMITS.text.email}`);
 
 export const urlSchema = type(`1 <= string.url <= ${LIMITS.event.url}`);
-
-/** Build a bounded string schema that must also match a regular expression. */
-export function patternStringSchema(pattern: RegExp, max: number, min = 1) {
-  return type(`${min} <= string <= ${max}`).narrow((value) => pattern.test(value));
-}
 
 const parsedTimestampSchema = type("string.date.parse").pipe((date) => date.toISOString());
 
