@@ -1,7 +1,7 @@
 // @boundary server
 import { SUPPORTED_CURRENCY_CODES } from "~/features/events/domain/defaults";
 import type { LocalizedText } from "~/features/events/domain/types";
-import { SUPPORTED_LOCALES } from "~/platform/i18n";
+import { isLocale } from "~/platform/i18n";
 
 import type { EventLocation, EventPayments } from "./schemas/event";
 import type { EventNotes } from "./schemas/notes";
@@ -109,7 +109,7 @@ export function validateEventLocale(input: {
   const fields: string[] = [];
 
   if (defaultLocale !== undefined) {
-    if (!SUPPORTED_LOCALES.has(defaultLocale)) {
+    if (!isLocale(defaultLocale)) {
       fields.push("defaultLocale");
     }
 

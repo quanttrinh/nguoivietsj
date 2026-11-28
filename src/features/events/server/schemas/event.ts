@@ -10,8 +10,8 @@ import {
   nullableTimestampSchema,
   urlSchema,
 } from "~/features/events/domain/schemas/common";
-import { localeSchema } from "~/generated/i18n-types";
-import { DEFAULT_LOCALE } from "~/platform/i18n";
+import { localeSchema } from "~/generated/server/locale";
+import { defaultLocale } from "~/platform/i18n";
 
 import { eventNotesSchema } from "./notes";
 import { ticketTypeSchema } from "./tickets";
@@ -93,7 +93,7 @@ const eventCreatePayloadSchema = type({
 
 export const eventCreateSchema = eventCreatePayloadSchema.pipe((value) => ({
   ...value,
-  defaultLocale: value.defaultLocale ?? DEFAULT_LOCALE,
+  defaultLocale: value.defaultLocale ?? defaultLocale,
   aliases: value.aliases ?? [],
   summary: value.summary ?? {},
   startsAt: value.startsAt ?? null,

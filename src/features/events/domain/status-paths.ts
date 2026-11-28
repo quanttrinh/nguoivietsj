@@ -1,11 +1,9 @@
 // @boundary shared
-import { DEFAULT_LOCALE, SUPPORTED_LOCALES } from "~/platform/i18n";
+import { defaultLocale, isLocale } from "~/platform/i18n";
 
 /** Resolve a caller-supplied locale to a supported one, falling back to the default. */
 export function resolveStatusLocale(locale: string | null | undefined): string {
-  return locale !== null && locale !== undefined && SUPPORTED_LOCALES.has(locale)
-    ? locale
-    : DEFAULT_LOCALE;
+  return locale !== null && locale !== undefined && isLocale(locale) ? locale : defaultLocale;
 }
 
 /** Locale-aware path of the registration status view page. */

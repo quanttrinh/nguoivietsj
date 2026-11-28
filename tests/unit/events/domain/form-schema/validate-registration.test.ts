@@ -55,6 +55,12 @@ describe("custom answer validation", () => {
     expect(customIssue(textField, "hello")).toBeUndefined();
   });
 
+  test("reports required for a missing required answer", () => {
+    expect(customIssue({ ...textField, required: true }, undefined)).toBe(
+      REGISTRATION_VALIDATION_CODE.required,
+    );
+  });
+
   test("reports required for an empty required text answer", () => {
     expect(customIssue({ ...textField, required: true }, "")).toBe(
       REGISTRATION_VALIDATION_CODE.required,

@@ -13,25 +13,21 @@ import {
 } from "~/features/events/domain/form-schema/constants";
 import {
   contactFieldName,
-  contactKindFromConditionRef,
   contactRef,
   customRef,
   groupRef,
-  isContactConditionRef,
-  isContactRef,
-  isCustomRef,
-  isGroupConditionRef,
-  isGroupRef,
-  isTicketConditionRef,
   mailFieldName,
-  refKey,
+  parseRef,
   ticketFieldName,
 } from "~/features/events/domain/form-schema/refs";
 import {
   computeConditionalState,
   type FormStateVisibility,
 } from "~/features/events/domain/form-schema/state";
-import type { EngineClientConfig } from "~/features/events/domain/form-schema/types";
+import type {
+  EngineClientConfig,
+  FormCustomFieldType,
+} from "~/features/events/domain/form-schema/types";
 import { REGISTRATION_SOURCE } from "~/features/events/domain/registration";
 import { focusControl, readFormChecked, readFormValue } from "~/platform/client/form-controls";
 
@@ -132,7 +128,13 @@ function readCustomValue(
     return null;
   }
 
-  return field.type === FORM_CUSTOM_FIELD_TYPE.number ? Number(raw) : raw;
+  if (field.type !== FORM_CUSTOM_FIELD_TYPE.number) {
+    return raw;
+  }
+
+  const value = Number(raw);
+
+  return Number.isFinite(value) ? value : null;
 }
 
 export function groupMemberVisible(
@@ -173,44 +175,35 @@ function readConditionValue(
 ): string | number | boolean | null {
   const { config, state, values } = context;
 
-  if (isCustomRef(ref)) {
+  const parsed = parseRef(ref);
+
+  if (parsed.kind === "custom") {
     if (state.visible.get(ref) === false) {
       return null;
     }
 
-    return readCustomValue(values, config, refKey(ref, FORM_REF_PREFIX.custom) ?? "");
+    return readCustomValue(values, config, parsed.key);
   }
 
-  if (isContactConditionRef(ref)) {
-    const kind = contactKindFromConditionRef(ref) ?? "";
-    const systemRef = contactRef(kind);
-
-    if (!groupMemberVisible(systemRef, values, config)) {
+  if (parsed.kind === "contactCondition") {
+    if (!groupMemberVisible(contactRef(parsed.contact), values, config)) {
       return null;
     }
 
-    if (kind === CONTACT_KIND.mail) {
-      return mailHasValue(values);
-    }
-
-    return values.get(ref);
+    return parsed.contact === CONTACT_KIND.mail ? mailHasValue(values) : values.get(ref);
   }
 
-  if (isGroupConditionRef(ref)) {
-    return readGroupValue(values, refKey(ref, FORM_REF_PREFIX.group) ?? "");
+  if (parsed.kind === "group") {
+    return readGroupValue(values, parsed.key);
   }
 
-  if (isTicketConditionRef(ref)) {
-    const key = refKey(ref, FORM_REF_PREFIX.ticket) ?? "";
-    const raw = values.get(ticketFieldName(key));
-    return raw.length === 0 ? 0 : Number(raw);
+  if (parsed.kind === "ticketCondition") {
+    const raw = values.get(ticketFieldName(parsed.key));
+    const quantity = Number(raw);
+    return raw.length === 0 || !Number.isFinite(quantity) ? 0 : quantity;
   }
 
-  if (ref === FORM_REF_PREFIX.consent) {
-    return values.checked(FORM_REF_PREFIX.consent);
-  }
-
-  return null;
+  return parsed.kind === "consentCondition" ? values.checked(FORM_REF_PREFIX.consent) : null;
 }
 
 export function computeState(
@@ -228,12 +221,16 @@ export function computeState(
   });
 }
 
-export function fieldVisible(ref: string, context: RegistrationFieldContext): boolean {
-  if (isCustomRef(ref)) {
+export function fieldVisible(
+  ref: string,
+  context: RegistrationFieldContext,
+  parsed = parseRef(ref),
+): boolean {
+  if (parsed.kind === "custom") {
     return context.state.visible.get(ref) ?? true;
   }
 
-  if (isContactRef(ref)) {
+  if (parsed.kind === "contactField") {
     return groupMemberVisible(ref, context.values, context.config);
   }
 
@@ -253,20 +250,31 @@ export function contactRequired(ref: string, config: EngineClientConfig): boolea
 }
 
 export function fieldRequired(ref: string, context: RegistrationFieldContext): boolean {
-  if (isCustomRef(ref)) {
+  const parsed = parseRef(ref);
+
+  if (parsed.kind === "custom") {
     return context.state.required.get(ref) ?? false;
   }
 
-  if (isContactRef(ref)) {
-    return fieldVisible(ref, context) && contactRequired(ref, context.config);
+  if (parsed.kind === "contactField") {
+    return fieldVisible(ref, context, parsed) && contactRequired(ref, context.config);
   }
 
-  if (isGroupRef(ref)) {
-    const group = groupConfig(context.config, refKey(ref, FORM_REF_PREFIX.group) ?? "");
-    return group?.required ?? false;
+  if (parsed.kind === "group") {
+    return groupConfig(context.config, parsed.key)?.required ?? false;
   }
 
   return false;
+}
+
+function parsedCustomAnswer(type: FormCustomFieldType, raw: string): unknown {
+  if (type !== FORM_CUSTOM_FIELD_TYPE.number) {
+    return raw;
+  }
+
+  const value = Number(raw);
+
+  return Number.isFinite(value) ? value : raw;
 }
 
 export function buildPayload(
@@ -324,7 +332,7 @@ export function buildPayload(
         const raw = values.get(ref);
 
         if (raw.length > 0) {
-          answers[field.key] = field.type === FORM_CUSTOM_FIELD_TYPE.number ? Number(raw) : raw;
+          answers[field.key] = parsedCustomAnswer(field.type, raw);
         }
       }
     }
@@ -350,10 +358,10 @@ export function buildPayload(
 
 /** Focus a server-reported field or group issue without keeping element refs. */
 export function focusRegistrationField(form: HTMLFormElement, ref: string): void {
-  if (isGroupRef(ref)) {
-    const wrapper = form.querySelector<HTMLElement>(
-      `[data-group-key="${refKey(ref, FORM_REF_PREFIX.group) ?? ""}"]`,
-    );
+  const parsed = parseRef(ref);
+
+  if (parsed.kind === "group") {
+    const wrapper = form.querySelector<HTMLElement>(`[data-group-key="${parsed.key}"]`);
 
     focusControl(wrapper?.querySelector<HTMLElement>("qui-radio-group") ?? null);
     return;

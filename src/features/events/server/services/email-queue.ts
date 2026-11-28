@@ -5,7 +5,6 @@ import {
   sendRegistrationReceivedEmail,
   sendStatusOtpEmail,
 } from "~/features/events/server/services/event-email";
-// @boundary server
 import {
   getEventRepository,
   getPaymentRepository,

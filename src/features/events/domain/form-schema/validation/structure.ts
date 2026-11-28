@@ -7,12 +7,11 @@ import {
   FORM_FIELD_WIDTH,
   FORM_GROUP_MODE,
   FORM_GROUP_RENDERER,
-  FORM_REF_PREFIX,
   FORM_VALIDATION_MODE,
   RESERVED_CUSTOM_FIELD_KEY,
 } from "~/features/events/domain/form-schema/constants";
 import type { FormSchemaIssues } from "~/features/events/domain/form-schema/issues";
-import { isContactRef, refKey } from "~/features/events/domain/form-schema/refs";
+import { parseRef } from "~/features/events/domain/form-schema/refs";
 import type {
   FormContactsConfig,
   FormCustomField,
@@ -332,8 +331,9 @@ function validateGroupMembers(
     const existingGroup = membership.get(member);
 
     if (existingGroup === undefined) {
-      const customKey = refKey(member, FORM_REF_PREFIX.custom);
-      const groupable = isContactRef(member) || (customKey !== null && customKeys.has(customKey));
+      const parsed = parseRef(member);
+      const groupable =
+        parsed.kind === "contactField" || (parsed.kind === "custom" && customKeys.has(parsed.key));
 
       if (groupable) {
         membership.set(member, group.key);

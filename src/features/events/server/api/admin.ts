@@ -46,7 +46,7 @@ import {
   validateEventNotes,
   validateTicketTypes,
 } from "~/features/events/server/validation";
-import { SUPPORTED_LOCALES } from "~/platform/i18n";
+import { isLocale } from "~/platform/i18n";
 import { apiSuccess } from "~/platform/server/api/helpers/responses/api-response";
 import { defaultValidationHandler } from "~/platform/server/api/helpers/validation/validation-handler";
 import {
@@ -505,9 +505,7 @@ export const adminEvents = new Hono<HonoEnv>()
 
       const localeParam = query.locale;
       const locale =
-        localeParam !== undefined && SUPPORTED_LOCALES.has(localeParam)
-          ? localeParam
-          : event.defaultLocale;
+        localeParam !== undefined && isLocale(localeParam) ? localeParam : event.defaultLocale;
 
       const form = resolvePublishedForm(event, formVersion, locale);
 

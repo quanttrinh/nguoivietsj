@@ -3,7 +3,9 @@ import type { Context } from "hono";
 
 import { statusPageUrl } from "~/features/events/domain/status-paths";
 import type { RegistrationResult } from "~/features/events/domain/types";
+import { eventMessage } from "~/features/events/server/api/event-errors";
 import { enqueueRegistrationReceivedEmail } from "~/features/events/server/services/email-queue";
+import { LOCALE_VARY } from "~/platform/contracts/headers";
 import { apiSuccess } from "~/platform/server/api/helpers/responses/api-response";
 
 /** Shared 201 response for every registration-creation route. */
@@ -35,7 +37,17 @@ export async function registrationCreatedResponse(
       status: 201,
       ...(emailQueued
         ? {}
-        : { meta: { warnings: [{ code: "event_registration_email_not_queued" }] } }),
+        : {
+            meta: {
+              warnings: [
+                {
+                  code: "event_registration_email_not_queued",
+                  message: eventMessage("event_registration_email_not_queued", input.locale),
+                },
+              ],
+            },
+            headers: LOCALE_VARY,
+          }),
     },
   );
 }

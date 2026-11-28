@@ -76,12 +76,15 @@ export function resolveAdminBreadcrumbs(input: {
     return [{ ...root }, events, { label: event.label, current: true }];
   }
 
-  let label = subpage;
+  const breadcrumbLabels: Record<string, unknown> = labels.breadcrumb;
+
+  let label: string;
   if (subpage === "ticket-type") {
-    const action = rest[3] === "edit" ? "edit" : "new";
-    label = labels.breadcrumb["ticket-type"][action];
-  } else if (subpage in labels.breadcrumb) {
-    label = labels.breadcrumb[subpage as keyof Omit<typeof labels.breadcrumb, "ticket-type">];
+    label = labels.breadcrumb["ticket-type"][rest[3] === "edit" ? "edit" : "new"];
+  } else {
+    const candidate = breadcrumbLabels[subpage];
+
+    label = typeof candidate === "string" ? candidate : subpage;
   }
 
   return [{ ...root }, events, event, { label, current: true }];

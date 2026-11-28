@@ -16,7 +16,7 @@ import {
 } from "~/platform/client/api/client";
 import { focusControl, readFormValue } from "~/platform/client/form-controls";
 import { clientLogger } from "~/platform/client/logger";
-import { DEFAULT_LOCALE, type Locale as DeclaredLocales } from "~/platform/i18n";
+import { defaultLocale, type Locale as DeclaredLocales } from "~/platform/i18n";
 import { noticeStyles } from "~/platform/ui/notice-styles";
 import { dateTimeFormatter } from "~/platform/utils/format";
 import { isUuidV7 } from "~/platform/utils/uuid";
@@ -112,7 +112,7 @@ function extractRegistrationId(value: string) {
 }
 
 function formatDate(value: string) {
-  const locale = document.documentElement.lang || DEFAULT_LOCALE;
+  const locale = document.documentElement.lang || defaultLocale;
   const date = new Date(value);
 
   if (Number.isNaN(date.getTime())) {

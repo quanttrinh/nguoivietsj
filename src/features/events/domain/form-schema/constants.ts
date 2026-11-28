@@ -1,8 +1,6 @@
 // @boundary shared
 /** Shared form-schema enums, references, and registration validation codes. */
 
-import { CONTACT_KIND } from "~/features/events/domain/constants";
-
 /** Current persisted form-schema version. */
 export const FORM_SCHEMA_VERSION = 4;
 
@@ -122,14 +120,6 @@ export const FORM_MAIL_SUBFIELD = {
   postalCode: "postalCode",
   country: "country",
 } as const;
-
-const FORM_CONTACT_REF = {
-  [CONTACT_KIND.email]: FORM_REF.contactEmail,
-  [CONTACT_KIND.phone]: FORM_REF.contactPhone,
-  [CONTACT_KIND.mail]: FORM_REF.contactMail,
-} as const;
-
-export const FORM_CONTACT_REF_VALUES = Object.values(FORM_CONTACT_REF);
 
 export const FORM_OVERRIDE_KEY = {
   fullName: "fullName",

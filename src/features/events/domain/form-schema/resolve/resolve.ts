@@ -5,16 +5,8 @@ import {
   FORM_FIELD_KIND,
   FORM_FIELD_WIDTH,
   FORM_REF,
-  FORM_REF_PREFIX,
 } from "~/features/events/domain/form-schema/constants";
-import {
-  customRef,
-  groupRef,
-  isCustomRef,
-  isGroupRef,
-  isSystemTicketRef,
-  refKey,
-} from "~/features/events/domain/form-schema/refs";
+import { customRef, groupRef, parseRef } from "~/features/events/domain/form-schema/refs";
 import {
   contactLabel,
   resolveContactConfig,
@@ -50,7 +42,7 @@ import type {
   EventPayments,
   EventStatus,
 } from "~/features/events/domain/types";
-import { DEFAULT_LOCALE } from "~/platform/i18n";
+import { defaultLocale } from "~/platform/i18n";
 
 export type {
   ResolvedConfirmation,
@@ -259,8 +251,10 @@ function resolveGroupMember(
     return resolveMailField(contacts, locale);
   }
 
-  if (isCustomRef(ref)) {
-    const field = customFields.get(refKey(ref, FORM_REF_PREFIX.custom) ?? "");
+  const parsed = parseRef(ref);
+
+  if (parsed.kind === "custom") {
+    const field = customFields.get(parsed.key);
 
     if (field !== undefined) {
       return resolveCustomField(field, locale, FORM_FIELD_WIDTH.full);
@@ -364,14 +358,16 @@ function resolveField(
     return resolveMailField(input.schema.contacts, input.locale);
   }
 
-  if (isSystemTicketRef(ref)) {
-    const ticket = tickets.get(refKey(ref, FORM_REF_PREFIX.tickets) ?? "");
+  const parsed = parseRef(ref);
+
+  if (parsed.kind === "ticketField") {
+    const ticket = tickets.get(parsed.key);
 
     return ticket === undefined ? null : { kind: FORM_FIELD_KIND.ticket, ref, width, ticket };
   }
 
-  if (isGroupRef(ref)) {
-    const group = groups.get(refKey(ref, FORM_REF_PREFIX.group) ?? "");
+  if (parsed.kind === "group") {
+    const group = groups.get(parsed.key);
 
     return group === undefined
       ? null
@@ -383,8 +379,8 @@ function resolveField(
         };
   }
 
-  if (isCustomRef(ref)) {
-    const field = customFields.get(refKey(ref, FORM_REF_PREFIX.custom) ?? "");
+  if (parsed.kind === "custom") {
+    const field = customFields.get(parsed.key);
 
     return field === undefined ? null : resolveCustomField(field, input.locale, width);
   }
@@ -543,7 +539,7 @@ export function resolveRegistrationForm(input: ResolveInput): ResolvedRegistrati
       notes:
         input.event.notes[input.locale] ??
         input.event.notes[input.event.defaultLocale] ??
-        input.event.notes[DEFAULT_LOCALE] ??
+        input.event.notes[defaultLocale] ??
         Object.values(input.event.notes)[0] ??
         [],
       registrationOpen: input.event.registrationOpen,

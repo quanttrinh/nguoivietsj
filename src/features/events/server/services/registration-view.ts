@@ -1,6 +1,5 @@
 // @boundary server
 import { isRegistrationPaid } from "~/features/events/domain/payment";
-// @boundary server
 import { registrationAmountDue } from "~/features/events/domain/presentation";
 import type {
   CheckinRecord,
@@ -13,7 +12,6 @@ import {
   answerFieldsFromSchema,
   type AnswerFieldView,
 } from "~/features/events/server/services/registration-answer-fields";
-// @boundary server
 import {
   getCheckinRepository,
   getEventRepository,

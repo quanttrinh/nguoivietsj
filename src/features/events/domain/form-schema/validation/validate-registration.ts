@@ -10,7 +10,6 @@ import {
   FORM_GROUP_RENDERER,
   FORM_MAIL_SUBFIELD,
   FORM_REF,
-  FORM_REF_PREFIX,
   REGISTRATION_VALIDATION_CODE,
 } from "~/features/events/domain/form-schema/constants";
 import {
@@ -18,7 +17,7 @@ import {
   customRef,
   groupRef,
   mailFieldName,
-  refKey,
+  parseRef,
   ticketFieldName,
 } from "~/features/events/domain/form-schema/refs";
 import {
@@ -121,11 +120,12 @@ function memberHasValue(
     return contacts.byKind.has(CONTACT_KIND.mail);
   }
 
-  if (ref.startsWith(`${FORM_REF_PREFIX.custom}.`)) {
-    const key = refKey(ref, FORM_REF_PREFIX.custom) ?? "";
-    const field = maps.customFields.get(key);
+  const parsed = parseRef(ref);
 
-    return field !== undefined && hasCustomValue(field, customValue(input, key));
+  if (parsed.kind === "custom") {
+    const field = maps.customFields.get(parsed.key);
+
+    return field !== undefined && hasCustomValue(field, customValue(input, parsed.key));
   }
 
   return false;
@@ -177,20 +177,21 @@ function readConditionValue(
   maps: FormSchemaMaps,
   state: FormStateVisibility,
 ): FormValue {
-  if (ref.startsWith(`${FORM_REF_PREFIX.custom}.`)) {
+  const parsed = parseRef(ref);
+
+  if (parsed.kind === "custom") {
     if (state.visible.get(ref) === false) {
       return null;
     }
 
-    const key = refKey(ref, FORM_REF_PREFIX.custom) ?? "";
-    const value = customValue(input, key);
+    const value = customValue(input, parsed.key);
     return typeof value === "string" || typeof value === "number" || typeof value === "boolean"
       ? value
       : null;
   }
 
-  if (ref.startsWith(`${FORM_REF_PREFIX.contact}.`)) {
-    const kind = refKey(ref, FORM_REF_PREFIX.contact) ?? "";
+  if (parsed.kind === "contactCondition") {
+    const kind = parsed.contact;
     const systemRef = contactRef(kind);
 
     if (!groupMemberVisible(systemRef, input, contacts, maps)) {
@@ -218,18 +219,16 @@ function readConditionValue(
     return null;
   }
 
-  if (ref.startsWith(`${FORM_REF_PREFIX.group}.`)) {
-    const key = refKey(ref, FORM_REF_PREFIX.group) ?? "";
-    const group = maps.groups.get(key);
+  if (parsed.kind === "group") {
+    const group = maps.groups.get(parsed.key);
     return group === undefined ? null : selectedGroupRef(group, input, contacts, maps);
   }
 
-  if (ref.startsWith(`${FORM_REF_PREFIX.ticket}.`)) {
-    const key = refKey(ref, FORM_REF_PREFIX.ticket) ?? "";
-    return input.tickets.find((ticket) => ticket.key === key)?.quantity ?? 0;
+  if (parsed.kind === "ticketCondition") {
+    return input.tickets.find((ticket) => ticket.key === parsed.key)?.quantity ?? 0;
   }
 
-  if (ref === FORM_REF_PREFIX.consent) {
+  if (parsed.kind === "consentCondition") {
     return input.consent;
   }
 
@@ -472,12 +471,14 @@ function validateCustomFields(
 
   for (const field of visibleFields) {
     const value = input.answers[field.key];
+    const required = state.required.get(customRef(field.key)) === true;
 
     if (value === undefined) {
+      if (required) {
+        issue(issues, customRef(field.key), REGISTRATION_VALIDATION_CODE.required);
+      }
       continue;
     }
-
-    const required = state.required.get(customRef(field.key)) === true;
 
     if (!required && isEmptyCustomValue(field, value)) {
       continue;
@@ -500,8 +501,11 @@ function validateTickets(
 ) {
   const allowed = new Set(
     schema.fields
-      .map((field) => refKey(field.ref, FORM_REF_PREFIX.tickets))
-      .filter((key): key is string => key !== null),
+      .map((field) => parseRef(field.ref))
+      .filter(
+        (parsed): parsed is { kind: "ticketField"; key: string } => parsed.kind === "ticketField",
+      )
+      .map((parsed) => parsed.key),
   );
 
   for (const ticket of input.tickets) {

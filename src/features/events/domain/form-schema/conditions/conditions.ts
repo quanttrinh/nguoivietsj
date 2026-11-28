@@ -10,7 +10,6 @@ import {
   FORM_CONDITION_OPERATOR,
   FORM_CONDITION_TARGET,
   FORM_CUSTOM_FIELD_TYPE,
-  FORM_REF_PREFIX,
 } from "~/features/events/domain/form-schema/constants";
 import type { FormSchemaIssues } from "~/features/events/domain/form-schema/issues";
 import {
@@ -18,14 +17,7 @@ import {
   MAX_FORM_SCHEMA_CONDITIONS_PER_FIELD,
   MAX_FORM_SCHEMA_CONDITION_DEPTH,
 } from "~/features/events/domain/form-schema/limits";
-import {
-  contactKindFromConditionRef,
-  isContactConditionRef,
-  isCustomRef,
-  isGroupConditionRef,
-  isTicketConditionRef,
-  refKey,
-} from "~/features/events/domain/form-schema/refs";
+import { parseRef } from "~/features/events/domain/form-schema/refs";
 import type {
   FormCondition,
   FormContactKind,
@@ -69,8 +61,10 @@ function collectCustomRefs(condition: FormCondition, refs: Set<string>): void {
     return;
   }
 
-  if (isCustomRef(condition.field)) {
-    refs.add(refKey(condition.field, FORM_REF_PREFIX.custom) ?? "");
+  const parsed = parseRef(condition.field);
+
+  if (parsed.kind === "custom") {
+    refs.add(parsed.key);
   }
 }
 
@@ -80,16 +74,17 @@ function resolveTarget(
   context: ConditionContext,
   path: string,
 ): ConditionTarget | null {
-  if (isCustomRef(ref)) {
-    const key = refKey(ref, FORM_REF_PREFIX.custom) ?? "";
-    const field = context.customFields.get(key);
+  const parsed = parseRef(ref);
+
+  if (parsed.kind === "custom") {
+    const field = context.customFields.get(parsed.key);
 
     if (field === undefined) {
       context.issues.error(`${path}.field`, "unknown_condition_ref", `"${ref}" does not exist.`);
       return null;
     }
 
-    if (key === currentFieldKey) {
+    if (parsed.key === currentFieldKey) {
       context.issues.error(
         `${path}.field`,
         "self_referencing_condition",
@@ -101,17 +96,15 @@ function resolveTarget(
     return { kind: FORM_CONDITION_TARGET.custom, field };
   }
 
-  if (isContactConditionRef(ref)) {
+  if (parsed.kind === "contactCondition") {
     return {
       kind: FORM_CONDITION_TARGET.contact,
-      // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- Contact kinds are validated by the form schema.
-      contact: contactKindFromConditionRef(ref) as FormContactKind,
+      contact: parsed.contact,
     };
   }
 
-  if (isGroupConditionRef(ref)) {
-    const key = refKey(ref, FORM_REF_PREFIX.group) ?? "";
-    const group = context.groups.get(key);
+  if (parsed.kind === "group") {
+    const group = context.groups.get(parsed.key);
 
     if (group === undefined) {
       context.issues.error(`${path}.field`, "unknown_condition_ref", `"${ref}" does not exist.`);
@@ -121,10 +114,8 @@ function resolveTarget(
     return { kind: FORM_CONDITION_TARGET.group, group };
   }
 
-  if (isTicketConditionRef(ref)) {
-    const key = refKey(ref, FORM_REF_PREFIX.ticket) ?? "";
-
-    if (!context.activeTicketKeys.has(key)) {
+  if (parsed.kind === "ticketCondition") {
+    if (!context.activeTicketKeys.has(parsed.key)) {
       context.issues.error(
         `${path}.field`,
         "unknown_condition_ref",
@@ -136,7 +127,7 @@ function resolveTarget(
     return { kind: FORM_CONDITION_TARGET.ticket };
   }
 
-  if (ref === FORM_REF_PREFIX.consent) {
+  if (parsed.kind === "consentCondition") {
     return { kind: FORM_CONDITION_TARGET.consent };
   }
 

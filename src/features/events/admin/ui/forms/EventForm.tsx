@@ -34,7 +34,7 @@ import { apiClient, apiResponseMessage } from "~/platform/client/api/client";
 import { readFormChecked, readFormValue } from "~/platform/client/form-controls";
 import { clientLogger } from "~/platform/client/logger";
 import { useQuery } from "~/platform/client/query/use-query";
-import { DEFAULT_LOCALE, locales, type Locale as DeclaredLocales } from "~/platform/i18n";
+import { defaultLocale, locales, type Locale as DeclaredLocales } from "~/platform/i18n";
 
 import { NoteBlockFields } from "./NoteBlockFields";
 import {
@@ -195,7 +195,7 @@ function EventFormBody({
 }) {
   const clone = mode === "clone";
   const source = event;
-  const defaultEventLocale = source?.defaultLocale ?? DEFAULT_LOCALE;
+  const defaultEventLocale = source?.defaultLocale ?? defaultLocale;
   const notes = source?.notes ?? {};
   const formRef = useRef<HTMLFormElement | null>(null);
   const noticeRef = useRef<HTMLDivElement | null>(null);
@@ -326,9 +326,9 @@ function EventFormBody({
     }
 
     const status = selectedEventStatus(value("status"));
-    const defaultLocale = selectedLocale(value("defaultLocale"));
+    const selectedDefaultLocale = selectedLocale(value("defaultLocale"));
 
-    if (status === null || defaultLocale === null) {
+    if (status === null || selectedDefaultLocale === null) {
       setNotice({ message: labels.engineAdmin.invalidPayload, tone: "error" });
       return;
     }
@@ -340,7 +340,7 @@ function EventFormBody({
       eventType: source?.eventType ?? value("eventType"),
       editionYear: source?.editionYear ?? Number(value("editionYear")),
       ticketTypes: mode === "edit" ? (source?.ticketTypes ?? []) : ticketTypes,
-      defaultLocale,
+      defaultLocale: selectedDefaultLocale,
       aliases: aliasValues(value("aliases")),
       title,
       summary,

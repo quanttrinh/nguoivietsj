@@ -3,23 +3,16 @@
 
 import {
   FORM_CONFIRMATION_MODE,
-  FORM_CONTACT_REF_VALUES,
   FORM_FIELD_WIDTH,
   FORM_REF,
-  FORM_REF_PREFIX,
   FORM_VALIDATION_MODE,
 } from "~/features/events/domain/form-schema/constants";
 import type { FormSchemaIssues } from "~/features/events/domain/form-schema/issues";
 import {
+  CONTACT_FIELD_REFS,
   customRef,
   groupRef,
-  isContactRef,
-  isCustomRef,
-  isGroupRef,
-  isStaticFormRef,
-  isSystemTicketRef,
-  refKey,
-  requiresFullWidthRef,
+  parseRef,
   ticketRef,
 } from "~/features/events/domain/form-schema/refs";
 import type {
@@ -63,14 +56,14 @@ function isKnownRef(
   issues: FormSchemaIssues,
   path: string,
 ) {
-  if (isStaticFormRef(ref)) {
+  const parsed = parseRef(ref);
+
+  if (parsed.kind === "static" || parsed.kind === "contactField") {
     return true;
   }
 
-  if (isSystemTicketRef(ref)) {
-    const key = refKey(ref, FORM_REF_PREFIX.tickets) ?? "";
-
-    if (activeTicketKeys.has(key)) {
+  if (parsed.kind === "ticketField") {
+    if (activeTicketKeys.has(parsed.key)) {
       return true;
     }
 
@@ -82,10 +75,8 @@ function isKnownRef(
     return false;
   }
 
-  if (isGroupRef(ref)) {
-    const key = refKey(ref, FORM_REF_PREFIX.group) ?? "";
-
-    if (groupKeys.has(key)) {
+  if (parsed.kind === "group") {
+    if (groupKeys.has(parsed.key)) {
       return true;
     }
 
@@ -93,10 +84,8 @@ function isKnownRef(
     return false;
   }
 
-  if (isCustomRef(ref)) {
-    const key = refKey(ref, FORM_REF_PREFIX.custom) ?? "";
-
-    if (customKeys.has(key)) {
+  if (parsed.kind === "custom") {
+    if (customKeys.has(parsed.key)) {
       return true;
     }
 
@@ -134,8 +123,10 @@ function effectiveRefs(
   const refs = new Set(fieldRefs);
 
   for (const ref of fieldRefs) {
-    if (isGroupRef(ref)) {
-      const group = groupsByKey.get(refKey(ref, FORM_REF_PREFIX.group) ?? "");
+    const parsed = parseRef(ref);
+
+    if (parsed.kind === "group") {
+      const group = groupsByKey.get(parsed.key);
 
       if (group !== undefined) {
         for (const member of group.members) {
@@ -215,7 +206,13 @@ function validateFieldPlacement(
       );
     }
 
-    if (requiresFullWidthRef(field.ref) && field.width !== FORM_FIELD_WIDTH.full) {
+    const parsed = parseRef(field.ref);
+    const requiresFullWidth =
+      parsed.kind === "group" ||
+      field.ref === FORM_REF.confirmation ||
+      field.ref === FORM_REF.contactMail;
+
+    if (requiresFullWidth && field.width !== FORM_FIELD_WIDTH.full) {
       widthIssue(issues, options.mode, `${path}.width`, `"${field.ref}" must use full width.`);
     }
 
@@ -279,7 +276,9 @@ function hasRequiredContact(schema: FormSchema) {
   }
 
   return (schema.groups ?? []).some(
-    (group) => group.required === true && group.members.some((member) => isContactRef(member)),
+    (group) =>
+      group.required === true &&
+      group.members.some((member) => parseRef(member).kind === "contactField"),
   );
 }
 
@@ -344,7 +343,7 @@ function validateRequiredRefs(
     );
   }
 
-  for (const ref of FORM_CONTACT_REF_VALUES) {
+  for (const ref of Object.values(CONTACT_FIELD_REFS)) {
     requirePlaced(
       ref,
       refs,
