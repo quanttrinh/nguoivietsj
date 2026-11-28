@@ -3,9 +3,9 @@ import type { MiddlewareHandler } from "hono";
 import { createMiddleware } from "hono/factory";
 
 import { normalizeEmail } from "~/features/events/server/normalize";
+import { cachedJsonObject } from "~/platform/server/api/helpers/request-body";
 import { rateLimited } from "~/platform/server/api/helpers/responses/common-responses";
 import { serverLogger } from "~/platform/server/logger";
-import { isRecord } from "~/platform/utils/records";
 
 const DEFAULT_RETRY_AFTER_SECONDS = 60;
 
@@ -136,20 +136,14 @@ export function rateLimit(...settings: readonly RateLimitSettings[]): Middleware
 }
 
 /**
- * Read a normalized email key from a JSON body without consuming the request.
+ * Read a normalized email key from the JSON body cached by `cachedJsonObject`.
  *
  * Returns null when the body is not JSON or has no usable email.
  */
 export async function bodyEmailKey(scope: string, request: Request): Promise<string | null> {
-  let body: unknown;
+  const body = await cachedJsonObject(request);
 
-  try {
-    body = await request.clone().json();
-  } catch {
-    return null;
-  }
-
-  if (!isRecord(body) || typeof body.email !== "string") {
+  if (typeof body.email !== "string") {
     return null;
   }
 

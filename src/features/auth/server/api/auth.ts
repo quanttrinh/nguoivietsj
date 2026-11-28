@@ -3,6 +3,8 @@ import { Hono, type Context } from "hono";
 import { routePath } from "hono/route";
 
 import { auth } from "~/features/auth/server/auth";
+import { LOCALE_VARY } from "~/platform/contracts/headers";
+import { cachedJsonObject } from "~/platform/server/api/helpers/request-body";
 import {
   resolveAuthLocale as resolveLocale,
   sharedMessage,
@@ -67,9 +69,8 @@ export async function localizeAuthResponse(
   headers.delete("content-length");
 
   const vary = headers.get("vary");
-  const localeVary = "Accept-Language, X-Locale";
 
-  headers.set("vary", vary === null ? localeVary : `${vary}, ${localeVary}`);
+  headers.set("vary", vary === null ? LOCALE_VARY.vary : `${vary}, ${LOCALE_VARY.vary}`);
 
   return Response.json(
     { ...body, message: authMessage(code, resolveAuthLocale(request)) },
@@ -83,15 +84,6 @@ type AuthApiCall = (input: {
   asResponse: true;
 }) => Promise<Response>;
 
-async function readJsonObject(request: Request): Promise<Record<string, unknown>> {
-  try {
-    const parsed: unknown = await request.json();
-    return isRecord(parsed) ? parsed : {};
-  } catch {
-    return {};
-  }
-}
-
 function asAuthApiCall(endpoint: unknown): AuthApiCall {
   // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- Better Auth's per-endpoint parameter types are stricter than this shared call shape.
   return endpoint as AuthApiCall;
@@ -101,7 +93,7 @@ async function callWithBody(ctx: Context<HonoEnv>, endpoint: AuthApiCall): Promi
   const task = async () =>
     endpoint({
       headers: ctx.req.raw.headers,
-      body: await readJsonObject(ctx.req.raw),
+      body: await cachedJsonObject(ctx.req.raw),
       asResponse: true,
     });
   const tracing = getTracing(ctx);
@@ -164,11 +156,14 @@ export const authRoutes = new Hono<HonoEnv>()
   )
   .post("/sign-out", (ctx) => callWithBody(ctx, asAuthApiCall(auth(ctx.env).api.signOut)))
   .get("/get-session", (ctx) => {
-    const task = () =>
-      auth(ctx.env).api.getSession({
-        headers: ctx.req.raw.headers,
-        asResponse: true,
-      });
+    const task = async () =>
+      localizeAuthResponse(
+        await auth(ctx.env).api.getSession({
+          headers: ctx.req.raw.headers,
+          asResponse: true,
+        }),
+        ctx.req.raw,
+      );
     const tracing = getTracing(ctx);
 
     return tracing === undefined

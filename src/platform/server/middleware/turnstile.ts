@@ -100,8 +100,8 @@ export function requireTurnstile(expectedAction?: string): MiddlewareHandler<Hon
 
     // A token solved for this widget on another hostname must not be reusable
     // here. Cloudflare always returns the hostname on successful verification.
-    const requestHostname = new URL(ctx.req.url).hostname;
-    if (!allowTestKey && result.hostname !== requestHostname) {
+    const requestHostname = URL.parse(ctx.req.url)?.hostname ?? null;
+    if (!allowTestKey && (requestHostname === null || result.hostname !== requestHostname)) {
       return sharedApiError(ctx, "turnstile_failed", { status: 403 });
     }
 

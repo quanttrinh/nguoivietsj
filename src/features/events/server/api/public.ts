@@ -15,7 +15,7 @@ import {
   createRegistration,
   RegistrationFailureError,
 } from "~/features/events/server/services/registration-service";
-import { SUPPORTED_LOCALES } from "~/platform/i18n";
+import { isLocale } from "~/platform/i18n";
 import { apiSuccess } from "~/platform/server/api/helpers/responses/api-response";
 import { notFound, rateLimited } from "~/platform/server/api/helpers/responses/common-responses";
 import { defaultValidationHandler } from "~/platform/server/api/helpers/validation/validation-handler";
@@ -70,7 +70,7 @@ function registrationEmailRateLimit(email: string): RateLimitSettings {
 function metadataLocale(metadata: Record<string, unknown>, fallback: string) {
   const locale = metadata.locale;
 
-  return typeof locale === "string" && SUPPORTED_LOCALES.has(locale) ? locale : fallback;
+  return typeof locale === "string" && isLocale(locale) ? locale : fallback;
 }
 
 /**
@@ -80,11 +80,21 @@ function metadataLocale(metadata: Record<string, unknown>, fallback: string) {
  * and reached D1. Unknown query keys are rejected by the validator above.
  */
 function eventCacheKey(ctx: Context, path: string) {
-  const requestUrl = new URL(ctx.req.url);
-  const key = new URL(path, requestUrl.origin);
+  const requestUrl = URL.parse(ctx.req.url);
+
+  if (requestUrl === null) {
+    throw new Error("eventCacheKey: invalid request URL");
+  }
+
+  const key = URL.parse(path, requestUrl.origin);
+
+  if (key === null) {
+    throw new Error("eventCacheKey: invalid cache URL");
+  }
+
   const locale = requestUrl.searchParams.get("locale");
 
-  if (locale !== null && SUPPORTED_LOCALES.has(locale)) {
+  if (locale !== null && isLocale(locale)) {
     key.searchParams.set("locale", locale);
   }
 
@@ -145,9 +155,7 @@ export const publicEvents = new Hono<HonoEnv>()
 
       const localeParam = ctx.req.valid("query").locale;
       const locale =
-        localeParam !== undefined && SUPPORTED_LOCALES.has(localeParam)
-          ? localeParam
-          : detail.defaultLocale;
+        localeParam !== undefined && isLocale(localeParam) ? localeParam : detail.defaultLocale;
       const formVersion = await getFormVersionRepository(engineDb).findPublished(detail.id);
       const activeTicketTypes = detail.ticketTypes.filter((ticketType) => ticketType.active);
       const form =

@@ -10,9 +10,13 @@ import { isEmailQueue, processEmailBatch } from "~/platform/server/email/queue";
 
 export default {
   fetch(request: Request, env: Env, ctx: ExecutionContext): Response | Promise<Response> {
-    const { pathname } = new URL(request.url);
+    const url = URL.parse(request.url);
 
-    if (pathname === "/api" || pathname.startsWith("/api/")) {
+    if (url === null) {
+      return new Response("Bad Request", { status: 400 });
+    }
+
+    if (url.pathname === "/api" || url.pathname.startsWith("/api/")) {
       return api.fetch(request, env, ctx);
     }
 

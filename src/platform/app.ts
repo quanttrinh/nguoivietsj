@@ -48,10 +48,19 @@ api.use(apiBodyLimit());
 api.use(
   csrf({
     secFetchSite: ["same-origin", "none"],
-    origin: (origin, ctx) =>
-      ctx.req.header("sec-fetch-site") === "cross-site"
-        ? false
-        : origin === new URL(ctx.req.url).origin,
+    origin: (origin, ctx) => {
+      if (ctx.req.header("sec-fetch-site") === "cross-site") {
+        return false;
+      }
+
+      const requestUrl = URL.parse(ctx.req.url);
+
+      if (requestUrl === null) {
+        return false;
+      }
+
+      return origin === requestUrl.origin;
+    },
   }),
 );
 if (isDev) {

@@ -53,7 +53,7 @@ function statusSessionCookieOptions(
     sameSite: "Lax",
     path: "/api/events/status",
     maxAge: Math.min(MAX_COOKIE_MAX_AGE_SECONDS, Math.max(0, Math.floor(maxAge))),
-    secure: new URL(ctx.req.url).protocol === "https:",
+    secure: URL.parse(ctx.req.url)?.protocol !== "http:",
   } as const;
 }
 
