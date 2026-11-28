@@ -6,8 +6,53 @@
       "algorithm": "sha256"
     },
     {
+      "id": "github_release/github.com/DopplerHQ/cli/3.77.1/doppler_3.77.1_linux_arm64.tar.gz",
+      "checksum": "A7F4BE5B30295921DFE1CDC34F905CD017210EC3264A47D46E315AB09CB03E1C",
+      "algorithm": "sha256"
+    },
+    {
+      "id": "github_release/github.com/DopplerHQ/cli/3.77.1/doppler_3.77.1_macOS_amd64.tar.gz",
+      "checksum": "4B43A27EC72E33B7FA187AB4F0BA4005CAFD7FE7B925DE79C4DF696A1F15A8DF",
+      "algorithm": "sha256"
+    },
+    {
+      "id": "github_release/github.com/DopplerHQ/cli/3.77.1/doppler_3.77.1_macOS_arm64.tar.gz",
+      "checksum": "E0033D287811DE122E7A353A4D548F72FF3103B3010147CE80299F28B5313DF2",
+      "algorithm": "sha256"
+    },
+    {
+      "id": "github_release/github.com/opentofu/opentofu/v1.13.9/tofu_1.13.9_darwin_amd64.tar.gz",
+      "checksum": "347E2E5A2CFE2F368829572D308B2E7C1E0486B20A1779090FF06360F7551E4F",
+      "algorithm": "sha256"
+    },
+    {
+      "id": "github_release/github.com/opentofu/opentofu/v1.13.9/tofu_1.13.9_darwin_arm64.tar.gz",
+      "checksum": "496F4C3064B5C3BFF79174B3DAE4FAAF65A66774EB8E2BF074F895412C5F124F",
+      "algorithm": "sha256"
+    },
+    {
       "id": "github_release/github.com/opentofu/opentofu/v1.13.9/tofu_1.13.9_linux_amd64.tar.gz",
       "checksum": "B34B327CC1EF07178207B6F2CD1F5276537D3E5B7BE316500F6DAC50D4C0A857",
+      "algorithm": "sha256"
+    },
+    {
+      "id": "github_release/github.com/opentofu/opentofu/v1.13.9/tofu_1.13.9_linux_arm64.tar.gz",
+      "checksum": "5DC196DDE75B667E4806D358310EC96742774CD0993C54C1237EFEE5644B69B8",
+      "algorithm": "sha256"
+    },
+    {
+      "id": "github_release/github.com/opentofu/opentofu/v1.13.9/tofu_1.13.9_windows_amd64.tar.gz",
+      "checksum": "E0772C2FB51E68B58F8DAD47452AE965478B696CFA4C42054B1DA5B7538DF4EF",
+      "algorithm": "sha256"
+    },
+    {
+      "id": "http/github.com/yarnpkg/zpm/releases/download/v6.0.0-rc.23/yarn-aarch64-apple-darwin.zip",
+      "checksum": "FEBE0214BC6A10EAE10D9497C19DC11EF4886B40C3E39CE1121C8157533C3C62",
+      "algorithm": "sha256"
+    },
+    {
+      "id": "http/github.com/yarnpkg/zpm/releases/download/v6.0.0-rc.23/yarn-aarch64-unknown-linux-musl.zip",
+      "checksum": "30FB95822D40E5A6F60A2DBD4907F6FDA1BC9A076D5050A680A519352828527D",
       "algorithm": "sha256"
     },
     {
@@ -21,8 +66,38 @@
       "algorithm": "sha256"
     },
     {
+      "id": "http/nodejs.org/dist/v26.13.1/node-v26.13.1-darwin-arm64.tar.gz",
+      "checksum": "AEC2514EA1CEB2BA52455E9EC65986F6749A06DD759E5DB2A72E6889668C9735",
+      "algorithm": "sha256"
+    },
+    {
+      "id": "http/nodejs.org/dist/v26.13.1/node-v26.13.1-darwin-x64.tar.gz",
+      "checksum": "82BB96078A24CA50B9C9A38F2379E6BE6D87171FCD400FC14C8934B3BCE96E2F",
+      "algorithm": "sha256"
+    },
+    {
+      "id": "http/nodejs.org/dist/v26.13.1/node-v26.13.1-linux-arm64.tar.gz",
+      "checksum": "80A330B35415382878DF18D41AFBD106EA89BFB3BE0087D6608E289A14C5CC7D",
+      "algorithm": "sha256"
+    },
+    {
       "id": "http/nodejs.org/dist/v26.13.1/node-v26.13.1-linux-x64.tar.gz",
       "checksum": "518674DE2B621728A5E4486F5FB3B7D2900BB3CC4AA97969EDAA463DB99F9778",
+      "algorithm": "sha256"
+    },
+    {
+      "id": "http/nodejs.org/dist/v26.13.1/node-v26.13.1-win-x64.zip",
+      "checksum": "E2EDDA75BFB089654705CF65A13B58933BFD5F57148E8EBDA916F58A2474F1F7",
+      "algorithm": "sha256"
+    },
+    {
+      "id": "http/unofficial-builds.nodejs.org/download/release/v26.13.1/node-v26.13.1-linux-arm64-musl.tar.gz",
+      "checksum": "42684E7F1830EF9EAADD040672CBA41BBAFF9549D834600699F92EE1EE5B1FB1",
+      "algorithm": "sha256"
+    },
+    {
+      "id": "http/unofficial-builds.nodejs.org/download/release/v26.13.1/node-v26.13.1-linux-x64-musl.tar.gz",
+      "checksum": "04BF9ED3E32EA139C9AF52F6DD06879FF6F8880555A0AA1183EF2D156C0E02D3",
       "algorithm": "sha256"
     },
     {

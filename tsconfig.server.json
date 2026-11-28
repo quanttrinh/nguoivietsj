@@ -20,15 +20,8 @@
     "plugins/**/*.ts",
     "scripts/**/*.ts",
     "src/*.ts",
-    "src/features/auth/**/*.ts",
-    "src/features/events/content/**/*.ts",
-    "src/features/events/domain/**/*.ts",
-    "src/features/events/server/**/*.ts",
-    "src/features/events/server/services/**/*.ts",
+    "src/features/**/*.ts",
     "src/generated/**/*.ts",
-    "src/features/shell/home/content/**/*.ts",
-    "src/features/shell/layouts/**/*.ts",
-    "src/features/shell/login/content/**/*.ts",
     "src/platform/**/*.ts"
   ],
   "exclude": ["dist", "src/**/ui/**", "src/platform/client/**", "src/features/auth/client/**"]

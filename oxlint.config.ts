@@ -231,15 +231,6 @@ export default defineConfig({
       },
     },
     {
-      files: ["**/*.content.ts"],
-      rules: {
-        // The boundary marker on a dictionary is i18n scope metadata (client/server),
-        // not a path-scope assertion.
-        "boundary/scopes": "off",
-        "import/no-default-export": "off",
-      },
-    },
-    {
       files: ["src/worker.ts"],
       rules: {
         "import/no-default-export": "off",
@@ -271,13 +262,13 @@ export default defineConfig({
         "src/**/server/**/*.ts",
         "src/platform/app.ts",
         "src/platform/server/api/helpers/**/*.ts",
-        "src/platform/api/routes/**/*.ts",
+        "src/features/*/server/api/**/*.ts",
+        "src/platform/i18n/**/*.ts",
         "src/platform/server/middleware/**/*.ts",
         "src/platform/server/email/**/*.ts",
         "src/features/events/server/services/**/*.ts",
         "src/platform/server/db/**/*.ts",
         "src/worker.ts",
-        "src/middleware.ts",
       ],
       env: { builtin: true, node: true, serviceworker: true },
       rules: {

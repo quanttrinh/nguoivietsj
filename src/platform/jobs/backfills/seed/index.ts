@@ -621,7 +621,7 @@ export async function seedUsersSql(): Promise<string> {
 
 export default defineBackfill({
   description: "Recreate local development fixtures.",
-  usage: "node manage.ts seed --target local",
+  usage: "node --import ./scripts/register-node.ts manage.ts seed --target local",
   run: async (context, args) => {
     if (args.length > 0) {
       throw new Error("seed does not accept arguments.");

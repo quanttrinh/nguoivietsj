@@ -2,7 +2,7 @@
 /**
  * Database management for the NguoiVietSJ event engine.
  *
- * Run `node manage.ts --help` for the command list.
+ * Run `node --import ./scripts/register-node.ts manage.ts --help` for the command list.
  */
 
 import { exit } from "node:process";

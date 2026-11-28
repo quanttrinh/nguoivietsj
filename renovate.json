@@ -29,6 +29,11 @@
       "matchPackageNames": ["node", "nodejs/node", "yarn", "yarnpkg/zpm"]
     },
     {
+      "description": "Keep ArkType and its AOT compiler on the same version.",
+      "groupName": "ArkType",
+      "matchPackageNames": ["arktype", "@ark/aot"]
+    },
+    {
       "description": "Group Astro updates.",
       "groupName": "Astro",
       "matchPackageNames": ["/^astro$/", "/^@astrojs\\//"]

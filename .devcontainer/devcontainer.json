@@ -28,7 +28,7 @@
       "description": "Optional Doppler service token for web/dev_personal. The host Doppler login is used when this is not set."
     }
   },
-  "postCreateCommand": "export PATH=\"$HOME/.local/share/aquaproj-aqua/bin:$PATH\" && (cd aqua && aqua policy allow aqua-policy.yaml && aqua i) && doppler run -- yarn install --immutable && yarn astro telemetry disable && doppler run -- node manage.ts migrate --target local && doppler run -- node manage.ts seed",
+  "postCreateCommand": "export PATH=\"$HOME/.local/share/aquaproj-aqua/bin:$PATH\" && (cd aqua && aqua policy allow aqua-policy.yaml && aqua i) && doppler run -- yarn install --immutable && yarn astro telemetry disable && doppler run -- node --import ./scripts/register-node.ts manage.ts migrate --target local && doppler run -- node --import ./scripts/register-node.ts manage.ts seed",
   "forwardPorts": [
     4321
   ],

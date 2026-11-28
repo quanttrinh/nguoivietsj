@@ -10,10 +10,10 @@
 
 # Installed dependencies and generated build output
 node_modules/
+.yarn/cache/
 dist/
 .astro/
 .wrangler/
-.intlayer/
 styled-system/
 *.tsbuildinfo
 
@@ -30,7 +30,7 @@ __traces__/
 .env
 .env.*
 .dev.vars*
-wrangler.generated.json
+wrangler.deploy.json
 
 # Infrastructure state and local backups
 .terraform/

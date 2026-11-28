@@ -8,7 +8,7 @@ import { USER_ROLE } from "~/features/auth/roles";
 
 /**
  * Better Auth plugins. `sendVerificationOTP` needs Worker bindings, so
- * `src/auth/server/auth.ts` supplies it at runtime; the CLI only needs the schema.
+ * `src/features/auth/server/auth.ts` supplies it at runtime; the CLI only needs the schema.
  */
 export function authPlugins(
   sendVerificationOTP?: EmailOTPOptions["sendVerificationOTP"],
@@ -37,7 +37,7 @@ export function authPlugins(
  * Environment-independent Better Auth configuration.
  *
  * Runtime bindings, secrets, and the database adapter are added in
- * `src/auth/server/auth.ts`. Keeping this object env-free lets the Better Auth CLI
+ * `src/features/auth/server/auth.ts`. Keeping this object env-free lets the Better Auth CLI
  * reuse the same plugins and role definitions when generating the schema.
  */
 export const baseAuthConfig = {

@@ -34,12 +34,22 @@ jobs:
             playwright-${{ runner.os }}-
       - name: Install Playwright Chromium
         run: yarn playwright install --with-deps chromium
+      - name: Generated drift
+        run: |
+          yarn codegen
+          git diff --exit-code -- src/generated
+          test -z "$(git status --porcelain --untracked-files=all -- src/generated)"
+      - name: Build
+        env:
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_READ_TOKEN }}
+        run: doppler run -- yarn astro build
       - name: Schema drift
         run: |
           yarn auth:schema
           yarn db:migrations:app
           yarn db:migrations:events
           git diff --exit-code -- drizzle
+          test -z "$(git status --porcelain --untracked-files=all -- drizzle)"
           git diff --exit-code -- src/platform/server/db/app/schemas/auth-schema.ts
           yarn drizzle-kit check --config=drizzle.events.config.ts
           yarn drizzle-kit check --config=drizzle.app.config.ts

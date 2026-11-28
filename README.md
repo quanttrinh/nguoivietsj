@@ -23,19 +23,20 @@ Seeded local accounts: `admin@example.com`, `staff@example.com`. Sign in by
 requesting a one-time code sent to your email. Event list:
 `http://localhost:4321/en/events/`.
 
-`yarn install` generates Panda CSS and Wrangler types; `doppler run -- yarn install`
-also supplies the GitHub Packages token for the private Qui packages.
+`yarn install` generates Panda CSS, Wrangler types, and the i18n modules from
+`plugins/i18n.ts`; `doppler run -- yarn install` also supplies the GitHub Packages
+token for the private Qui packages.
 
 ## Common commands
 
-| Command                            | Purpose                              |
-| ---------------------------------- | ------------------------------------ |
-| `yarn dev`                         | Local dev server (Astro via Doppler) |
-| `yarn check`                       | Astro/TypeScript diagnostics         |
-| `yarn lint` / `yarn fmt:check`     | Lint / format check                  |
-| `yarn test`                        | Unit, integration, and browser tests |
-| `yarn db:migrate` / `yarn db:seed` | Local database setup                 |
-| `node manage.ts list`              | Operational backfills                |
+| Command                                                   | Purpose                              |
+| --------------------------------------------------------- | ------------------------------------ |
+| `yarn dev`                                                | Local dev server (Astro via Doppler) |
+| `yarn check`                                              | Astro/TypeScript diagnostics         |
+| `yarn lint` / `yarn fmt:check`                            | Lint / format check                  |
+| `yarn test`                                               | Unit, integration, and browser tests |
+| `yarn db:migrate` / `yarn db:seed`                        | Local database setup                 |
+| `node --import ./scripts/register-node.ts manage.ts list` | Operational backfills                |
 
 Mailtrap email templates are managed by the [Mailtrap OpenTofu root](./infra/mailtrap/README.md)
 from `infra/mailtrap/templates/`; do not edit them in the Mailtrap UI.

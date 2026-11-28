@@ -36,7 +36,7 @@ runs:
       if: inputs.install-dependencies == 'true'
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
       with:
-        path: .yarn/cache
+        path: ~/.yarn/zpm/cache
         key: yarn-packages-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('yarn.lock') }}
         restore-keys: |
           yarn-packages-${{ runner.os }}-${{ runner.arch }}-

@@ -88,7 +88,8 @@ async function check(target: TargetName, database: string | undefined) {
 
 export default defineBackfill({
   description: "Verify local/remote tables and columns match the Drizzle schema.",
-  usage: "node manage.ts check --target local -- --database all",
+  usage:
+    "node --import ./scripts/register-node.ts manage.ts check --target local -- --database all",
   run: async (context, args) => {
     const { values } = parseArgs({
       args,
