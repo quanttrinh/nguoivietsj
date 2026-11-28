@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, expect } from "vitest";
 
-import { isRecord } from "../../../../src/shared/utils/records";
+import { isRecord } from "~/platform/utils/records";
+
 import { createApiHarness, type ApiHarness } from "../harness";
 import {
   apiJsonBody,

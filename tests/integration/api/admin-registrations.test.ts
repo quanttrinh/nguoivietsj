@@ -1,7 +1,7 @@
 /* oxlint-disable typescript/no-unsafe-type-assertion, eslint/max-lines -- API bodies are asserted in tests and route groups stay together. */
 import { describe, expect, onTestFinished, vi } from "vitest";
 
-import { getRegistrationRepository } from "../../../src/db/events";
+import { getRegistrationRepository } from "../../../src/platform/server/db/events";
 import type { TestDatabase } from "../helpers/d1";
 import { test } from "./harness";
 
@@ -158,7 +158,6 @@ function configureMail(api: { env: Record<string, unknown> }) {
 
 test.beforeAll(async ({ api }) => {
   await api.signIn("admin@example.com");
-  await api.enableTwoFactor("admin@example.com");
 });
 
 describe("admin registration list API", () => {
@@ -289,6 +288,31 @@ describe("admin manual registration API", () => {
 
     expect(response.status).toBe(400);
     expect(body.error).toMatchObject({ code: "event_invalid_payload", fields });
+  });
+
+  // The route validator runs manualRegistrationSchema once; the service keeps
+  // only the narrower D1 byte-length checks and their original error code.
+  test.for([
+    {
+      label: "oversized metadata",
+      overrides: { metadata: { blob: "x".repeat(17 * 1024) } },
+      field: "metadata",
+    },
+    {
+      label: "oversized answers",
+      overrides: { formVersion: 1, answers: { company: "x".repeat(5 * 1024) } },
+      field: "answers",
+    },
+  ])("rejects a manual registration with $label", async ({ overrides, field }, { api }) => {
+    const { id: eventId } = await seededEvent(api.db, "summer-picnic-2027");
+    const response = await api.request(
+      `/api/admin/events/${eventId}/registrations/manual`,
+      postJson(manualBody("Oversize Payload", `${field}-oversize@example.com`, overrides)),
+    );
+    const body = await failure(response);
+
+    expect(response.status).toBe(400);
+    expect(body.error).toMatchObject({ code: "event_invalid_payload", fields: [field] });
   });
 
   test("rejects two mail contacts with an invalid-payload error", async ({ api }) => {

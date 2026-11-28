@@ -1,9 +1,34 @@
 packages:
+  # Yarn 6 RC publishes no x86_64-darwin asset; Intel macOS is unsupported upstream.
+  - type: http
+    repo_owner: yarnpkg
+    repo_name: zpm
+    description: Yarn 6 package manager (self-managed yarn-bin)
+    supported_envs:
+      - linux/amd64
+      - linux/arm64
+      - darwin/arm64
+    url: https://github.com/yarnpkg/zpm/releases/download/v{{.Version}}/yarn-x86_64-unknown-linux-musl.zip
+    format: zip
+    files:
+      - name: yarn
+        src: yarn-bin
+    overrides:
+      - goos: linux
+        goarch: arm64
+        url: https://github.com/yarnpkg/zpm/releases/download/v{{.Version}}/yarn-aarch64-unknown-linux-musl.zip
+      - goos: darwin
+        goarch: arm64
+        url: https://github.com/yarnpkg/zpm/releases/download/v{{.Version}}/yarn-aarch64-apple-darwin.zip
   - type: github_release
     repo_owner: DopplerHQ
     repo_name: cli
     description: Doppler CLI
     version_constraint: "false"
+    overrides:
+      - goos: darwin
+        replacements:
+          darwin: macOS
     version_overrides:
       - version_constraint: "true"
         asset: doppler_{{.Version}}_{{.OS}}_{{.Arch}}.tar.gz

@@ -4,13 +4,14 @@ import { createHash } from "node:crypto";
 import type { ExecutionContext } from "@cloudflare/workers-types";
 import { describe, expect, vi } from "vitest";
 
-import { getRegistrationStatusRepository } from "../../../src/db/events";
 import {
   STATUS_OTP_MAX_ATTEMPTS,
   STATUS_OTP_TOKEN_TTL_SECONDS,
-} from "../../../src/events/domain/status";
-import { issueStatusOtp } from "../../../src/events/services/status";
-import { api as app } from "../../../src/server/app";
+} from "~/features/events/domain/status";
+import { issueStatusOtp } from "~/features/events/server/services/status";
+import { api as app } from "~/platform/app";
+
+import { getRegistrationStatusRepository } from "../../../src/platform/server/db/events";
 import type { TestDatabase } from "../helpers/d1";
 import { statusSessionCookie, statusSessionSetCookie } from "../helpers/status-session";
 import { test, type ApiHarness } from "./harness";

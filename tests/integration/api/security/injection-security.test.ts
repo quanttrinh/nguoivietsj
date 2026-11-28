@@ -138,7 +138,6 @@ function manualRegistrationBody(fullName: string, email: string): Record<string,
 
 test.beforeAll(async ({ api }) => {
   await api.signIn("admin@example.com");
-  await api.enableTwoFactor("admin@example.com");
 });
 
 describe("SQL injection through query parameters and identifiers", () => {

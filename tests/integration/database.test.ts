@@ -1,12 +1,13 @@
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 
-import { APP_TABLES, EVENT_TABLES } from "../../src/backfills/check/schema-tables";
+import { APP_TABLES, EVENT_TABLES } from "~/platform/jobs/backfills/check/schema-tables";
+
 import {
   COLUMNS_SQL,
   compareColumns,
   expectedColumns,
   parseColumns,
-} from "../../src/db/schema-parity";
+} from "../../src/platform/server/db/schema-parity";
 import { startDatabase, type TestDatabase } from "./helpers/d1";
 
 let db: TestDatabase;
@@ -42,14 +43,6 @@ describe("seed data", () => {
   test("seeds the local staff accounts", async () => {
     const row = await db.app
       .prepare("SELECT COUNT(*) AS count FROM user")
-      .first<{ count: number }>();
-
-    expect(row?.count).toBe(2);
-  });
-
-  test("local staff accounts do not require two-factor enrollment", async () => {
-    const row = await db.app
-      .prepare("SELECT COUNT(*) AS count FROM user WHERE two_factor_required = 0")
       .first<{ count: number }>();
 
     expect(row?.count).toBe(2);

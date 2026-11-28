@@ -33,7 +33,7 @@ describe("api error surface", () => {
   });
 
   test("payloads above the API limit return 413", async ({ api }) => {
-    const response = await api.request("/api/auth/sign-in/email", {
+    const response = await api.request("/api/auth/sign-in/email-otp", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ email: "a@example.com", password: "x".repeat(1024 * 1024) }),

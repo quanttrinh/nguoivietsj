@@ -172,13 +172,13 @@ export default defineConfig({
     __WORKER_ORIGIN__: "readonly",
   },
   ignorePatterns: [
-    ".intlayer/",
     "worker-configuration.d.ts",
     "dist/",
     "styled-system/",
     ".astro/",
     ".wrangler/",
     "node_modules/",
+    "src/generated/",
     ".vitest/",
     "coverage/",
     "reports/",
@@ -192,9 +192,6 @@ export default defineConfig({
         "boundary/scopes": [
           "error",
           {
-            serverSegments: ["server", "db", "services", "backfills", "tooling"],
-            clientSegments: ["ui", "client"],
-            astroSegments: ["pages", "layouts"],
             exempt: ["src/types/worker-configuration.d.ts"],
             importExempt: ["src/types/api.d.ts"],
             allowedServerTypes: ["src/types/api"],
@@ -205,10 +202,10 @@ export default defineConfig({
     {
       files: [
         "*.config.ts",
-        "src/backfills/**/*.ts",
+        "src/platform/jobs/backfills/**/*.ts",
         "plugins/**/*.ts",
         "scripts/**/*.ts",
-        "src/tooling/**/*.ts",
+        "src/platform/jobs/tooling/**/*.ts",
         "manage.ts",
         "tests/**/*.ts",
       ],
@@ -229,12 +226,6 @@ export default defineConfig({
     {
       files: ["**/*.tsx", "src/**/ui/**/*.ts", "src/**/client/**/*.ts"],
       env: { builtin: true, browser: true, astro: true },
-      rules: {
-        "import/no-default-export": "off",
-      },
-    },
-    {
-      files: ["**/*.content.ts"],
       rules: {
         "import/no-default-export": "off",
       },
@@ -269,10 +260,15 @@ export default defineConfig({
     {
       files: [
         "src/**/server/**/*.ts",
-        "src/events/services/**/*.ts",
-        "src/db/**/*.ts",
+        "src/platform/app.ts",
+        "src/platform/server/api/helpers/**/*.ts",
+        "src/features/*/server/api/**/*.ts",
+        "src/platform/i18n/**/*.ts",
+        "src/platform/server/middleware/**/*.ts",
+        "src/platform/server/email/**/*.ts",
+        "src/features/events/server/services/**/*.ts",
+        "src/platform/server/db/**/*.ts",
         "src/worker.ts",
-        "src/middleware.ts",
       ],
       env: { builtin: true, node: true, serviceworker: true },
       rules: {
@@ -281,7 +277,7 @@ export default defineConfig({
       },
     },
     {
-      files: ["src/db/app/schemas/auth-schema.ts"],
+      files: ["src/platform/server/db/app/schemas/auth-schema.ts"],
       rules: {
         "boundary/scopes": "off",
         "eslint/id-length": "off",

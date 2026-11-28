@@ -43,15 +43,10 @@ interface CreateData {
   };
 }
 
-/** Sign in with 2FA temporarily disabled, then re-enroll to get a valid session. */
+/** Sign in through the email-OTP helper. */
 async function signInAs(api: ApiHarness, email: string) {
-  await api.db.app
-    .prepare("UPDATE user SET two_factor_enabled = 0 WHERE email = ?")
-    .bind(email)
-    .run();
   api.clearSession();
   await api.signIn(email);
-  await api.enableTwoFactor(email);
 }
 
 async function userIdFor(db: TestDatabase, email: string) {
@@ -85,7 +80,6 @@ async function removeUser(api: ApiHarness, id: string) {
 
 test.beforeAll(async ({ api }) => {
   await api.signIn("admin@example.com");
-  await api.enableTwoFactor("admin@example.com");
 });
 
 describe("admin users list", () => {
@@ -496,25 +490,6 @@ describe("admin users authorization", () => {
     }
     await signInAs(api, "admin@example.com");
   });
-
-  test("requires two-factor enrollment for the admin role", async ({ api }) => {
-    await api.db.app
-      .prepare("UPDATE user SET two_factor_enabled = 0, two_factor_required = 1 WHERE email = ?")
-      .bind("admin@example.com")
-      .run();
-    api.clearSession();
-    await api.signIn("admin@example.com");
-    const response = await api.request("/api/admin/users");
-    expect(response.status).toBe(403);
-    const errorBody = await parseJson<ErrorData>(response);
-    expect(errorBody.error?.code).toBe("two_factor_required");
-
-    await api.db.app
-      .prepare("UPDATE user SET two_factor_required = 0 WHERE email = ?")
-      .bind("admin@example.com")
-      .run();
-    await signInAs(api, "admin@example.com");
-  });
 });
 
 type ApiMock = Record<string, (...args: unknown[]) => unknown>;
@@ -525,8 +500,8 @@ async function mountMockedRouter(
   user?: { id: string; role?: string },
 ): Promise<Hono> {
   const actingUser = user ?? { id: "self", role: "admin" };
-  vi.doMock("~/auth/server/auth", () => ({ auth: () => ({ api: apiMock }) }));
-  vi.doMock("~/auth/server/middleware", () => ({
+  vi.doMock("~/features/auth/server/auth", () => ({ auth: () => ({ api: apiMock }) }));
+  vi.doMock("~/features/auth/server/middleware", () => ({
     requireAuth: (ctx: Context, next: Next) => {
       ctx.set("user", actingUser);
       return next();
@@ -535,11 +510,11 @@ async function mountMockedRouter(
   }));
   vi.resetModules();
   try {
-    const { adminUsers } = await import("~/server/routes/admin-users");
+    const { adminUsers } = await import("~/features/auth/server/api/admin-users");
     return new Hono().route("/api/admin/users", adminUsers);
   } finally {
-    vi.doUnmock("~/auth/server/auth");
-    vi.doUnmock("~/auth/server/middleware");
+    vi.doUnmock("~/features/auth/server/auth");
+    vi.doUnmock("~/features/auth/server/middleware");
     vi.resetModules();
   }
 }
@@ -674,7 +649,7 @@ describe("admin users defensive error fallbacks", () => {
     expect(response.status).toBe(403);
     const body = await parseJson<ErrorData>(response);
     expect(body.error).toMatchObject({ code: "custom_denied" });
-    expect(body.error).not.toHaveProperty("message");
+    expect(body.error).toHaveProperty("message", "Something went wrong.");
   });
 
   test("falls back the code but keeps the message when the body has no code", async () => {

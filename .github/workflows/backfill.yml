@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       backfill:
-        description: Backfill name or path under backfills/
+        description: Backfill name or path under src/platform/jobs/backfills/
         required: true
         type: string
       target:
@@ -71,7 +71,7 @@ jobs:
           (
             set -e
             mapfile -t backfill_args < <(jq -r '.[]' <<< "$ARGS")
-            command=(bun manage.ts backfill "$BACKFILL" --target "$TARGET")
+            command=(node --import ./scripts/register-node.ts manage.ts backfill "$BACKFILL" --target "$TARGET")
             if [ "$DRY_RUN" = "true" ]; then
               command+=(--dry-run)
             fi

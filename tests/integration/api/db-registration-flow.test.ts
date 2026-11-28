@@ -3,8 +3,9 @@ import { createHash } from "node:crypto";
 
 import { describe, expect, vi } from "vitest";
 
-import { getRegistrationStatusRepository } from "../../../src/db/events";
-import { issueStatusOtp } from "../../../src/events/services/status";
+import { issueStatusOtp } from "~/features/events/server/services/status";
+
+import { getRegistrationStatusRepository } from "../../../src/platform/server/db/events";
 import type { TestDatabase } from "../helpers/d1";
 import { eventIdBySlug } from "../helpers/events";
 import { statusSessionToken } from "../helpers/status-session";
@@ -95,7 +96,6 @@ test.beforeAll(async ({ api }) => {
   // Authenticate once. Enabling 2FA means signIn() would return a challenge
   // from this point on, so admin calls below reuse this single session.
   await api.signIn("admin@example.com");
-  await api.enableTwoFactor("admin@example.com");
 
   eventId = await eventIdBySlug(api.db, REGISTRATION_SLUG);
 

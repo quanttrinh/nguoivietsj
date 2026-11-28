@@ -1,7 +1,7 @@
 import { drizzle } from "drizzle-orm/d1";
 import { beforeEach, describe, expect, test, vi, type Mock } from "vitest";
 
-import { getEmailDeliveryLedger } from "../../../../../src/server/services/email/deliveries";
+import { getEmailDeliveryLedger } from "~/platform/server/email/deliveries";
 
 const { ormHolder } = vi.hoisted(() => {
   const holder: { current: unknown } = { current: undefined };

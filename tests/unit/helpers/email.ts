@@ -1,6 +1,6 @@
 import { assert, expect } from "vitest";
 
-import { EmailError } from "../../../src/server/services/email/types";
+import { EmailError } from "~/platform/server/email/types";
 
 /** Assert a synchronous action threw the expected `EmailError`. */
 export function expectEmailError(action: () => void, message: string): void {

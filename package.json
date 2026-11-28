@@ -10,28 +10,29 @@
   },
   "type": "module",
   "imports": {
-    "#tooling/*": "./src/tooling/*.ts"
+    "#tooling/*": "./src/platform/jobs/tooling/*.ts"
   },
   "scripts": {
     "dev": "doppler run -- astro dev",
     "preview": "doppler run -- astro preview",
     "prepreview": "doppler run -- astro build --mode preview",
     "check": "astro sync && tsc -b tsconfig.json && astro check",
+    "ark:check": "ark check src",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
     "fmt": "oxfmt",
     "fmt:check": "oxfmt --check",
-    "codegen": "intlayer build && panda codegen && wrangler types src/types/worker-configuration.d.ts",
-    "postinstall": "bun run codegen",
+    "codegen": "node --input-type=module -e 'import { i18nConfig } from \"./i18n.config.ts\"; import { generateI18n } from \"./plugins/i18n.ts\"; await generateI18n(i18nConfig)' && panda codegen && node node_modules/wrangler/bin/wrangler.js types src/types/worker-configuration.d.ts",
+    "postinstall": "yarn codegen",
     "doppler:setup": "doppler setup",
     "test": "vitest run",
     "test:watch": "vitest",
     "db:migrations:events": "drizzle-kit generate --config=drizzle.events.config.ts",
     "db:migrations:app": "drizzle-kit generate --config=drizzle.app.config.ts",
-    "auth:schema": "auth generate --config ./better-auth.config.ts --dialect sqlite --output ./src/db/app/schemas/auth-schema.ts -y && bunx oxfmt src/db/app/schemas/auth-schema.ts",
-    "db:migrate": "bun manage.ts migrate",
-    "db:seed": "bun manage.ts seed",
-    "db:check": "bun manage.ts check",
+    "auth:schema": "auth generate --config ./better-auth.config.ts --dialect sqlite --output ./src/platform/server/db/app/schemas/auth-schema.ts -y && oxfmt src/platform/server/db/app/schemas/auth-schema.ts",
+    "db:migrate": "node --import ./scripts/register-node.ts manage.ts migrate",
+    "db:seed": "node --import ./scripts/register-node.ts manage.ts seed",
+    "db:check": "node --import ./scripts/register-node.ts manage.ts check",
     "test:coverage": "vitest run --project unit --project integration --coverage"
   },
   "dependencies": {
@@ -39,20 +40,16 @@
     "@astrojs/preact": "6.1.6",
     "@better-auth/drizzle-adapter": "1.7.27",
     "@hono/standard-validator": "0.4.1",
-    "@intlayer/core": "9.8.3",
     "@nanostores/preact": "1.1.1",
     "@nanostores/query": "0.3.4",
     "@quanttrinh/qui": "0.9.3",
-    "arktype": "2.2.10",
+    "arktype": "3.0.0-rc.9",
     "astro": "7.4.13",
-    "astro-intlayer": "9.8.3",
     "auth": "1.7.27",
     "better-auth": "1.7.27",
     "drizzle-orm": "1.0.0-rc.6",
     "effect": "4.1.4",
-    "entities": "9.0.0",
     "hono": "4.13.19",
-    "intlayer": "9.8.3",
     "jose": "6.2.18",
     "nanostores": "1.5.5",
     "preact": "11.2.0",
@@ -60,6 +57,7 @@
     "uuid": "14.0.3"
   },
   "devDependencies": {
+    "@ark/aot": "3.0.0-rc.9",
     "@astrojs/check": "0.9.12",
     "@astrojs/compiler-rs": "0.5.3",
     "@cloudflare/workers-types": "5.20261120.1",
@@ -86,7 +84,13 @@
     "typescript": "6.0.3",
     "vitest": "5.1.1",
     "vitest-browser-preact": "2.0.0",
-    "wrangler": "4.165.0"
+    "wrangler": "4.168.0"
   },
-  "packageManager": "bun@1.4.5"
+  "resolutions": {
+    "fast-check": "4.10.3"
+  },
+  "engines": {
+    "node": ">=26.0.0"
+  },
+  "packageManager": "yarn@6.0.0-rc.23"
 }

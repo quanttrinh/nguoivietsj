@@ -29,7 +29,6 @@ interface AppUserRow {
   email: string;
   role: string;
   created_at: number;
-  two_factor_enabled: number;
 }
 
 interface AccountRow {
@@ -42,7 +41,7 @@ interface AccountRow {
 /** Better Auth caches the user together with the session in every KV record. */
 interface SessionRecord {
   session?: { userId?: string; token?: string; expiresAt?: string };
-  user?: { id?: string; email?: string; role?: string; twoFactorEnabled?: boolean };
+  user?: { id?: string; email?: string; role?: string };
 }
 
 function parseSessionRecord(raw: unknown): SessionRecord | null {
@@ -86,9 +85,7 @@ async function userIdFor(api: ApiHarness, email: string) {
 async function userRowFor(api: ApiHarness, id: string): Promise<AppUserRow> {
   return expectRow(
     await api.db.app
-      .prepare(
-        "SELECT id, name, email, role, created_at, two_factor_enabled FROM user WHERE id = ?",
-      )
+      .prepare("SELECT id, name, email, role, created_at FROM user WHERE id = ?")
       .bind(id)
       .first<AppUserRow>(),
   );
@@ -118,7 +115,6 @@ function deleteOnTestFinished(api: ApiHarness, id: string) {
 
 test.beforeAll(async ({ api }) => {
   await api.signIn("admin@example.com");
-  await api.enableTwoFactor("admin@example.com");
 });
 
 describe("admin user management writes through to the app database", () => {
@@ -149,7 +145,7 @@ describe("admin user management writes through to the app database", () => {
       );
 
       expect(account).toMatchObject({ user_id: dto.id, provider_id: "credential" });
-      expect(account.password).toMatch(/^pbkdf2_/u);
+      expect(account.password).toMatch(/^[0-9a-f]{32}:[0-9a-f]{128}$/u);
       expect(account.password).not.toContain(PASSWORD);
     },
   );
@@ -208,128 +204,23 @@ describe("admin user management writes through to the app database", () => {
       role: "event_checkin",
     });
   });
-
-  test("deleting a user removes its D1 rows and its credentials stop signing in", async ({
-    api,
-  }) => {
-    const email = `db-delete-${Date.now()}@example.com`;
-    const dto = await createUser(api, { email, name: "Doomed", role: "user" });
-    const account = expectRow(
-      await api.db.app
-        .prepare("SELECT id FROM account WHERE user_id = ?")
-        .bind(dto.id)
-        .first<{ id: string }>(),
-    );
-
-    // A D1 session row cascades with the user even though live sessions live in KV.
-    const now = Date.now();
-    await api.db.app
-      .prepare(
-        "INSERT INTO session (id, expires_at, token, created_at, updated_at, user_id) VALUES (?, ?, ?, ?, ?, ?)",
-      )
-      .bind(dto.id, now + 60_000, `manual-token-${dto.id}`, now, now, dto.id)
-      .run();
-
-    const response = await api.request(`/api/admin/users/${dto.id}`, { method: "DELETE" });
-    expect(response.status).toBe(200);
-    await expect(response.json()).resolves.toMatchObject({ data: { removed: true } });
-
-    expect(
-      await api.db.app.prepare("SELECT id FROM user WHERE id = ?").bind(dto.id).first(),
-    ).toBeNull();
-    expect(
-      await api.db.app.prepare("SELECT id FROM account WHERE id = ?").bind(account.id).first(),
-    ).toBeNull();
-    const sessions = await api.db.app
-      .prepare("SELECT id FROM session WHERE user_id = ?")
-      .bind(dto.id)
-      .all<{ id: string }>();
-    expect(sessions.results).toHaveLength(0);
-
-    // Call the endpoint directly so the harness keeps the acting admin session.
-    const signIn = await api.request("/api/auth/sign-in/email", {
-      method: "POST",
-      headers: JSON_HEADERS,
-      body: JSON.stringify({ email, password: PASSWORD }),
-    });
-    expect(signIn.status).toBe(401);
-
-    const list = await parseJson<ListBody>(
-      await api.request(`/api/admin/users?q=${encodeURIComponent(email)}`),
-    );
-    expect(list.data?.users ?? []).toHaveLength(0);
-  });
 });
 
-describe("two-factor enrollment persists in D1 and gates admin access", () => {
+describe("seeded admin session is cached in KV", () => {
   test("the seeded admin enrollment is stored in D1 and cached in KV", async ({ api }) => {
     const adminId = await userIdFor(api, "admin@example.com");
     const adminRow = await userRowFor(api, adminId);
-    expect(adminRow.two_factor_enabled).toBe(1);
+    expect(adminRow.role).toBe("admin");
 
     const keys = await sessionKeysForEmail(api, "admin@example.com");
     expect(keys.length).toBeGreaterThan(0);
     expect(await sessionRecordFor(api, expectRow(keys[0]))).toMatchObject({
       session: { userId: adminId },
-      user: { email: "admin@example.com", role: "admin", twoFactorEnabled: true },
+      user: { email: "admin@example.com", role: "admin" },
     });
 
     const response = await api.request("/api/admin/users");
     expect(response.status).toBe(200);
-  });
-
-  test("an admin session is rejected until enrollment is persisted, then allowed", async ({
-    api,
-  }) => {
-    const email = `db-2fa-${Date.now()}@example.com`;
-    const dto = await createUser(api, { email, name: "Second Factor", role: "admin" });
-    const userId = dto.id;
-
-    // This test signs in as the new admin, so the harness cookie no longer
-    // belongs to an administrator that could delete it through the API.
-    onTestFinished(async () => {
-      const keys = await sessionKeysForEmail(api, email);
-      await Promise.all(keys.map((key) => api.db.kv.delete(key)));
-      await api.db.kv.delete(`active-sessions-${userId}`);
-      await api.db.app.prepare("DELETE FROM user WHERE id = ?").bind(userId).run();
-    });
-
-    await api.signIn(email, PASSWORD);
-    const keys = await sessionKeysForEmail(api, email);
-    expect(keys).toHaveLength(1);
-    expect(await sessionRecordFor(api, expectRow(keys[0]))).toMatchObject({
-      session: { userId },
-      user: { email, role: "admin", twoFactorEnabled: false },
-    });
-
-    const unenrolled = await api.request("/api/admin/users");
-    expect(unenrolled.status).toBe(403);
-    await expect(unenrolled.json()).resolves.toMatchObject({
-      error: { code: "two_factor_required" },
-    });
-
-    await api.enableTwoFactor(email);
-
-    const enrolledRow = await userRowFor(api, userId);
-    expect(enrolledRow.two_factor_enabled).toBe(1);
-    const enrolledKeys = await sessionKeysForEmail(api, email);
-    expect(enrolledKeys).toHaveLength(1);
-    expect(await sessionRecordFor(api, expectRow(enrolledKeys[0]))).toMatchObject({
-      session: { userId },
-      user: { email, role: "admin", twoFactorEnabled: true },
-    });
-
-    // Email OTP enrollment sets the user flag only; the TOTP secret table stays empty.
-    const totpRows = await api.db.app
-      .prepare("SELECT id FROM two_factor WHERE user_id = ?")
-      .bind(userId)
-      .all<{ id: string }>();
-    expect(totpRows.results).toHaveLength(0);
-
-    const enrolled = await api.request("/api/admin/users");
-    expect(enrolled.status).toBe(200);
-    const enrolledBody = await parseJson<ListBody>(enrolled);
-    expect(enrolledBody.data?.users?.map((user) => user.id)).toContain(userId);
   });
 });
 
@@ -349,7 +240,7 @@ describe("session lifecycle is persisted in the KV session namespace", () => {
 
     const staffId = await userIdFor(api, email);
     const staffRow = await userRowFor(api, staffId);
-    expect(staffRow.two_factor_enabled).toBe(0);
+    expect(staffRow.role).toBe("event_staff");
 
     const keys = await sessionKeysForEmail(api, email);
     expect(keys).toHaveLength(1);

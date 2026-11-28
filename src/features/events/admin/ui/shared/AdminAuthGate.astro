@@ -1,0 +1,98 @@
+---
+// @boundary client
+import { css, cx } from "styled-system/css";
+import { guardPageStyles } from "~/platform/ui/guard-page-styles";
+
+interface Props {
+  required: string;
+  message: string;
+  login: string;
+  loginHref: string;
+}
+
+const { required, message, login, loginHref }: Props = Astro.props;
+
+const styles = {
+  hidden: css({ "&[hidden]": { display: "none !important" } }),
+};
+---
+
+<section data-admin-auth-gate hidden class={cx(guardPageStyles.section, styles.hidden)}>
+  <div class={guardPageStyles.panel} role="alert">
+    <h1 class={guardPageStyles.title}>{required}</h1>
+    <p class={guardPageStyles.message}>{message}</p>
+    <qui-button data-admin-login data-login-base={loginHref} href={loginHref} variant="filled">
+      {login}
+    </qui-button>
+  </div>
+</section>
+
+<script>
+  import "virtual:qui/register?components=qui-button";
+  import { getSharedSession, hasRecentSessionHint } from "~/features/auth/client/session";
+
+  function protectedElements(): HTMLElement[] {
+    return [...document.querySelectorAll<HTMLElement>("[data-admin-protected]")];
+  }
+
+  function updateLoginHref(): void {
+    const button = document.querySelector<HTMLElement>("[data-admin-login]");
+    const loginBase = button?.dataset.loginBase;
+
+    if (button === null || loginBase === undefined) {
+      return;
+    }
+
+    const redirect = `${globalThis.location.pathname}${globalThis.location.search}`;
+    button.setAttribute("href", `${loginBase}?redirect=${encodeURIComponent(redirect)}`);
+  }
+
+  type GateState = "authenticated" | "unauthenticated";
+
+  function applyState(state: GateState): void {
+    const gate = document.querySelector<HTMLElement>("[data-admin-auth-gate]");
+
+    if (gate === null) {
+      return;
+    }
+
+    gate.hidden = state !== "unauthenticated";
+
+    for (const element of protectedElements()) {
+      element.hidden = state !== "authenticated";
+
+      if (state === "unauthenticated") {
+        element.replaceChildren();
+      }
+    }
+  }
+
+  async function initAdminAuthGate(): Promise<void> {
+    if (document.querySelector("[data-admin-auth-gate]") === null) {
+      return;
+    }
+
+    updateLoginHref();
+
+    if (hasRecentSessionHint()) {
+      applyState("authenticated");
+    }
+
+    try {
+      const result = await getSharedSession();
+
+      if (result.data === null) {
+        applyState("unauthenticated");
+        return;
+      }
+
+      applyState("authenticated");
+    } catch {
+      applyState("unauthenticated");
+    }
+  }
+
+  document.addEventListener("astro:page-load", () => {
+    void initAdminAuthGate();
+  });
+</script>

@@ -19,12 +19,11 @@ interface UserDto {
 interface AppUserRow {
   role: string;
   banned: number;
-  twoFactorEnabled: number;
 }
 
 interface SessionRecord {
   session?: { userId?: string; token?: string };
-  user?: { email?: string; role?: string; twoFactorEnabled?: boolean };
+  user?: { email?: string; role?: string };
 }
 
 interface SessionBody {
@@ -82,10 +81,16 @@ async function signInRaw(
     headers.cookie = options.cookie;
   }
 
-  const response = await api.request("/api/auth/sign-in/email", {
+  await api.request("/api/auth/email-otp/send-verification-otp", {
+    method: "POST",
+    headers: JSON_HEADERS,
+    body: JSON.stringify({ email, type: "sign-in" }),
+  });
+
+  const response = await api.request("/api/auth/sign-in/email-otp", {
     method: "POST",
     headers,
-    body: JSON.stringify({ email, password: options.password ?? "dev-password" }),
+    body: JSON.stringify({ email, otp: "123456" }),
   });
   const cookie = cookieHeader(response);
 
@@ -105,9 +110,7 @@ async function userIdFor(api: ApiHarness, email: string) {
 async function userRowFor(api: ApiHarness, id: string): Promise<AppUserRow> {
   return expectRow(
     await api.db.app
-      .prepare(
-        'SELECT role, banned, two_factor_enabled AS "twoFactorEnabled" FROM user WHERE id = ?',
-      )
+      .prepare("SELECT role, banned FROM user WHERE id = ?")
       .bind(id)
       .first<AppUserRow>(),
   );
@@ -158,20 +161,12 @@ async function cleanupUser(api: ApiHarness, id: string, email: string) {
   await clientFor(api, adminCookie)(`/api/admin/users/${id}`, { method: "DELETE" });
 }
 
-/** A revoked session still answers get-session with 200 and a null body. */
-async function expectSessionGone(response: Response) {
-  expect(response.status).toBe(200);
-  await expect(response.json()).resolves.toBeNull();
-}
-
 test.beforeAll(async ({ api }) => {
   const signIn = await api.signIn("admin@example.com");
   expect(signIn.status).toBe(200);
   adminCookie = cookieHeader(signIn);
-  await api.enableTwoFactor("admin@example.com");
 
   // The admin session is kept as an explicit cookie string for the whole file.
-  // Enable 2FA exactly once: re-signing in as admin would only yield a 2FA challenge.
   api.clearSession();
 });
 
@@ -196,8 +191,12 @@ describe("session cookie is the only client credential", () => {
     // On an https baseURL the same cookie would be `__Secure-` prefixed and Secure.
     expect(sessionCookie).not.toMatch(/;\s*Secure(?:;|$)/iu);
 
-    // `storeSessionInDatabase=false` and no cookie cache: KV is the sole authority.
-    expect(setCookies.some((value) => value.startsWith("better-auth.session_data="))).toBe(false);
+    // The compact cookie cache is short-lived; KV remains the authoritative
+    // session store and admin reads explicitly bypass the cache.
+    const sessionDataCookie = expectRow(
+      setCookies.find((value) => value.startsWith("better-auth.session_data=")),
+    );
+    expect(sessionDataCookie).toMatch(/;\s*Max-Age=60(?:;|$)/iu);
     expect(await api.db.kv.get(signIn.token)).not.toBeNull();
 
     expect(signIn.token).toMatch(/^[A-Za-z0-9_-]{32,}$/u);
@@ -257,47 +256,18 @@ describe("session cookie is the only client credential", () => {
   });
 });
 
-describe("privilege and enrollment changes are authoritative on the next request", () => {
-  test("promotion and demotion immediately revoke the user's existing sessions", async ({
-    api,
-  }) => {
+describe("role changes are authoritative on the next request", () => {
+  test("a demotion revokes admin access even inside the cookieCache window", async ({ api }) => {
     const admin = clientFor(api, adminCookie);
-    const email = `sec-role-${Date.now()}@example.com`;
-    const created = await createUser(admin, email, "user");
+    const email = `sec-demote-${crypto.randomUUID()}@example.com`;
+    const created = await createUser(admin, email, "admin");
     onTestFinished(() => cleanupUser(api, created.id, email));
 
-    const initial = await signInRaw(api, email, { password: PASSWORD });
-    const denied = await clientFor(api, initial.cookie)("/api/admin/users");
-    expect(denied.status).toBe(403);
-    // Every account defaults to requiring enrollment, even before promotion.
-    await expect(denied.json()).resolves.toMatchObject({ error: { code: "two_factor_required" } });
-
-    const promote = await admin(`/api/admin/users/${created.id}`, {
-      method: "PATCH",
-      headers: JSON_HEADERS,
-      body: JSON.stringify({ role: "admin" }),
-    });
-    expect(promote.status).toBe(200);
-
-    // The admin route revokes sessions after a role change (admin-users.ts), so
-    // the old cookie dies on the very next request instead of serving a stale role.
-    await expectSessionGone(await clientFor(api, initial.cookie)("/api/auth/get-session"));
-    expect(await api.db.kv.get(initial.token)).toBeNull();
-    const revoked = await clientFor(api, initial.cookie)("/api/admin/users");
-    expect(revoked.status).toBe(401);
-
-    // A fresh session for the promoted account still owes 2FA. Enrolling
-    // refreshes that KV record in place, so the same cookie gains access.
-    const promoted = await signInRaw(api, email, { password: PASSWORD });
-    const asPromoted = clientFor(api, promoted.cookie);
-    const gated = await asPromoted("/api/admin/users");
-    expect(gated.status).toBe(403);
-    await expect(gated.json()).resolves.toMatchObject({
-      error: { code: "two_factor_required" },
-    });
-
-    await api.enableTwoFactor(email);
-    const allowed = await asPromoted("/api/admin/users");
+    const signed = await signInRaw(api, email);
+    expect(signed.response.status).toBe(200);
+    expect(signed.cookie).toContain("better-auth.session_data=");
+    const asAdmin = clientFor(api, signed.cookie);
+    const allowed = await asAdmin("/api/admin/users");
     expect(allowed.status).toBe(200);
 
     const demote = await admin(`/api/admin/users/${created.id}`, {
@@ -306,61 +276,48 @@ describe("privilege and enrollment changes are authoritative on the next request
       body: JSON.stringify({ role: "user" }),
     });
     expect(demote.status).toBe(200);
-    await expectSessionGone(await asPromoted("/api/auth/get-session"));
-    const after = await asPromoted("/api/admin/users");
+
+    // The role change revokes the session in KV, but the client's compact
+    // cookie cache is still valid for up to 60 seconds.
+    expect(await api.db.kv.get(signed.token)).toBeNull();
+
+    // `requireAuth` reads through KV, so the cached admin role cannot authorize.
+    const after = await asAdmin("/api/admin/users");
     expect(after.status).toBe(401);
+    await expect(after.json()).resolves.toMatchObject({ error: { code: "unauthorized" } });
+
+    // /get-session still serves the cached session by design — this proves the
+    // cache window is real and that the 401 above comes from disableCookieCache.
+    const cached = await asAdmin("/api/auth/get-session");
+    expect(cached.status).toBe(200);
+    await expect(cached.json()).resolves.toMatchObject({ user: { role: "admin" } });
     expect(await userRowFor(api, created.id)).toMatchObject({ role: "user" });
   });
 
-  test("a new admin is gated until 2FA enrollment, then the same session is allowed", async ({
+  test("a promotion revokes the existing session even inside the cookieCache window", async ({
     api,
   }) => {
     const admin = clientFor(api, adminCookie);
-    const email = `sec-2fa-admin-${Date.now()}@example.com`;
-    const created = await createUser(admin, email, "admin");
+    const email = `sec-promote-${crypto.randomUUID()}@example.com`;
+    const created = await createUser(admin, email, "user");
     onTestFinished(() => cleanupUser(api, created.id, email));
 
-    const signed = await signInRaw(api, email, { password: PASSWORD });
+    const signed = await signInRaw(api, email);
     expect(signed.response.status).toBe(200);
-    const asNewAdmin = clientFor(api, signed.cookie);
+    const asUser = clientFor(api, signed.cookie);
+    const before = await asUser("/api/admin/users");
+    expect(before.status).toBe(403);
 
-    const gated = await asNewAdmin("/api/admin/users");
-    expect(gated.status).toBe(403);
-    await expect(gated.json()).resolves.toMatchObject({
-      error: { code: "two_factor_required" },
+    const promote = await admin(`/api/admin/users/${created.id}`, {
+      method: "PATCH",
+      headers: JSON_HEADERS,
+      body: JSON.stringify({ role: "admin" }),
     });
+    expect(promote.status).toBe(200);
 
-    await api.enableTwoFactor(email);
-    expect(await userRowFor(api, created.id)).toMatchObject({ twoFactorEnabled: 1 });
-
-    // Same cookie string: the KV session record, not a cookie cache, is re-read.
-    const allowed = await asNewAdmin("/api/admin/users");
-    expect(allowed.status).toBe(200);
-    const body = await parseJson<{ data?: { users?: UserDto[] } }>(allowed);
-    expect(body.data?.users?.map((user) => user.id)).toContain(created.id);
-  });
-
-  test("2FA enrollment does not let a staff user escalate to admin", async ({ api }) => {
-    const admin = clientFor(api, adminCookie);
-    const email = `sec-2fa-staff-${Date.now()}@example.com`;
-    const created = await createUser(admin, email, "event_staff");
-    onTestFinished(() => cleanupUser(api, created.id, email));
-
-    const signed = await signInRaw(api, email, { password: PASSWORD });
-    const asStaff = clientFor(api, signed.cookie);
-    const gated = await asStaff("/api/admin/users");
-    expect(gated.status).toBe(403);
-    await expect(gated.json()).resolves.toMatchObject({
-      error: { code: "two_factor_required" },
-    });
-
-    await api.enableTwoFactor(email);
-    const enrolled = await asStaff("/api/admin/users");
-    expect(enrolled.status).toBe(403);
-    await expect(enrolled.json()).resolves.toMatchObject({ error: { code: "forbidden" } });
-    expect(await userRowFor(api, created.id)).toMatchObject({
-      role: "event_staff",
-      twoFactorEnabled: 1,
-    });
+    expect(await api.db.kv.get(signed.token)).toBeNull();
+    const after = await asUser("/api/admin/users");
+    expect(after.status).toBe(401);
+    expect(await userRowFor(api, created.id)).toMatchObject({ role: "admin" });
   });
 });

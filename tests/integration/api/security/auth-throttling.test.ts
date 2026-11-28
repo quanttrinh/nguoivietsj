@@ -3,9 +3,10 @@ import { createHash } from "node:crypto";
 
 import { describe, expect, onTestFinished, vi } from "vitest";
 
-import { getRegistrationStatusRepository } from "../../../../src/db/events";
-import { STATUS_OTP_MAX_ATTEMPTS } from "../../../../src/events/domain/status";
-import { issueStatusOtp } from "../../../../src/events/services/status";
+import { STATUS_OTP_MAX_ATTEMPTS } from "~/features/events/domain/status";
+import { issueStatusOtp } from "~/features/events/server/services/status";
+
+import { getRegistrationStatusRepository } from "../../../../src/platform/server/db/events";
 import type { TestDatabase } from "../../helpers/d1";
 import { statusSessionToken } from "../../helpers/status-session";
 import { test, type ApiHarness } from "../harness";
@@ -289,19 +290,17 @@ describe("abuse controls enforced end-to-end", () => {
   });
 
   test.for([
-    { label: "sign-in", limiter: "signIn", path: "/api/auth/sign-in/email" },
-    { label: "send OTP", limiter: "sendOtp", path: "/api/auth/two-factor/send-otp" },
-    { label: "verify OTP", limiter: "verifyOtp", path: "/api/auth/two-factor/verify-otp" },
-    { label: "verify TOTP", limiter: "verifyOtp", path: "/api/auth/two-factor/verify-totp" },
     {
-      label: "enable two-factor",
-      limiter: "signIn",
-      path: "/api/auth/two-factor/enable",
+      label: "sign-in",
+      limiter: "verifyOtp",
+      path: "/api/auth/sign-in/email-otp",
+      body: { email: "admin@example.com", otp: "123456" },
     },
     {
-      label: "verify backup code",
-      limiter: "verifyOtp",
-      path: "/api/auth/two-factor/verify-backup-code",
+      label: "send verification OTP",
+      limiter: "sendOtp",
+      path: "/api/auth/email-otp/send-verification-otp",
+      body: { email: "admin@example.com", type: "sign-in" },
     },
   ] as const)("rate-limits the $label endpoint end-to-end", async (flow, { api }) => {
     onTestFinished(() => {
@@ -309,14 +308,45 @@ describe("abuse controls enforced end-to-end", () => {
     });
     api.limiters[flow.limiter].allow = false;
 
+    await api.request("/api/auth/email-otp/send-verification-otp", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ email: "admin@example.com", type: "sign-in" }),
+    });
+
     const response = await api.request(flow.path, {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ email: "admin@example.com", password: "dev-password" }),
+      body: JSON.stringify(flow.body),
     });
 
     expect(response.status).toBe(429);
     expect(response.headers.get("retry-after")).toBe("60");
+    expect(await errorCode(response)).toBe("rate_limited");
+  });
+
+  test("email-scoped limiter is applied to send-verification-otp", async ({ api }) => {
+    const keys: string[] = [];
+    const original = api.env.AUTH_SEND_OTP_RATE_LIMITER;
+    api.env.AUTH_SEND_OTP_RATE_LIMITER = {
+      limit: ({ key }: { key: string }) => {
+        keys.push(key);
+
+        return Promise.resolve({ success: !key.startsWith("auth:send-otp:email:") });
+      },
+    };
+    onTestFinished(() => {
+      api.env.AUTH_SEND_OTP_RATE_LIMITER = original;
+    });
+
+    const response = await api.request("/api/auth/email-otp/send-verification-otp", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ email: "admin@example.com", type: "sign-in" }),
+    });
+
+    expect(keys).toContain("auth:send-otp:email:admin@example.com");
+    expect(response.status).toBe(429);
     expect(await errorCode(response)).toBe("rate_limited");
   });
 

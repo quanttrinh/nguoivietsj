@@ -2,27 +2,11 @@ import { describe, expect, test } from "vitest";
 
 import {
   type AdminBreadcrumb,
-  type AdminBreadcrumbLabels,
   resolveAdminBreadcrumbs,
-} from "../../../../../../src/events/admin/ui/shared/breadcrumbs";
+} from "~/features/events/admin/ui/shared/breadcrumbs";
+import { localized } from "~/generated/client/AdminBreadcrumbs";
 
-const labels: AdminBreadcrumbLabels = {
-  administration: "Administration",
-  users: "User management",
-  events: "Event management",
-  event: "Event",
-  newEvent: "New event",
-  editEvent: "Edit event",
-  form: "New form version",
-  support: "Support",
-  activity: "Activity",
-  checkin: "Check in",
-  qr: "QR code",
-  registration: "Registration details",
-  clone: "Clone event",
-  newTicketType: "New ticket type",
-  editTicketType: "Edit ticket type",
-};
+const labels = localized("en");
 
 function resolve(
   pathname: string,

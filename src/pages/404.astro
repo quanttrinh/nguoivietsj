@@ -1,27 +1,26 @@
 ---
 // @boundary astro
-import { useIntlayer, useLocale } from "astro-intlayer";
-import { getLocalizedUrl } from "intlayer";
-
-import BaseLayout from "~/layouts/BaseLayout.astro";
-import { guardPageStyles as styles } from "~/shared/ui/guard-page-styles";
+import BaseLayout from "~/features/shell/layouts/BaseLayout.astro";
+import { localized as all } from "~/generated/client/all";
+import { useLocale, getLocalizedUrl } from "~/platform/i18n";
+import { guardPageStyles as styles } from "~/platform/ui/guard-page-styles";
 
 Astro.response.status = 404;
 
-const { locale } = useLocale();
-const messages = useIntlayer("site");
+const { locale } = useLocale(Astro.url);
+const messages = all(locale);
 ---
 
 <BaseLayout
-  title={`${messages.notFound.title.value} · ${messages.brand.value}`}
-  description={messages.notFound.message.value}
+  title={`${messages.site.notFound.title} · ${messages.site.brand}`}
+  description={messages.site.notFound.message}
 >
   <section class={styles.section}>
     <div class={styles.panel}>
-      <h1 class={styles.title}>{messages.notFound.title.value}</h1>
-      <p class={styles.message}>{messages.notFound.message.value}</p>
+      <h1 class={styles.title}>{messages.site.notFound.title}</h1>
+      <p class={styles.message}>{messages.site.notFound.message}</p>
       <qui-button href={getLocalizedUrl("/", locale)} variant="filled">
-        {messages.backToHome.value}
+        {messages.site.backToHome}
       </qui-button>
     </div>
   </section>

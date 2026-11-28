@@ -1,0 +1,38 @@
+---
+// @boundary client
+import { TURNSTILE_SITE_KEY } from "astro:env/client";
+
+import { REGISTRATION_TURNSTILE_ACTION } from "~/features/events/domain/registration";
+import PublicRegistration from "~/features/events/registration/ui/PublicRegistration";
+import BaseLayout from "~/features/shell/layouts/BaseLayout.astro";
+import { localized as all } from "~/generated/client/all";
+import { localized as registrationLocalized } from "~/generated/client/PublicRegistration";
+import { useLocale } from "~/platform/i18n";
+
+interface Props {
+  preview?: boolean;
+  staff?: boolean;
+}
+
+const { preview = false, staff = false }: Props = Astro.props;
+
+const { locale } = useLocale(Astro.url);
+const content = all(locale);
+
+const config = {
+  locale,
+  turnstile: {
+    siteKey: TURNSTILE_SITE_KEY.trim(),
+    action: REGISTRATION_TURNSTILE_ACTION,
+  },
+  labels: registrationLocalized(locale),
+};
+---
+
+<BaseLayout
+  title={content.engineRegistration.meta.title}
+  description={content.engineRegistration.meta.description}
+  noindex={preview || staff}
+>
+  <PublicRegistration client:load config={config} preview={preview} staff={staff} />
+</BaseLayout>

@@ -1,7 +1,7 @@
 /* oxlint-disable typescript/no-unsafe-type-assertion -- API response bodies are asserted in tests. */
 import { describe, expect, vi } from "vitest";
 
-import { getTicketTypeRepository } from "~/db/events";
+import { getTicketTypeRepository } from "~/platform/server/db/events";
 
 import { test, type ApiHarness } from "./harness";
 
@@ -92,7 +92,6 @@ async function setPublishedFormSchema(api: ApiHarness, eventId: string, fields: 
 
 test.beforeAll(async ({ api }) => {
   await api.signIn("admin@example.com");
-  await api.enableTwoFactor("admin@example.com");
 });
 
 describe("admin ticket types API", () => {
@@ -192,8 +191,10 @@ describe("admin ticket types API", () => {
 
   test("returns 404 when creating a ticket type for an unknown event", async ({ api }) => {
     const response = await postTicketType(api, MISSING_EVENT_ID, ticketPayload("orphan"));
+    const body = (await response.json()) as ErrorEnvelope;
 
     expect(response.status).toBe(404);
+    expect(body.error.code).toBe("event_not_found");
   });
 
   test("returns 500 when ticket type creation fails unexpectedly", async ({ api }) => {
@@ -329,8 +330,10 @@ describe("admin ticket type updates", () => {
       key: "general",
       payload: { active: false },
     });
+    const body = (await response.json()) as ErrorEnvelope;
 
     expect(response.status).toBe(404);
+    expect(body.error.code).toBe("event_not_found");
   });
 
   test("returns 404 when patching an unknown ticket type", async ({ api }) => {

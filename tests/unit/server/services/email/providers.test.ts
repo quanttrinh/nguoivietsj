@@ -4,12 +4,13 @@ import {
   createEmailRegistry,
   registeredEmailProviders,
   resolveEmailProvider,
-} from "../../../../../src/server/services/email/providers";
+} from "~/platform/server/email/providers";
 import {
   EmailError,
   type EmailCapabilities,
   type EmailProvider,
-} from "../../../../../src/server/services/email/types";
+} from "~/platform/server/email/types";
+
 import { expectEmailError } from "../../../helpers/email";
 
 const ALL_CAPABILITIES: EmailCapabilities = {

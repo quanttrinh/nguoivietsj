@@ -1,7 +1,10 @@
 /* oxlint-disable typescript/no-unsafe-type-assertion -- API response bodies are asserted in tests. */
 import { describe, expect, onTestFinished, vi } from "vitest";
 
-import { getEventRepository, getRegistrationRepository } from "../../../src/db/events";
+import {
+  getEventRepository,
+  getRegistrationRepository,
+} from "../../../src/platform/server/db/events";
 import { eventIdBySlug } from "../helpers/events";
 import { test, type ApiHarness } from "./harness";
 
@@ -85,7 +88,6 @@ function createPayload(overrides: Record<string, unknown> = {}): Record<string, 
 
 test.beforeAll(async ({ api }) => {
   await api.signIn("admin@example.com");
-  await api.enableTwoFactor("admin@example.com");
 });
 
 describe("admin event list", () => {
@@ -857,7 +859,6 @@ describe("admin event overview for a limited role", () => {
     const eventId = await eventIdBySlug(api.db, SUMMER_SLUG);
 
     await api.signIn("staff@example.com");
-    await api.enableTwoFactor("staff@example.com");
 
     const response = await api.request(`/api/admin/events/${eventId}/overview`);
     const body = (await response.json()) as {

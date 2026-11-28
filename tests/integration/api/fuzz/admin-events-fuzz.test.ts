@@ -40,7 +40,6 @@ const anyTicketKey = fc.oneof(fc.constantFrom("general", "vip", "child", "volunt
 beforeAll(async () => {
   api = await createApiHarness();
   await api.signIn("admin@example.com");
-  await api.enableTwoFactor("admin@example.com");
 
   const events = await api.db.events.prepare("SELECT id FROM events").all<{ id: string }>();
   const registrations = await api.db.events

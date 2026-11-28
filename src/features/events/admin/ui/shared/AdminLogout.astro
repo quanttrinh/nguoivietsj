@@ -1,0 +1,21 @@
+---
+// @boundary client
+import LogoutButton from "~/features/auth/ui/LogoutButton.astro";
+import { adminCatalogUrl } from "~/features/events/admin/ui/shared/routes";
+import { localized as all } from "~/generated/client/all";
+import type { Locale } from "~/platform/i18n";
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const content = all(locale);
+---
+
+<LogoutButton
+  label={content.engineAdmin.logout}
+  loginLabel={content.engineAdmin.login}
+  loginUrl={`/${locale}/login`}
+  fallbackUrl={adminCatalogUrl(locale)}
+/>

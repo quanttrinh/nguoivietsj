@@ -35,13 +35,13 @@ export default defineConfig({
     sortScripts: false,
   },
   ignorePatterns: [
-    ".intlayer/",
     "dist/",
     "styled-system/",
     ".astro/",
     ".wrangler/",
     ".devcontainer/",
     "node_modules/",
+    "src/generated/",
     // Generated test artifacts: reformatting them after a test run is churn.
     ".vitest/",
     "coverage/",
@@ -50,7 +50,7 @@ export default defineConfig({
     "playwright-report/",
     "worker-configuration.d.ts",
     "wrangler.json",
-    "bun.lock",
+    "yarn.lock",
     // Drizzle Kit generates these files; formatting them causes churn.
     "drizzle/**/snapshot.json",
     "drizzle/**/migration.sql",

@@ -5,7 +5,7 @@ import {
   CSP_BASE_DIRECTIVES,
   CSP_SCRIPT_RESOURCES,
   CSP_STYLE_RESOURCES,
-} from "../src/shared/constants/csp";
+} from "../src/platform/constants/csp";
 import { cspDirectiveName } from "./csp-serialization";
 
 type AstroCspOptions = Exclude<

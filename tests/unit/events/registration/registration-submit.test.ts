@@ -1,8 +1,10 @@
 import { describe, expect, test, vi } from "vitest";
 
-import type { RegistrationPayload } from "../../../../src/events/registration/ui/form/registration-form-state";
-import { postRegistration } from "../../../../src/events/registration/ui/form/registration-submit";
-import type { RegistrationErrorMessages } from "../../../../src/events/registration/ui/shared/registration-types";
+import type { RegistrationPayload } from "~/features/events/registration/ui/form/registration-form-state";
+import {
+  postRegistration,
+  type RegistrationErrorMessages,
+} from "~/features/events/registration/ui/form/registration-submit";
 
 function testMessages(): RegistrationErrorMessages {
   return {

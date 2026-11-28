@@ -1,8 +1,9 @@
 node_modules/
+.yarn/cache/
+.yarn/install-state.gz
 dist/
 .astro/
 styled-system/
-.intlayer/
 .wrangler/
 src/types/worker-configuration.d.ts
 src/types/worker-env.d.ts
@@ -18,7 +19,6 @@ __pycache__/
 *.pyc
 
 # Generated deploy config (contains resolved binding IDs)
-wrangler.generated.json
 wrangler.deploy.json
 
 # OpenTofu / Terraform

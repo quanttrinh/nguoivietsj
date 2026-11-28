@@ -1,28 +1,21 @@
 ---
 // @boundary astro
-import { getBasePlugins, getDictionary } from "@intlayer/core/interpreter";
-import { useDictionary, useLocale } from "astro-intlayer";
-import { locales } from "intlayer";
-
-import { adminDetailLabelKeys } from "~/events/admin/ui/detail/admin-detail-types";
-import AdminEventDetail from "~/events/admin/ui/detail/AdminEventDetail";
-import AdminLayout from "~/events/admin/ui/shared/AdminLayout.astro";
-import engineContent from "~/events/content/admin.content";
-import { pick } from "~/shared/content/pick";
+import AdminEventDetail from "~/features/events/admin/ui/detail/AdminEventDetail";
+import AdminLayout from "~/features/events/admin/ui/shared/AdminLayout.astro";
+import { localized } from "~/generated/client/AdminEventDetail";
+import { localized as all } from "~/generated/client/all";
+import { locales, useLocale } from "~/platform/i18n";
 
 export function getStaticPaths(): { params: { locale: string } }[] {
   return locales.map((locale) => ({ params: { locale } }));
 }
 
-const { locale } = useLocale();
-const content = useDictionary(engineContent, locale);
+const { locale } = useLocale(Astro.url);
+const content = all(locale);
 
-const labels = pick(
-  getDictionary(engineContent, locale, getBasePlugins(locale)),
-  adminDetailLabelKeys,
-);
+const labels = localized(locale);
 ---
 
-<AdminLayout title={content.event.value} description={content.intro.value} noindex>
+<AdminLayout title={content.shared.event} description={content.engineAdmin.intro} noindex>
   <AdminEventDetail client:load locale={locale} labels={labels} />
 </AdminLayout>

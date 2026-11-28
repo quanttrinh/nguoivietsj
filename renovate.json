@@ -24,19 +24,19 @@
       "matchUpdateTypes": ["pin"]
     },
     {
-      "description": "Group Bun updates across package.json and aqua.",
-      "groupName": "Bun",
-      "matchPackageNames": ["bun", "oven-sh/bun"]
+      "description": "Group Yarn and Node updates across package.json and aqua.",
+      "groupName": "Node toolchain",
+      "matchPackageNames": ["node", "nodejs/node", "yarn", "yarnpkg/zpm"]
+    },
+    {
+      "description": "Keep ArkType and its AOT compiler on the same version.",
+      "groupName": "ArkType",
+      "matchPackageNames": ["arktype", "@ark/aot"]
     },
     {
       "description": "Group Astro updates.",
       "groupName": "Astro",
       "matchPackageNames": ["/^astro$/", "/^@astrojs\\//"]
-    },
-    {
-      "description": "Group Intlayer updates.",
-      "groupName": "Intlayer",
-      "matchPackageNames": ["/^intlayer$/", "/^@intlayer\\//", "/^astro-intlayer$/"]
     },
     {
       "description": "Group Panda CSS updates.",

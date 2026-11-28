@@ -2,7 +2,7 @@ import { describe, expect, test } from "vitest";
 import { render } from "vitest-browser-preact";
 import { page } from "vitest/browser";
 
-import { FieldFrame } from "../../src/events/registration/ui/form/fields/FieldPrimitives";
+import { FieldFrame } from "~/features/events/registration/ui/form/fields/FieldPrimitives";
 
 describe("FieldFrame", () => {
   test("renders help and error text and keeps the control interactive", async () => {

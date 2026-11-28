@@ -1,11 +1,7 @@
 import { afterEach, assert, describe, expect, test, vi, type Mock } from "vitest";
 
-import { mailtrapProvider } from "../../../../../src/server/services/email/mailtrap";
-import type {
-  DirectEmail,
-  EmailEnv,
-  TemplateEmail,
-} from "../../../../../src/server/services/email/types";
+import { mailtrapProvider } from "~/platform/server/email/mailtrap";
+import type { DirectEmail, EmailEnv, TemplateEmail } from "~/platform/server/email/types";
 
 const API_URL = "https://mailtrap.test/api/send";
 // Vitest types its asymmetric matchers as `any`; they are safe as deep-equality matchers here.

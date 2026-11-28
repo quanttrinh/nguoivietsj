@@ -2,7 +2,11 @@
 import { Hono } from "hono";
 import { describe, expect, test as unitTest, vi } from "vitest";
 
-import { apiError, apiPartial, apiSuccess } from "../../../src/server/api-response";
+import {
+  apiError,
+  apiPartial,
+  apiSuccess,
+} from "~/platform/server/api/helpers/responses/api-response";
 import {
   badRequest,
   forbidden,
@@ -11,14 +15,14 @@ import {
   rateLimited,
   serviceUnavailable,
   unauthorized,
-} from "../../../src/server/common-responses";
-import { defaultValidationHandler } from "../../../src/server/validation-handler";
+} from "~/platform/server/api/helpers/responses/common-responses";
+import { defaultValidationHandler } from "~/platform/server/api/helpers/validation/validation-handler";
+
 import { test, type ApiHarness } from "./harness";
 
 interface SessionUser {
   email?: string;
   role?: string;
-  twoFactorRequired?: boolean;
 }
 
 interface SessionRecord {
@@ -88,7 +92,7 @@ describe("api app wiring", () => {
   });
 
   test("rejects unsupported methods", async ({ api }) => {
-    const response = await api.request("/api/auth/sign-in/email", { method: "PUT" });
+    const response = await api.request("/api/auth/sign-in/email-otp", { method: "PUT" });
 
     expect(response.status).toBe(405);
   });
@@ -101,36 +105,6 @@ describe("api app wiring", () => {
 });
 
 describe("root auth routing", () => {
-  test("passes two-factor send-otp through its rate limiters", async ({ api }) => {
-    const response = await api.request("/api/auth/two-factor/send-otp", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ email: "admin@example.com" }),
-    });
-
-    expect(response.status).toBeLessThan(500);
-  });
-
-  test("passes two-factor verify-otp through its rate limiter", async ({ api }) => {
-    const response = await api.request("/api/auth/two-factor/verify-otp", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ code: "123456" }),
-    });
-
-    expect(response.status).toBeLessThan(500);
-  });
-
-  test("passes two-factor verify-backup-code through its rate limiter", async ({ api }) => {
-    const response = await api.request("/api/auth/two-factor/verify-backup-code", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ code: "backup-code" }),
-    });
-
-    expect(response.status).toBeLessThan(500);
-  });
-
   test("returns 404 for unknown auth paths", async ({ api }) => {
     const response = await api.request("/api/auth/does-not-exist");
     const body = (await response.json()) as { error?: { code?: string } };
@@ -146,19 +120,6 @@ describe("auth middleware", () => {
     const response = await api.request("/api/admin/users");
 
     expect(response.status).toBe(401);
-  });
-
-  test("blocks staff who have not enrolled in two-factor auth", async ({ api }) => {
-    await api.signIn("staff@example.com");
-    // Local seed accounts opt out of enrollment; simulate an account that requires it.
-    await mutateSessionUsers(api, "staff@example.com", (user) => {
-      user.twoFactorRequired = true;
-    });
-    const response = await api.request("/api/admin/users");
-    const body = (await response.json()) as { error?: { code?: string } };
-
-    expect(response.status).toBe(403);
-    expect(body.error?.code).toBe("two_factor_required");
   });
 
   test("handles a session whose user has no role", async ({ api }) => {
@@ -187,7 +148,6 @@ describe("auth middleware", () => {
 
   test("allows an enrolled admin", async ({ api }) => {
     await api.signIn("admin@example.com");
-    await api.enableTwoFactor("admin@example.com");
     const response = await api.request("/api/admin/users");
 
     expect(response.status).toBe(200);
@@ -195,7 +155,6 @@ describe("auth middleware", () => {
 
   test("denies an enrolled staff account a permission it lacks", async ({ api }) => {
     await api.signIn("staff@example.com");
-    await api.enableTwoFactor("staff@example.com");
     const response = await api.request("/api/admin/users");
 
     expect(response.status).toBe(403);
@@ -211,7 +170,9 @@ describe("standard API response envelope", () => {
     .get("/success-headers", (ctx) =>
       apiSuccess(ctx, { value: 3 }, { headers: { "x-test": "yes" } }),
     )
-    .get("/partial-default", (ctx) => apiPartial(ctx, { created: 1 }, { code: "partial_failure" }))
+    .get("/partial-default", (ctx) =>
+      apiPartial(ctx, { created: 1 }, { code: "partial_failure", message: "Partial failure." }),
+    )
     .get("/partial-message", (ctx) =>
       apiPartial(
         ctx,
@@ -220,7 +181,9 @@ describe("standard API response envelope", () => {
         { meta: { warnings: [] }, headers: { "x-test": "yes" } },
       ),
     )
-    .get("/error-minimal", (ctx) => apiError(ctx, "invalid_payload", { status: 400 }))
+    .get("/error-minimal", (ctx) =>
+      apiError(ctx, "invalid_payload", { status: 400, message: "Some fields are invalid." }),
+    )
     .get("/error-full", (ctx) =>
       apiError(ctx, "invalid_payload", {
         status: 422,
@@ -279,7 +242,7 @@ describe("standard API response envelope", () => {
     await expect(response.json()).resolves.toEqual({
       status: "partial",
       data: { created: 1 },
-      error: { code: "partial_failure", message: "" },
+      error: { code: "partial_failure", message: "Partial failure." },
       meta: {},
     });
   });
@@ -301,7 +264,7 @@ describe("standard API response envelope", () => {
     await expect(response.json()).resolves.toEqual({
       status: "error",
       data: null,
-      error: { code: "invalid_payload" },
+      error: { code: "invalid_payload", message: "Some fields are invalid." },
       meta: {},
     });
   });
@@ -378,7 +341,7 @@ describe("production app configuration", () => {
     vi.stubEnv("DEV", false);
 
     try {
-      const module = await import("../../../src/server/app");
+      const module = await import("~/platform/app");
 
       expect(module.api).toBeDefined();
     } finally {

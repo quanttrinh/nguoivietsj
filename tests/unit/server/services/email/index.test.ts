@@ -11,7 +11,8 @@ import {
   type EmailEnv,
   type EmailFrom,
   type EmailProvider,
-} from "../../../../../src/server/services/email";
+} from "~/platform/server/email";
+
 import { expectEmailError } from "../../../helpers/email";
 
 type Template = "registrationReceived" | "paymentConfirmed";

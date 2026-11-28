@@ -3,6 +3,9 @@
   "name": "nguoivietsj",
   "main": "./src/worker.ts",
   "compatibility_date": "2026-10-01",
+  "compatibility_flags": [
+    "new_module_registry"
+  ],
   "assets": {
     "not_found_handling": "404-page",
     "run_worker_first": [
@@ -53,8 +56,7 @@
     "required": [
       "TURNSTILE_SECRET",
       "MAILTRAP_API_TOKEN",
-      "BETTER_AUTH_SECRET",
-      "AUTH_PASSWORD_CONFIG"
+      "BETTER_AUTH_SECRET"
     ]
   },
   "vars": {
@@ -169,8 +171,7 @@
         "required": [
           "TURNSTILE_SECRET",
           "MAILTRAP_API_TOKEN",
-          "BETTER_AUTH_SECRET",
-          "AUTH_PASSWORD_CONFIG"
+          "BETTER_AUTH_SECRET"
         ]
       },
       "ratelimits": [

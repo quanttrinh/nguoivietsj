@@ -1,10 +1,12 @@
 import { globSync } from "node:fs";
 
+import { precompile } from "@ark/aot/unplugin";
 import { playwright } from "@vitest/browser-playwright";
 import { defineConfig } from "vitest/config";
 
 /** Vite options shared by every project. */
 const shared = {
+  plugins: [precompile.vite()],
   resolve: { tsconfigPaths: true },
 };
 
@@ -32,7 +34,15 @@ export default defineConfig({
       provider: "v8",
       // Every API and server-side module is in scope. Paths are relative to
       // the project root (Vitest 5 matching), so each file must be covered.
-      include: ["src/auth/server/**/*.ts", "src/server/**/*.ts"],
+      include: [
+        "src/features/auth/server/**/*.ts",
+        "src/platform/app.ts",
+        "src/platform/server/api/helpers/**/*.ts",
+        "src/features/*/server/api/**/*.ts",
+        "src/platform/i18n/**/*.ts",
+        "src/platform/server/middleware/**/*.ts",
+        "src/platform/server/email/**/*.ts",
+      ],
       reporter: ["text"],
     },
     watchTriggerPatterns: [
@@ -40,7 +50,7 @@ export default defineConfig({
         // The seed fixture is read at runtime, so the import graph misses it.
         // Any integration test may depend on the seeded events, not just the
         // database suite, so widen the trigger target to the whole directory.
-        pattern: /src\/backfills\/seed\/seed-events\.json$/u,
+        pattern: /src\/platform\/jobs\/backfills\/seed\/seed-events\.json$/u,
         testsToRun: () => globSync("tests/integration/**/*.test.ts"),
       },
     ],

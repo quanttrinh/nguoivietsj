@@ -1,11 +1,11 @@
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 
 import {
   getTracing,
   withTracingSpan,
   type TracingLike,
   type TracingSpanLike,
-} from "../../../src/server/tracing";
+} from "~/platform/server/api/helpers/tracing";
 
 function createFakeTracing() {
   const calls: string[] = [];
@@ -33,15 +33,25 @@ function createFakeTracing() {
   return { calls, span, tracing };
 }
 
+type TracingContextArg = Parameters<typeof getTracing>[0];
+
+function contextWithTracing(tracing?: TracingLike): TracingContextArg {
+  return {
+    executionCtx: {
+      waitUntil: vi.fn<() => void>(),
+      ...(tracing === undefined ? {} : { tracing }),
+    },
+  };
+}
+
 describe("getTracing", () => {
   test("returns undefined when the runtime has no tracing API", () => {
-    expect(getTracing({ executionCtx: undefined })).toBeUndefined();
-    expect(getTracing({ executionCtx: {} })).toBeUndefined();
+    expect(getTracing(contextWithTracing())).toBeUndefined();
   });
 
   test("returns undefined when the execution context is unavailable", () => {
-    const ctx = {
-      get executionCtx(): unknown {
+    const ctx: TracingContextArg = {
+      get executionCtx(): TracingContextArg["executionCtx"] {
         throw new Error("This context has no ExecutionContext");
       },
     };
@@ -52,7 +62,7 @@ describe("getTracing", () => {
   test("reads the Cloudflare tracing object from an execution context", () => {
     const { tracing } = createFakeTracing();
 
-    expect(getTracing({ executionCtx: { tracing } })).toBe(tracing);
+    expect(getTracing(contextWithTracing(tracing))).toBe(tracing);
   });
 });
 

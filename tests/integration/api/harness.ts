@@ -1,8 +1,8 @@
 import type { ExecutionContext } from "@cloudflare/workers-types";
 import { test as baseTest, vi } from "vitest";
 
-import { api } from "../../../src/server/app";
-import { isRecord } from "../../../src/shared/utils/records";
+import { api } from "~/platform/app";
+
 import { startDatabase, type TestDatabase } from "../helpers/d1";
 
 const BASE_URL = "http://localhost:4321";
@@ -30,36 +30,12 @@ export interface ApiHarness {
   request: (path: string, init?: RequestInit) => Promise<Response>;
   signIn: (email: string, password?: string) => Promise<Response>;
   clearSession: () => void;
-  enableTwoFactor: (email: string) => Promise<void>;
   close: () => Promise<void>;
   queue: { send: ReturnType<typeof vi.fn> };
   limiters: Record<
     "registration" | "status" | "signIn" | "sendOtp" | "verifyOtp",
     LimiterController
   >;
-}
-
-async function refreshSessionUser(kv: TestDatabase["kv"], key: string, email: string) {
-  const raw = await kv.get(key);
-
-  if (typeof raw !== "string") {
-    return;
-  }
-
-  let parsed: unknown;
-
-  try {
-    parsed = JSON.parse(raw);
-  } catch {
-    return;
-  }
-
-  if (!isRecord(parsed) || !isRecord(parsed.user) || parsed.user.email !== email) {
-    return;
-  }
-
-  parsed.user.twoFactorEnabled = true;
-  await kv.put(key, JSON.stringify(parsed));
 }
 
 function fetchUrl(input: RequestInfo | URL) {
@@ -149,11 +125,17 @@ export async function createApiHarness(): Promise<ApiHarness> {
     return response;
   }
 
-  async function signIn(email: string, password = "dev-password"): Promise<Response> {
-    const response = await request("/api/auth/sign-in/email", {
+  async function signIn(email: string, _password?: string): Promise<Response> {
+    await request("/api/auth/email-otp/send-verification-otp", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, type: "sign-in" }),
+    });
+
+    const response = await request("/api/auth/sign-in/email-otp", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ email, otp: "123456" }),
     });
 
     cookie = response.headers
@@ -164,18 +146,6 @@ export async function createApiHarness(): Promise<ApiHarness> {
     return response;
   }
 
-  async function enableTwoFactor(email: string): Promise<void> {
-    await db.app
-      .prepare("UPDATE user SET two_factor_enabled = 1 WHERE email = ?")
-      .bind(email)
-      .run();
-
-    // Better Auth caches the user inside each session record; refresh it.
-    const sessions = await db.kv.list();
-
-    await Promise.all(sessions.keys.map((key) => refreshSessionUser(db.kv, key.name, email)));
-  }
-
   return {
     db,
     env,
@@ -184,7 +154,6 @@ export async function createApiHarness(): Promise<ApiHarness> {
     clearSession: () => {
       cookie = "";
     },
-    enableTwoFactor,
     queue,
     limiters,
     close: async () => {
