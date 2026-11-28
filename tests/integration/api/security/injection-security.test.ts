@@ -138,7 +138,6 @@ function manualRegistrationBody(fullName: string, email: string): Record<string,
 
 test.beforeAll(async ({ api }) => {
   await api.signIn("admin@example.com");
-  await api.enableTwoFactor("admin@example.com");
 });
 
 describe("SQL injection through query parameters and identifiers", () => {
@@ -462,6 +461,8 @@ describe("HTML and script injection", () => {
       expect(serialized).not.toContain("<img");
       expect(serialized).not.toContain("onerror=");
       expect(serialized).not.toContain("onmouseover=");
+      expect(response.headers.get("vary")).toContain("Accept-Language");
+      expect(response.headers.get("vary")).toContain("X-Locale");
     },
   );
 });
@@ -488,6 +489,8 @@ describe("header injection through locale headers", () => {
       const setCookie = response.headers.get("set-cookie");
       expect(setCookie === null || !setCookie.includes("injected")).toBe(true);
       expect(response.headers.get("x-injected")).toBeNull();
+      expect(response.headers.get("vary")).toContain("Accept-Language");
+      expect(response.headers.get("vary")).toContain("X-Locale");
     },
   );
 

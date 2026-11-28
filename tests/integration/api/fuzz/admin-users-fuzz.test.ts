@@ -25,7 +25,6 @@ beforeAll(async () => {
   // sign-in yields a 2FA challenge with no session, so these properties never
   // re-authenticate and simply reuse the cookie captured here.
   await api.signIn("admin@example.com");
-  await api.enableTwoFactor("admin@example.com");
 });
 
 afterAll(async () => {

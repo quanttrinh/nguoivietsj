@@ -154,7 +154,6 @@ async function publicDetail(api: ApiHarness, slug: string): Promise<PublicDetail
 
 test.beforeAll(async ({ api }) => {
   await api.signIn("admin@example.com");
-  await api.enableTwoFactor("admin@example.com");
 });
 
 describe("admin create writes every child row to D1", () => {

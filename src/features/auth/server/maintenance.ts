@@ -10,8 +10,7 @@ const EMAIL_DELIVERY_RETENTION_MS = 90 * 24 * 60 * 60 * 1000;
 /**
  * Prune Better Auth tables and the shared email ledger in the application database.
  *
- * Sessions and verification rows (including two-factor email codes and
- * trusted-device records) are deleted once expired.
+ * Sessions and email one-time sign-in codes are deleted once expired.
  */
 export async function runAppMaintenance(db: D1Database, now: Date = new Date()): Promise<void> {
   const orm = drizzle(db);

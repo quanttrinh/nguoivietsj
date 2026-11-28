@@ -21,7 +21,6 @@ async function seededRegistrationId(db: TestDatabase, eventId: string) {
 
 test.beforeAll(async ({ api }) => {
   await api.signIn("admin@example.com");
-  await api.enableTwoFactor("admin@example.com");
 });
 
 describe("admin events API", () => {
@@ -81,7 +80,6 @@ describe("admin events API", () => {
 
   test("denies event creation to staff", async ({ api }) => {
     await api.signIn("staff@example.com");
-    await api.enableTwoFactor("staff@example.com");
     const response = await api.request("/api/admin/events", {
       method: "POST",
       headers: { "content-type": "application/json" },

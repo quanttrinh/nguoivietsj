@@ -92,7 +92,6 @@ async function setPublishedFormSchema(api: ApiHarness, eventId: string, fields: 
 
 test.beforeAll(async ({ api }) => {
   await api.signIn("admin@example.com");
-  await api.enableTwoFactor("admin@example.com");
 });
 
 describe("admin ticket types API", () => {

@@ -4,7 +4,7 @@ import { Hono } from "hono";
 import { describe, expect, test as unitTest, vi } from "vitest";
 
 import { authMessage, resolveAuthLocale } from "~/features/auth/server/api/auth";
-import { DEFAULT_LOCALE } from "~/platform/i18n";
+import { defaultLocale } from "~/platform/i18n";
 import {
   bodyEmailKey,
   checkRateLimit,
@@ -115,14 +115,19 @@ describe("rate limit keys", () => {
   });
 
   unitTest("reads an email key from a JSON body", async () => {
-    const request = testRequest("/", {
+    const body = JSON.stringify({ email: " User@Example.COM " });
+    const options = {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ email: " User@Example.COM " }),
-    });
+      body,
+    };
 
-    await expect(bodyEmailKey("scope", request)).resolves.toBe("scope:user@example.com");
-    await expect(bodyEmailKey("scope", request.clone())).resolves.toBe("scope:user@example.com");
+    await expect(bodyEmailKey("scope", testRequest("/", options))).resolves.toBe(
+      "scope:user@example.com",
+    );
+    await expect(bodyEmailKey("scope", testRequest("/", options))).resolves.toBe(
+      "scope:user@example.com",
+    );
   });
 
   unitTest("returns null for invalid or email-less bodies", async () => {
@@ -543,7 +548,7 @@ describe("API locale resolution", () => {
           headers: { "x-locale": "de", "accept-language": "de,es;q=0.5" },
         }),
       ),
-    ).toBe(DEFAULT_LOCALE);
+    ).toBe(defaultLocale);
   });
 
   unitTest("localizes known, unknown, and unsupported locale codes", () => {

@@ -158,7 +158,6 @@ function configureMail(api: { env: Record<string, unknown> }) {
 
 test.beforeAll(async ({ api }) => {
   await api.signIn("admin@example.com");
-  await api.enableTwoFactor("admin@example.com");
 });
 
 describe("admin registration list API", () => {

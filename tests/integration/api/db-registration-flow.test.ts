@@ -96,7 +96,6 @@ test.beforeAll(async ({ api }) => {
   // Authenticate once. Enabling 2FA means signIn() would return a challenge
   // from this point on, so admin calls below reuse this single session.
   await api.signIn("admin@example.com");
-  await api.enableTwoFactor("admin@example.com");
 
   eventId = await eventIdBySlug(api.db, REGISTRATION_SLUG);
 

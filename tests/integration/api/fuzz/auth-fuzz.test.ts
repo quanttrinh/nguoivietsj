@@ -19,7 +19,6 @@ beforeAll(async () => {
   // none of these properties call signIn again (2FA is enabled below) or sign
   // out, so the session stays valid for every request.
   await api.signIn("admin@example.com");
-  await api.enableTwoFactor("admin@example.com");
 });
 
 afterAll(async () => {

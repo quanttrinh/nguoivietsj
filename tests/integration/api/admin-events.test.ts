@@ -88,7 +88,6 @@ function createPayload(overrides: Record<string, unknown> = {}): Record<string, 
 
 test.beforeAll(async ({ api }) => {
   await api.signIn("admin@example.com");
-  await api.enableTwoFactor("admin@example.com");
 });
 
 describe("admin event list", () => {
@@ -860,7 +859,6 @@ describe("admin event overview for a limited role", () => {
     const eventId = await eventIdBySlug(api.db, SUMMER_SLUG);
 
     await api.signIn("staff@example.com");
-    await api.enableTwoFactor("staff@example.com");
 
     const response = await api.request(`/api/admin/events/${eventId}/overview`);
     const body = (await response.json()) as {

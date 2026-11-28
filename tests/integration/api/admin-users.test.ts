@@ -43,15 +43,10 @@ interface CreateData {
   };
 }
 
-/** Sign in with 2FA temporarily disabled, then re-enroll to get a valid session. */
+/** Sign in through the email-OTP helper. */
 async function signInAs(api: ApiHarness, email: string) {
-  await api.db.app
-    .prepare("UPDATE user SET two_factor_enabled = 0 WHERE email = ?")
-    .bind(email)
-    .run();
   api.clearSession();
   await api.signIn(email);
-  await api.enableTwoFactor(email);
 }
 
 async function userIdFor(db: TestDatabase, email: string) {
@@ -85,7 +80,6 @@ async function removeUser(api: ApiHarness, id: string) {
 
 test.beforeAll(async ({ api }) => {
   await api.signIn("admin@example.com");
-  await api.enableTwoFactor("admin@example.com");
 });
 
 describe("admin users list", () => {
@@ -494,25 +488,6 @@ describe("admin users authorization", () => {
       const errorBody = await parseJson<ErrorData>(response);
       expect(errorBody.error?.code).toBe("forbidden");
     }
-    await signInAs(api, "admin@example.com");
-  });
-
-  test.skip("requires two-factor enrollment for the admin role", async ({ api }) => {
-    await api.db.app
-      .prepare("UPDATE user SET two_factor_enabled = 0, two_factor_required = 1 WHERE email = ?")
-      .bind("admin@example.com")
-      .run();
-    api.clearSession();
-    await api.signIn("admin@example.com");
-    const response = await api.request("/api/admin/users");
-    expect(response.status).toBe(403);
-    const errorBody = await parseJson<ErrorData>(response);
-    expect(errorBody.error?.code).toBe("two_factor_required");
-
-    await api.db.app
-      .prepare("UPDATE user SET two_factor_required = 0 WHERE email = ?")
-      .bind("admin@example.com")
-      .run();
     await signInAs(api, "admin@example.com");
   });
 });

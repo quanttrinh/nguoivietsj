@@ -23,7 +23,6 @@ import { test, type ApiHarness } from "./harness";
 interface SessionUser {
   email?: string;
   role?: string;
-  twoFactorRequired?: boolean;
 }
 
 interface SessionRecord {
@@ -106,36 +105,6 @@ describe("api app wiring", () => {
 });
 
 describe("root auth routing", () => {
-  test("passes two-factor send-otp through its rate limiters", async ({ api }) => {
-    const response = await api.request("/api/auth/two-factor/send-otp", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ email: "admin@example.com" }),
-    });
-
-    expect(response.status).toBeLessThan(500);
-  });
-
-  test("passes two-factor verify-otp through its rate limiter", async ({ api }) => {
-    const response = await api.request("/api/auth/two-factor/verify-otp", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ code: "123456" }),
-    });
-
-    expect(response.status).toBeLessThan(500);
-  });
-
-  test("passes two-factor verify-backup-code through its rate limiter", async ({ api }) => {
-    const response = await api.request("/api/auth/two-factor/verify-backup-code", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ code: "backup-code" }),
-    });
-
-    expect(response.status).toBeLessThan(500);
-  });
-
   test("returns 404 for unknown auth paths", async ({ api }) => {
     const response = await api.request("/api/auth/does-not-exist");
     const body = (await response.json()) as { error?: { code?: string } };
@@ -151,19 +120,6 @@ describe("auth middleware", () => {
     const response = await api.request("/api/admin/users");
 
     expect(response.status).toBe(401);
-  });
-
-  test.skip("blocks staff who have not enrolled in two-factor auth", async ({ api }) => {
-    await api.signIn("staff@example.com");
-    // Local seed accounts opt out of enrollment; simulate an account that requires it.
-    await mutateSessionUsers(api, "staff@example.com", (user) => {
-      user.twoFactorRequired = true;
-    });
-    const response = await api.request("/api/admin/users");
-    const body = (await response.json()) as { error?: { code?: string } };
-
-    expect(response.status).toBe(403);
-    expect(body.error?.code).toBe("two_factor_required");
   });
 
   test("handles a session whose user has no role", async ({ api }) => {
@@ -192,7 +148,6 @@ describe("auth middleware", () => {
 
   test("allows an enrolled admin", async ({ api }) => {
     await api.signIn("admin@example.com");
-    await api.enableTwoFactor("admin@example.com");
     const response = await api.request("/api/admin/users");
 
     expect(response.status).toBe(200);
@@ -200,7 +155,6 @@ describe("auth middleware", () => {
 
   test("denies an enrolled staff account a permission it lacks", async ({ api }) => {
     await api.signIn("staff@example.com");
-    await api.enableTwoFactor("staff@example.com");
     const response = await api.request("/api/admin/users");
 
     expect(response.status).toBe(403);
