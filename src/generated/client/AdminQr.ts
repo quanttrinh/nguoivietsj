@@ -18,69 +18,53 @@ type Labels = Widen<PickByPaths<Messages, {
   }
 }>>;
 
-export function localized(locale: Locale): Labels {
-  switch (locale) {
-    case "en":
-      return {
-        "engineAdmin": {
-          "loading": "Loading…",
-          "loadFailed": "Could not load events."
-        },
-        "engineCheckin": {
-          "registrationNotFound": "Registration not found for this event.",
-          "qrHelp": "Show this code at the event check-in desk.",
-          "paymentPendingQr": "This QR code is available only after staff confirm payment.",
-          "printQr": "Print QR",
-          "openScanner": "Open scanner",
-          "qrTitle": "Registration QR"
-        }
-      };
-    case "fr":
-      return {
-        "engineAdmin": {
-          "loading": "Chargement…",
-          "loadFailed": "Impossible de charger les événements."
-        },
-        "engineCheckin": {
-          "registrationNotFound": "Inscription introuvable pour cet événement.",
-          "qrHelp": "Présentez ce code au comptoir de pointage de l'événement.",
-          "paymentPendingQr": "Ce code QR n'est disponible qu'après confirmation du paiement par l'équipe.",
-          "printQr": "Imprimer le QR",
-          "openScanner": "Ouvrir le lecteur",
-          "qrTitle": "Code QR d'inscription"
-        }
-      };
-    case "vi":
-      return {
-        "engineAdmin": {
-          "loading": "Đang tải…",
-          "loadFailed": "Không thể tải sự kiện."
-        },
-        "engineCheckin": {
-          "registrationNotFound": "Không tìm thấy đăng ký cho sự kiện này.",
-          "qrHelp": "Xuất trình mã này tại quầy điểm danh sự kiện.",
-          "paymentPendingQr": "Mã QR chỉ có sau khi nhân viên xác nhận thanh toán.",
-          "printQr": "In mã QR",
-          "openScanner": "Mở máy quét",
-          "qrTitle": "Mã QR đăng ký"
-        }
-      };
-    default:
-      return {
-        "engineAdmin": {
-          "loading": "Loading…",
-          "loadFailed": "Could not load events."
-        },
-        "engineCheckin": {
-          "registrationNotFound": "Registration not found for this event.",
-          "qrHelp": "Show this code at the event check-in desk.",
-          "paymentPendingQr": "This QR code is available only after staff confirm payment.",
-          "printQr": "Print QR",
-          "openScanner": "Open scanner",
-          "qrTitle": "Registration QR"
-        }
-      };
+const catalogs: Record<Locale, Labels> = {
+  "en": {
+  "engineAdmin": {
+    "loading": "Loading…",
+    "loadFailed": "Could not load events."
+  },
+  "engineCheckin": {
+    "registrationNotFound": "Registration not found for this event.",
+    "qrHelp": "Show this code at the event check-in desk.",
+    "paymentPendingQr": "This QR code is available only after staff confirm payment.",
+    "printQr": "Print QR",
+    "openScanner": "Open scanner",
+    "qrTitle": "Registration QR"
   }
+},
+  "fr": {
+  "engineAdmin": {
+    "loading": "Chargement…",
+    "loadFailed": "Impossible de charger les événements."
+  },
+  "engineCheckin": {
+    "registrationNotFound": "Inscription introuvable pour cet événement.",
+    "qrHelp": "Présentez ce code au comptoir de pointage de l'événement.",
+    "paymentPendingQr": "Ce code QR n'est disponible qu'après confirmation du paiement par l'équipe.",
+    "printQr": "Imprimer le QR",
+    "openScanner": "Ouvrir le lecteur",
+    "qrTitle": "Code QR d'inscription"
+  }
+},
+  "vi": {
+  "engineAdmin": {
+    "loading": "Đang tải…",
+    "loadFailed": "Không thể tải sự kiện."
+  },
+  "engineCheckin": {
+    "registrationNotFound": "Không tìm thấy đăng ký cho sự kiện này.",
+    "qrHelp": "Xuất trình mã này tại quầy điểm danh sự kiện.",
+    "paymentPendingQr": "Mã QR chỉ có sau khi nhân viên xác nhận thanh toán.",
+    "printQr": "In mã QR",
+    "openScanner": "Mở máy quét",
+    "qrTitle": "Mã QR đăng ký"
+  }
+},
+};
+
+export function localized(locale: Locale): Labels {
+  return catalogs[locale] ?? catalogs["en"];
 }
 
 export type AdminQrLabels = Labels;

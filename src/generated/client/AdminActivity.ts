@@ -23,89 +23,68 @@ type Labels = Widen<PickByPaths<Messages, {
   }
 }>>;
 
-export function localized(locale: Locale): Labels {
-  switch (locale) {
-    case "en":
-      return {
-        "engineAdmin": {
-          "paymentConfirmAction": "Payment confirmed",
-          "paymentUpdateAction": "Payment updated",
-          "paymentUnconfirmAction": "Payment removed",
-          "loading": "Loading…",
-          "eventNotFound": "Event not found.",
-          "loadFailed": "Could not load events.",
-          "noActivity": "No activity yet.",
-          "time": "Time",
-          "action": "Action",
-          "actor": "Actor",
-          "target": "Target",
-          "metadata": "Metadata"
-        },
-        "shared": {
-          "activity": "Activity"
-        }
-      };
-    case "fr":
-      return {
-        "engineAdmin": {
-          "paymentConfirmAction": "Paiement confirmé",
-          "paymentUpdateAction": "Paiement mis à jour",
-          "paymentUnconfirmAction": "Paiement retiré",
-          "loading": "Chargement…",
-          "eventNotFound": "Événement introuvable.",
-          "loadFailed": "Impossible de charger les événements.",
-          "noActivity": "Aucune activité.",
-          "time": "Heure",
-          "action": "Action",
-          "actor": "Acteur",
-          "target": "Cible",
-          "metadata": "Métadonnées"
-        },
-        "shared": {
-          "activity": "Activité"
-        }
-      };
-    case "vi":
-      return {
-        "engineAdmin": {
-          "paymentConfirmAction": "Đã xác nhận thanh toán",
-          "paymentUpdateAction": "Đã cập nhật thanh toán",
-          "paymentUnconfirmAction": "Đã xóa thanh toán",
-          "loading": "Đang tải…",
-          "eventNotFound": "Không tìm thấy sự kiện.",
-          "loadFailed": "Không thể tải sự kiện.",
-          "noActivity": "Chưa có hoạt động.",
-          "time": "Thời gian",
-          "action": "Thao tác",
-          "actor": "Người thực hiện",
-          "target": "Đối tượng",
-          "metadata": "Siêu dữ liệu"
-        },
-        "shared": {
-          "activity": "Hoạt động"
-        }
-      };
-    default:
-      return {
-        "engineAdmin": {
-          "paymentConfirmAction": "Payment confirmed",
-          "paymentUpdateAction": "Payment updated",
-          "paymentUnconfirmAction": "Payment removed",
-          "loading": "Loading…",
-          "eventNotFound": "Event not found.",
-          "loadFailed": "Could not load events.",
-          "noActivity": "No activity yet.",
-          "time": "Time",
-          "action": "Action",
-          "actor": "Actor",
-          "target": "Target",
-          "metadata": "Metadata"
-        },
-        "shared": {
-          "activity": "Activity"
-        }
-      };
+const catalogs: Record<Locale, Labels> = {
+  "en": {
+  "engineAdmin": {
+    "paymentConfirmAction": "Payment confirmed",
+    "paymentUpdateAction": "Payment updated",
+    "paymentUnconfirmAction": "Payment removed",
+    "loading": "Loading…",
+    "eventNotFound": "Event not found.",
+    "loadFailed": "Could not load events.",
+    "noActivity": "No activity yet.",
+    "time": "Time",
+    "action": "Action",
+    "actor": "Actor",
+    "target": "Target",
+    "metadata": "Metadata"
+  },
+  "shared": {
+    "activity": "Activity"
   }
+},
+  "fr": {
+  "engineAdmin": {
+    "paymentConfirmAction": "Paiement confirmé",
+    "paymentUpdateAction": "Paiement mis à jour",
+    "paymentUnconfirmAction": "Paiement retiré",
+    "loading": "Chargement…",
+    "eventNotFound": "Événement introuvable.",
+    "loadFailed": "Impossible de charger les événements.",
+    "noActivity": "Aucune activité.",
+    "time": "Heure",
+    "action": "Action",
+    "actor": "Acteur",
+    "target": "Cible",
+    "metadata": "Métadonnées"
+  },
+  "shared": {
+    "activity": "Activité"
+  }
+},
+  "vi": {
+  "engineAdmin": {
+    "paymentConfirmAction": "Đã xác nhận thanh toán",
+    "paymentUpdateAction": "Đã cập nhật thanh toán",
+    "paymentUnconfirmAction": "Đã xóa thanh toán",
+    "loading": "Đang tải…",
+    "eventNotFound": "Không tìm thấy sự kiện.",
+    "loadFailed": "Không thể tải sự kiện.",
+    "noActivity": "Chưa có hoạt động.",
+    "time": "Thời gian",
+    "action": "Thao tác",
+    "actor": "Người thực hiện",
+    "target": "Đối tượng",
+    "metadata": "Siêu dữ liệu"
+  },
+  "shared": {
+    "activity": "Hoạt động"
+  }
+},
+};
+
+export function localized(locale: Locale): Labels {
+  return catalogs[locale] ?? catalogs["en"];
 }
 
 export type AdminActivityLabels = Labels;

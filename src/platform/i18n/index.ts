@@ -1,6 +1,7 @@
 // @boundary shared
 import {
   defaultLocale,
+  isLocale,
   localeNames,
   locales,
   type Locale,
@@ -10,16 +11,12 @@ import {
 } from "~/generated/i18n-types";
 
 export { defaultLocale, localeNames, locales, type Locale } from "~/generated/i18n-types";
-export { DEFAULT_LOCALE, SUPPORTED_LOCALES } from "~/generated/i18n-types";
+export { isLocale } from "~/generated/i18n-types";
 
 /** Plain label strings for an explicit subset of message paths. */
 export type SubsetLabels<Paths extends Record<string, unknown>> = Widen<
   PickByPaths<Messages, Paths>
 >;
-
-export function isLocale(value: string): value is Locale {
-  return (locales as readonly string[]).includes(value);
-}
 
 /** Extract the locale prefix from a pathname, falling back to the default locale. */
 export function getLocaleFromPath(pathname: string): Locale {
@@ -52,8 +49,9 @@ export function getLocaleName(locale: string): string {
   return isLocale(locale) ? localeNames[locale] : locale;
 }
 
-export function getHTMLTextDir(locale: string): "ltr" | "rtl" {
-  return locale === "ar" || locale === "he" || locale === "fa" ? "rtl" : "ltr";
+/** All supported locales are left-to-right. */
+export function getHTMLTextDir(): "ltr" {
+  return "ltr";
 }
 
 /** Resolve the active locale from the document, for browser-only callers. */

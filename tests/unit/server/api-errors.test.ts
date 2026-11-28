@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { describe, expect, test } from "vitest";
 
-import { eventApiError } from "~/features/events/server/api/event-errors";
+import { eventApiError, eventMessage } from "~/features/events/server/api/event-errors";
 import { sharedApiError } from "~/platform/server/api/helpers/responses/shared-api-error";
 
 type AnyErrorHelper = (
@@ -50,6 +50,50 @@ describe("locale-aware API errors", () => {
     const body = await errorBody(res);
 
     expect(body.error.message).toBe("Không tìm thấy sự kiện.");
+  });
+
+  test("unknown codes use a localized generic message", async () => {
+    const res = await app(sharedApiError, "unknown_code", 400).request("/x", {
+      headers: { "x-locale": "fr" },
+    });
+    const body = await errorBody(res);
+
+    expect(body.error.message.length).toBeGreaterThan(0);
+    expect(body.error.message).not.toBe("Something went wrong.");
+  });
+
+  test("unknown event codes use the localized shared generic message", async () => {
+    const cases = [
+      ["fr", "Une erreur est survenue."],
+      ["vi", "Đã xảy ra lỗi."],
+    ] as const;
+    const results = await Promise.all(
+      cases.map(async ([locale, message]) => {
+        const res = await app(eventApiError, "unknown_code", 400).request("/x", {
+          headers: { "x-locale": locale },
+        });
+
+        return { message, body: await errorBody(res) };
+      }),
+    );
+
+    for (const { message, body } of results) {
+      expect(body.error.message).toBe(message);
+    }
+  });
+
+  test("eventMessage falls back to a localized generic message", () => {
+    expect(eventMessage("unknown_warning_code", "fr").length).toBeGreaterThan(0);
+    expect(eventMessage("unknown_warning_code", "fr")).not.toBe("");
+  });
+
+  test("blank explicit messages fall back to a localized message", async () => {
+    const res = await new Hono()
+      .get("/x", (ctx) => sharedApiError(ctx, "unknown_code", { status: 400, message: "  " }))
+      .request("/x", { headers: { "x-locale": "fr" } });
+    const body = await errorBody(res);
+
+    expect(body.error.message).toBe("Une erreur est survenue.");
   });
 
   test("defaults to the configured default locale", async () => {

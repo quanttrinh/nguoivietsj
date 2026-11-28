@@ -5,17 +5,14 @@ import type { Locale } from "~/platform/i18n";
 
 type Labels = Widen<PickByPaths<Messages, {}>>;
 
+const catalogs: Record<Locale, Labels> = {
+  "en": {},
+  "fr": {},
+  "vi": {},
+};
+
 export function localized(locale: Locale): Labels {
-  switch (locale) {
-    case "en":
-      return {};
-    case "fr":
-      return {};
-    case "vi":
-      return {};
-    default:
-      return {};
-  }
+  return catalogs[locale] ?? catalogs["en"];
 }
 
 export type AdminHomeCardsLabels = Labels;

@@ -5,22 +5,22 @@ import { resolveRequestLocale } from "~/platform/i18n/resolve";
 
 import { createFeatureApiError } from "./api-error-factory";
 
-const catalog = (locale: string) =>
-  sharedApiMessages(isLocale(locale) ? locale : defaultLocale).sharedApiMessages;
+type SharedApiCatalog = Record<string, string>;
 
-const fallback = "Something went wrong.";
+const catalog = (locale: string): SharedApiCatalog =>
+  sharedApiMessages(isLocale(locale) ? locale : defaultLocale).sharedApiMessages;
 
 /** Error helper for shared/infra codes: message resolved from the request locale. */
 export const sharedApiError = createFeatureApiError({
   catalog,
-  fallback,
+  fallback: () => "Something went wrong.",
   resolveLocale: resolveRequestLocale,
 });
 
 /** Resolve a shared message code for a given locale (used by the auth response rewriter). */
 export function sharedMessage(code: string, locale: string): string {
-  const messages = catalog(locale) as Record<string, string>;
-  const defaultMessages = catalog(defaultLocale) as Record<string, string>;
+  const messages = catalog(locale);
+  const defaultMessages = catalog(defaultLocale);
 
   return (
     messages[code] ??

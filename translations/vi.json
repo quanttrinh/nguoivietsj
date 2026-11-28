@@ -376,11 +376,11 @@
       "free": "Miễn phí",
       "registrationClosed": "Đăng ký đã đóng",
       "registrationClosedBody": "Sự kiện này không còn nhận đăng ký.",
-      "remainingParts": ["Còn ", ""],
       "soldOut": "Đã hết",
       "unavailable": "Đăng ký không khả dụng",
       "unavailableBody": "Biểu mẫu đăng ký hiện không khả dụng. Vui lòng thử lại sau.",
-      "when": "Thời gian"
+      "when": "Thời gian",
+      "remainingParts": ["Còn ", ""]
     },
     "fields": {
       "confirmation": {
@@ -514,25 +514,19 @@
   },
   "login": {
     "codeHeading": "Nhập mã đăng nhập",
-    "codeHintBackup": "Nhập một mã dự phòng. Mỗi mã chỉ dùng được một lần.",
-    "codeHintEmail": "Chúng tôi đã gửi mã 6 chữ số đến email của bạn. Mã hết hạn sau 3 phút.",
-    "codeHintTotp": "Mở ứng dụng xác thực và nhập mã 6 chữ số.",
+    "codeHintEmail": "Chúng tôi đã gửi mã gồm 6 chữ số qua email. Mã hết hạn sau 10 phút.",
     "codeLabel": "Mã",
     "codeRequired": "Vui lòng nhập mã.",
-    "fieldsRequired": "Nhập email và mật khẩu của bạn.",
+    "fieldsRequired": "Nhập địa chỉ email.",
     "heading": "Chào mừng trở lại",
-    "intro": "Đăng nhập bằng email và mật khẩu của bạn.",
+    "intro": "Đăng nhập bằng email. Chúng tôi sẽ gửi cho bạn một mã dùng một lần.",
     "metaDescription": "Đăng nhập vào tài khoản để quản lý sự kiện của bạn.",
     "metaTitle": "Đăng nhập",
-    "rememberMe": "Ghi nhớ đăng nhập",
     "signInFailed": "Đăng nhập không thành công. Vui lòng thử lại.",
     "submit": "Đăng nhập",
     "submitting": "Đang đăng nhập…",
-    "trustDevice": "Tin cậy thiết bị này trong 30 ngày",
     "unavailable": "Đăng nhập tạm thời không khả dụng. Vui lòng thử lại sau.",
-    "useBackup": "Dùng mã dự phòng",
     "useEmail": "Gửi mã qua email",
-    "useTotp": "Dùng ứng dụng xác thực",
     "verify": "Xác minh"
   },
   "shared": {
@@ -624,7 +618,6 @@
     "turnstile_failed": "Xác minh không thành công. Hãy thử lại.",
     "turnstile_required": "Hãy hoàn thành bước xác minh.",
     "turnstile_verification_failed": "Không thể hoàn tất xác minh.",
-    "two_factor_required": "Vui lòng thiết lập xác thực hai lớp để tiếp tục.",
     "unauthorized": "Cần đăng nhập.",
     "user_operation_failed": "Không thể hoàn tất thao tác với người dùng.",
     "user_request_failed": "Không thể hoàn tất yêu cầu.",

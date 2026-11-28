@@ -16,246 +16,87 @@ type Labels = Widen<PickByPaths<Messages, {
     "paymentMethod": true,
     "paymentNote": true,
     "otherPaymentNoteHelp": true,
-    "removePayment": true,
-    "notAvailable": true,
-    "unpaid": true,
-    "previousPage": true,
-    "nextPage": true,
-    "noResults": true,
-    "contact": true,
-    "ticketsTotal": true,
-    "checkinFilter": true,
-    "userClose": true,
-    "eventNotFound": true,
-    "search": true,
-    "searchPlaceholder": true,
-    "all": true,
-    "paid": true,
-    "searchAction": true,
-    "results": true,
-    "loadFailed": true
+    "removePayment": true
   },
   "shared": {
     "saving": true,
     "cash": true,
     "eTransfer": true,
-    "other": true,
-    "name": true,
-    "amountDue": true,
-    "payment": true,
-    "created": true,
-    "qRCode": true,
-    "registrationSupport": true,
-    "checkedIn": true,
-    "notCheckedIn": true,
-    "clear": true,
-    "noPaymentRequired": true
+    "other": true
   }
 }>>;
 
-export function localized(locale: Locale): Labels {
-  switch (locale) {
-    case "en":
-      return {
-        "engineAdmin": {
-          "paymentFailed": "Could not update the payment.",
-          "paymentNoteRequired": "A note is required for other payment methods.",
-          "paymentEmailFailed": "Payment saved, but the confirmation email could not be queued.",
-          "paymentSaved": "Payment saved.",
-          "removePaymentConfirm": "Remove this payment confirmation? The QR code will stop being shown.",
-          "paymentRemoved": "Payment removed.",
-          "confirmPayment": "Confirm payment",
-          "updatePayment": "Update payment",
-          "paymentMethod": "Method",
-          "paymentNote": "Note",
-          "otherPaymentNoteHelp": "Describe the payment method in the note.",
-          "removePayment": "Remove payment",
-          "notAvailable": "N/A",
-          "unpaid": "Unpaid",
-          "previousPage": "Previous",
-          "nextPage": "Next",
-          "noResults": "No matching registrations.",
-          "contact": "Contact",
-          "ticketsTotal": "Tickets sold",
-          "checkinFilter": "Check-in",
-          "userClose": "Close",
-          "eventNotFound": "Event not found.",
-          "search": "Search",
-          "searchPlaceholder": "Name, email, phone, or registration ID",
-          "all": "All",
-          "paid": "Paid",
-          "searchAction": "Search registrations",
-          "results": "Results",
-          "loadFailed": "Could not load events."
-        },
-        "shared": {
-          "saving": "Saving…",
-          "cash": "Cash",
-          "eTransfer": "e-Transfer",
-          "other": "Other",
-          "name": "Name",
-          "amountDue": "Amount due",
-          "payment": "Payment",
-          "created": "Created",
-          "qRCode": "QR code",
-          "registrationSupport": "Registration support",
-          "checkedIn": "Checked in",
-          "notCheckedIn": "Not checked in",
-          "clear": "Clear",
-          "noPaymentRequired": "No payment required"
-        }
-      };
-    case "fr":
-      return {
-        "engineAdmin": {
-          "paymentFailed": "Impossible de mettre à jour le paiement.",
-          "paymentNoteRequired": "Une note est requise pour les autres modes de paiement.",
-          "paymentEmailFailed": "Paiement enregistré, mais le courriel de confirmation n'a pas pu être mis en file d'attente.",
-          "paymentSaved": "Paiement enregistré.",
-          "removePaymentConfirm": "Retirer cette confirmation de paiement ? Le code QR ne sera plus affiché.",
-          "paymentRemoved": "Paiement retiré.",
-          "confirmPayment": "Confirmer le paiement",
-          "updatePayment": "Mettre à jour",
-          "paymentMethod": "Mode",
-          "paymentNote": "Note",
-          "otherPaymentNoteHelp": "Décrivez le mode de paiement dans la note.",
-          "removePayment": "Retirer le paiement",
-          "notAvailable": "N/D",
-          "unpaid": "Impayé",
-          "previousPage": "Précédent",
-          "nextPage": "Suivant",
-          "noResults": "Aucune inscription correspondante.",
-          "contact": "Contact",
-          "ticketsTotal": "Billets vendus",
-          "checkinFilter": "Pointage",
-          "userClose": "Fermer",
-          "eventNotFound": "Événement introuvable.",
-          "search": "Rechercher",
-          "searchPlaceholder": "Nom, courriel, téléphone ou identifiant",
-          "all": "Tous",
-          "paid": "Payé",
-          "searchAction": "Rechercher",
-          "results": "Résultats",
-          "loadFailed": "Impossible de charger les événements."
-        },
-        "shared": {
-          "saving": "Enregistrement…",
-          "cash": "Comptant",
-          "eTransfer": "Virement Interac",
-          "other": "Autre",
-          "name": "Nom",
-          "amountDue": "Montant dû",
-          "payment": "Paiement",
-          "created": "Créé",
-          "qRCode": "Code QR",
-          "registrationSupport": "Soutien aux inscriptions",
-          "checkedIn": "Pointé",
-          "notCheckedIn": "Non pointé",
-          "clear": "Effacer",
-          "noPaymentRequired": "Aucun paiement requis"
-        }
-      };
-    case "vi":
-      return {
-        "engineAdmin": {
-          "paymentFailed": "Không thể cập nhật thanh toán.",
-          "paymentNoteRequired": "Cần có ghi chú cho phương thức thanh toán khác.",
-          "paymentEmailFailed": "Đã lưu thanh toán nhưng không thể đưa email xác nhận vào hàng đợi.",
-          "paymentSaved": "Đã lưu thanh toán.",
-          "removePaymentConfirm": "Xóa xác nhận thanh toán này? Mã QR sẽ không còn hiển thị.",
-          "paymentRemoved": "Đã xóa thanh toán.",
-          "confirmPayment": "Xác nhận thanh toán",
-          "updatePayment": "Cập nhật thanh toán",
-          "paymentMethod": "Phương thức",
-          "paymentNote": "Ghi chú",
-          "otherPaymentNoteHelp": "Mô tả phương thức thanh toán trong ghi chú.",
-          "removePayment": "Xóa thanh toán",
-          "notAvailable": "Không có",
-          "unpaid": "Chưa trả",
-          "previousPage": "Trước",
-          "nextPage": "Tiếp",
-          "noResults": "Không có đăng ký phù hợp.",
-          "contact": "Liên hệ",
-          "ticketsTotal": "Vé đã bán",
-          "checkinFilter": "Điểm danh",
-          "userClose": "Đóng",
-          "eventNotFound": "Không tìm thấy sự kiện.",
-          "search": "Tìm kiếm",
-          "searchPlaceholder": "Tên, email, điện thoại hoặc mã đăng ký",
-          "all": "Tất cả",
-          "paid": "Đã trả",
-          "searchAction": "Tìm đăng ký",
-          "results": "Kết quả",
-          "loadFailed": "Không thể tải sự kiện."
-        },
-        "shared": {
-          "saving": "Đang lưu…",
-          "cash": "Tiền mặt",
-          "eTransfer": "Chuyển khoản",
-          "other": "Khác",
-          "name": "Họ tên",
-          "amountDue": "Số tiền cần trả",
-          "payment": "Thanh toán",
-          "created": "Đã tạo",
-          "qRCode": "Mã QR",
-          "registrationSupport": "Hỗ trợ đăng ký",
-          "checkedIn": "Đã điểm danh",
-          "notCheckedIn": "Chưa điểm danh",
-          "clear": "Xóa",
-          "noPaymentRequired": "Không cần thanh toán"
-        }
-      };
-    default:
-      return {
-        "engineAdmin": {
-          "paymentFailed": "Could not update the payment.",
-          "paymentNoteRequired": "A note is required for other payment methods.",
-          "paymentEmailFailed": "Payment saved, but the confirmation email could not be queued.",
-          "paymentSaved": "Payment saved.",
-          "removePaymentConfirm": "Remove this payment confirmation? The QR code will stop being shown.",
-          "paymentRemoved": "Payment removed.",
-          "confirmPayment": "Confirm payment",
-          "updatePayment": "Update payment",
-          "paymentMethod": "Method",
-          "paymentNote": "Note",
-          "otherPaymentNoteHelp": "Describe the payment method in the note.",
-          "removePayment": "Remove payment",
-          "notAvailable": "N/A",
-          "unpaid": "Unpaid",
-          "previousPage": "Previous",
-          "nextPage": "Next",
-          "noResults": "No matching registrations.",
-          "contact": "Contact",
-          "ticketsTotal": "Tickets sold",
-          "checkinFilter": "Check-in",
-          "userClose": "Close",
-          "eventNotFound": "Event not found.",
-          "search": "Search",
-          "searchPlaceholder": "Name, email, phone, or registration ID",
-          "all": "All",
-          "paid": "Paid",
-          "searchAction": "Search registrations",
-          "results": "Results",
-          "loadFailed": "Could not load events."
-        },
-        "shared": {
-          "saving": "Saving…",
-          "cash": "Cash",
-          "eTransfer": "e-Transfer",
-          "other": "Other",
-          "name": "Name",
-          "amountDue": "Amount due",
-          "payment": "Payment",
-          "created": "Created",
-          "qRCode": "QR code",
-          "registrationSupport": "Registration support",
-          "checkedIn": "Checked in",
-          "notCheckedIn": "Not checked in",
-          "clear": "Clear",
-          "noPaymentRequired": "No payment required"
-        }
-      };
+const catalogs: Record<Locale, Labels> = {
+  "en": {
+  "engineAdmin": {
+    "paymentFailed": "Could not update the payment.",
+    "paymentNoteRequired": "A note is required for other payment methods.",
+    "paymentEmailFailed": "Payment saved, but the confirmation email could not be queued.",
+    "paymentSaved": "Payment saved.",
+    "removePaymentConfirm": "Remove this payment confirmation? The QR code will stop being shown.",
+    "paymentRemoved": "Payment removed.",
+    "confirmPayment": "Confirm payment",
+    "updatePayment": "Update payment",
+    "paymentMethod": "Method",
+    "paymentNote": "Note",
+    "otherPaymentNoteHelp": "Describe the payment method in the note.",
+    "removePayment": "Remove payment"
+  },
+  "shared": {
+    "saving": "Saving…",
+    "cash": "Cash",
+    "eTransfer": "e-Transfer",
+    "other": "Other"
   }
+},
+  "fr": {
+  "engineAdmin": {
+    "paymentFailed": "Impossible de mettre à jour le paiement.",
+    "paymentNoteRequired": "Une note est requise pour les autres modes de paiement.",
+    "paymentEmailFailed": "Paiement enregistré, mais le courriel de confirmation n'a pas pu être mis en file d'attente.",
+    "paymentSaved": "Paiement enregistré.",
+    "removePaymentConfirm": "Retirer cette confirmation de paiement ? Le code QR ne sera plus affiché.",
+    "paymentRemoved": "Paiement retiré.",
+    "confirmPayment": "Confirmer le paiement",
+    "updatePayment": "Mettre à jour",
+    "paymentMethod": "Mode",
+    "paymentNote": "Note",
+    "otherPaymentNoteHelp": "Décrivez le mode de paiement dans la note.",
+    "removePayment": "Retirer le paiement"
+  },
+  "shared": {
+    "saving": "Enregistrement…",
+    "cash": "Comptant",
+    "eTransfer": "Virement Interac",
+    "other": "Autre"
+  }
+},
+  "vi": {
+  "engineAdmin": {
+    "paymentFailed": "Không thể cập nhật thanh toán.",
+    "paymentNoteRequired": "Cần có ghi chú cho phương thức thanh toán khác.",
+    "paymentEmailFailed": "Đã lưu thanh toán nhưng không thể đưa email xác nhận vào hàng đợi.",
+    "paymentSaved": "Đã lưu thanh toán.",
+    "removePaymentConfirm": "Xóa xác nhận thanh toán này? Mã QR sẽ không còn hiển thị.",
+    "paymentRemoved": "Đã xóa thanh toán.",
+    "confirmPayment": "Xác nhận thanh toán",
+    "updatePayment": "Cập nhật thanh toán",
+    "paymentMethod": "Phương thức",
+    "paymentNote": "Ghi chú",
+    "otherPaymentNoteHelp": "Mô tả phương thức thanh toán trong ghi chú.",
+    "removePayment": "Xóa thanh toán"
+  },
+  "shared": {
+    "saving": "Đang lưu…",
+    "cash": "Tiền mặt",
+    "eTransfer": "Chuyển khoản",
+    "other": "Khác"
+  }
+},
+};
+
+export function localized(locale: Locale): Labels {
+  return catalogs[locale] ?? catalogs["en"];
 }
 
 export type PaymentFormLabels = Labels;

@@ -104,13 +104,15 @@ describe("generateI18n", () => {
     expect(types).toContain("export type Namespace = keyof Messages;");
     expect(types).toContain("export type KeyOf<N extends Namespace> = keyof Messages[N];");
     expect(types).toContain('export type Locale = "en" | "fr" | "vi";');
+    expect(types).toContain("export function isLocale(value: string): value is Locale {");
 
     const client = readFileSync(clientModule, "utf8");
     expect(client).toContain('import type { Locale } from "~/platform/i18n";');
     expect(client).toContain("export function localized(locale: Locale): Labels {");
+    expect(client).toContain('return catalogs[locale] ?? catalogs["en"];');
     expect(client).toContain("export type FakeIslandLabels = Labels;");
     for (const locale of options.locales) {
-      expect(client).toContain(`case ${JSON.stringify(locale)}:`);
+      expect(client).toContain(`  ${JSON.stringify(locale)}: {`);
     }
     for (const value of [
       "Event administration",
@@ -141,6 +143,130 @@ describe("generateI18n", () => {
     }
     expect(server).toContain('"event_not_found"');
     expect(server).toContain('"bad_request"');
+  });
+
+  test("a dynamic key selects its namespace instead of the full catalog", async () => {
+    const options = setup();
+
+    writeFileSync(
+      path.join(options.client.sourceDir, "ui", "DynamicIsland.tsx"),
+      [
+        "interface DynamicLabels {",
+        "  shared: { loading: string; emailLabel: string };",
+        "}",
+        "export default function DynamicIsland(input: { labels: DynamicLabels; status: string }) {",
+        "  return <div>{input.labels.shared[input.status]}</div>;",
+        "}",
+        "",
+      ].join("\n"),
+      "utf8",
+    );
+
+    await generateI18n(options);
+
+    const client = readFileSync(path.join(options.client.outDir, "DynamicIsland.ts"), "utf8");
+
+    expect(client).toContain("Loading…");
+    expect(client).toContain("Courriel");
+    expect(client).not.toContain("Event administration");
+  });
+
+  test("marks server catalogs with a server boundary", async () => {
+    const options = setup();
+
+    await generateI18n(options);
+
+    const server = readFileSync(path.join(options.server.outDir, "engineApiMessages.ts"), "utf8");
+    const all = readFileSync(path.join(options.client.outDir, "all.ts"), "utf8");
+
+    expect(server.startsWith("// @boundary server")).toBe(true);
+    expect(all.startsWith("// @boundary shared")).toBe(true);
+  });
+
+  test("tracks labels through renamed typed parameters and namespace destructuring", async () => {
+    const options = setup();
+
+    writeFileSync(
+      path.join(options.client.sourceDir, "ui", "RenamedIsland.tsx"),
+      [
+        "interface CopyLabels { shared: { loading: string }; engineAdmin: { title: string } }",
+        "export default function RenamedIsland(copy: CopyLabels) {",
+        "  const { shared, engineAdmin } = copy;",
+        "  return <div>{shared.loading} {engineAdmin.title}</div>;",
+        "}",
+        "",
+      ].join("\n"),
+      "utf8",
+    );
+
+    await generateI18n(options);
+
+    const client = readFileSync(path.join(options.client.outDir, "RenamedIsland.ts"), "utf8");
+
+    expect(client).toContain("Loading…");
+    expect(client).toContain("Event administration");
+    expect(client).not.toContain("emailLabel");
+  });
+
+  test("a bare dynamic label read keeps the full catalog", async () => {
+    const options = setup();
+
+    writeFileSync(
+      path.join(options.client.sourceDir, "ui", "BareDynamicIsland.tsx"),
+      [
+        "export default function BareDynamicIsland(labels: any, key: string) {",
+        "  return <div>{labels[key]}</div>;",
+        "}",
+        "",
+      ].join("\n"),
+      "utf8",
+    );
+
+    await generateI18n(options);
+
+    const client = readFileSync(path.join(options.client.outDir, "BareDynamicIsland.ts"), "utf8");
+
+    expect(client).toContain("Email");
+    expect(client).toContain("Subtitle");
+  });
+
+  test("does not skip source directories named like output directories", async () => {
+    const options = setup();
+    const nested = path.join(options.client.sourceDir, "features", "auth", "client", "ui");
+    mkdirSync(nested, { recursive: true });
+    writeFileSync(
+      path.join(nested, "NestedIsland.tsx"),
+      [
+        "interface NestedLabels { shared: { loading: string } }",
+        "export default function NestedIsland(labels: NestedLabels) {",
+        "  return <div>{labels.shared.loading}</div>;",
+        "}",
+        "",
+      ].join("\n"),
+      "utf8",
+    );
+
+    await generateI18n(options);
+
+    const client = readFileSync(path.join(options.client.outDir, "NestedIsland.ts"), "utf8");
+
+    expect(client).toContain("Loading…");
+  });
+
+  test("prunes stale generated modules", async () => {
+    const options = setup();
+    const stale = path.join(options.client.outDir, "StaleIsland.ts");
+
+    mkdirSync(options.client.outDir, { recursive: true });
+    writeFileSync(
+      stale,
+      "// Generated by plugins/i18n.ts — do not edit by hand.\nexport {};",
+      "utf8",
+    );
+
+    await generateI18n(options);
+
+    expect(existsSync(stale)).toBe(false);
   });
 
   test("rejects locale files whose structure differs from the default locale", async () => {

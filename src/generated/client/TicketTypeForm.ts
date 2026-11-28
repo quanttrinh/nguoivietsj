@@ -37,145 +37,110 @@ type Labels = Widen<PickByPaths<Messages, {
   }
 }>>;
 
-export function localized(locale: Locale): Labels {
-  switch (locale) {
-    case "en":
-      return {
-        "engineAdmin": {
-          "loadFailed": "Could not load events.",
-          "invalidPayload": "Some values are invalid. Review the form and try again.",
-          "ticketSaveFailed": "Could not save the ticket type.",
-          "archiveTicketConfirm": "Archive this ticket type? It will no longer appear on the public form.",
-          "saveFailed": "Could not save. Check the highlighted values and try again.",
-          "addTicketType": "Add ticket type",
-          "save": "Save",
-          "ticketTypeIntro": "Changes apply to new registrations. Historical registrations keep their price and label snapshots.",
-          "archiveTicketType": "Archive ticket type",
-          "ticketTypes": "Ticket types",
-          "ticketKey": "Key",
-          "priceMinor": "Price (minor units)",
-          "priceMinorHelp": "For example, 2500 means 25.00 in the event currency.",
-          "ticketLabel": "Label",
-          "ticketDescription": "Description",
-          "minPerRegistration": "Min per registration",
-          "maxPerRegistration": "Max per registration",
-          "noLimit": "Leave blank for no limit.",
-          "defaultQuantity": "Default quantity",
-          "capacity": "Capacity",
-          "sortOrder": "Sort order"
-        },
-        "shared": {
-          "saving": "Saving…",
-          "newTicketType": "New ticket type",
-          "editTicketType": "Edit ticket type",
-          "cancel": "Cancel",
-          "remove": "Remove",
-          "active": "Active"
-        }
-      };
-    case "fr":
-      return {
-        "engineAdmin": {
-          "loadFailed": "Impossible de charger les événements.",
-          "invalidPayload": "Certaines valeurs sont invalides. Vérifiez le formulaire.",
-          "ticketSaveFailed": "Impossible d'enregistrer le type de billet.",
-          "archiveTicketConfirm": "Archiver ce type de billet ? Il n'apparaîtra plus sur le formulaire public.",
-          "saveFailed": "Impossible d'enregistrer. Vérifiez les valeurs et réessayez.",
-          "addTicketType": "Ajouter un type de billet",
-          "save": "Enregistrer",
-          "ticketTypeIntro": "Les modifications s'appliquent aux nouvelles inscriptions. Les inscriptions existantes conservent leurs prix et libellés.",
-          "archiveTicketType": "Archiver le type de billet",
-          "ticketTypes": "Types de billets",
-          "ticketKey": "Clé",
-          "priceMinor": "Prix (unités mineures)",
-          "priceMinorHelp": "Par exemple, 2500 signifie 25,00 dans la devise de l'événement.",
-          "ticketLabel": "Libellé",
-          "ticketDescription": "Description",
-          "minPerRegistration": "Min. par inscription",
-          "maxPerRegistration": "Max par inscription",
-          "noLimit": "Laisser vide pour aucune limite.",
-          "defaultQuantity": "Quantité par défaut",
-          "capacity": "Capacité",
-          "sortOrder": "Ordre"
-        },
-        "shared": {
-          "saving": "Enregistrement…",
-          "newTicketType": "Nouveau type de billet",
-          "editTicketType": "Modifier le type de billet",
-          "cancel": "Annuler",
-          "remove": "Retirer",
-          "active": "Actif"
-        }
-      };
-    case "vi":
-      return {
-        "engineAdmin": {
-          "loadFailed": "Không thể tải sự kiện.",
-          "invalidPayload": "Một số giá trị không hợp lệ. Vui lòng kiểm tra lại.",
-          "ticketSaveFailed": "Không thể lưu loại vé.",
-          "archiveTicketConfirm": "Lưu trữ loại vé này? Nó sẽ không còn xuất hiện trên biểu mẫu công khai.",
-          "saveFailed": "Không thể lưu. Kiểm tra các giá trị và thử lại.",
-          "addTicketType": "Thêm loại vé",
-          "save": "Lưu",
-          "ticketTypeIntro": "Thay đổi áp dụng cho đăng ký mới. Đăng ký cũ giữ nguyên giá và nhãn.",
-          "archiveTicketType": "Lưu trữ loại vé",
-          "ticketTypes": "Loại vé",
-          "ticketKey": "Khóa",
-          "priceMinor": "Giá (đơn vị nhỏ)",
-          "priceMinorHelp": "Ví dụ 2500 nghĩa là 25,00 theo đơn vị tiền tệ của sự kiện.",
-          "ticketLabel": "Nhãn",
-          "ticketDescription": "Mô tả",
-          "minPerRegistration": "Tối thiểu mỗi đăng ký",
-          "maxPerRegistration": "Tối đa mỗi đăng ký",
-          "noLimit": "Để trống nếu không giới hạn.",
-          "defaultQuantity": "Số lượng mặc định",
-          "capacity": "Sức chứa",
-          "sortOrder": "Thứ tự"
-        },
-        "shared": {
-          "saving": "Đang lưu…",
-          "newTicketType": "Loại vé mới",
-          "editTicketType": "Sửa loại vé",
-          "cancel": "Hủy",
-          "remove": "Xóa",
-          "active": "Hoạt động"
-        }
-      };
-    default:
-      return {
-        "engineAdmin": {
-          "loadFailed": "Could not load events.",
-          "invalidPayload": "Some values are invalid. Review the form and try again.",
-          "ticketSaveFailed": "Could not save the ticket type.",
-          "archiveTicketConfirm": "Archive this ticket type? It will no longer appear on the public form.",
-          "saveFailed": "Could not save. Check the highlighted values and try again.",
-          "addTicketType": "Add ticket type",
-          "save": "Save",
-          "ticketTypeIntro": "Changes apply to new registrations. Historical registrations keep their price and label snapshots.",
-          "archiveTicketType": "Archive ticket type",
-          "ticketTypes": "Ticket types",
-          "ticketKey": "Key",
-          "priceMinor": "Price (minor units)",
-          "priceMinorHelp": "For example, 2500 means 25.00 in the event currency.",
-          "ticketLabel": "Label",
-          "ticketDescription": "Description",
-          "minPerRegistration": "Min per registration",
-          "maxPerRegistration": "Max per registration",
-          "noLimit": "Leave blank for no limit.",
-          "defaultQuantity": "Default quantity",
-          "capacity": "Capacity",
-          "sortOrder": "Sort order"
-        },
-        "shared": {
-          "saving": "Saving…",
-          "newTicketType": "New ticket type",
-          "editTicketType": "Edit ticket type",
-          "cancel": "Cancel",
-          "remove": "Remove",
-          "active": "Active"
-        }
-      };
+const catalogs: Record<Locale, Labels> = {
+  "en": {
+  "engineAdmin": {
+    "loadFailed": "Could not load events.",
+    "invalidPayload": "Some values are invalid. Review the form and try again.",
+    "ticketSaveFailed": "Could not save the ticket type.",
+    "archiveTicketConfirm": "Archive this ticket type? It will no longer appear on the public form.",
+    "saveFailed": "Could not save. Check the highlighted values and try again.",
+    "addTicketType": "Add ticket type",
+    "save": "Save",
+    "ticketTypeIntro": "Changes apply to new registrations. Historical registrations keep their price and label snapshots.",
+    "archiveTicketType": "Archive ticket type",
+    "ticketTypes": "Ticket types",
+    "ticketKey": "Key",
+    "priceMinor": "Price (minor units)",
+    "priceMinorHelp": "For example, 2500 means 25.00 in the event currency.",
+    "ticketLabel": "Label",
+    "ticketDescription": "Description",
+    "minPerRegistration": "Min per registration",
+    "maxPerRegistration": "Max per registration",
+    "noLimit": "Leave blank for no limit.",
+    "defaultQuantity": "Default quantity",
+    "capacity": "Capacity",
+    "sortOrder": "Sort order"
+  },
+  "shared": {
+    "saving": "Saving…",
+    "newTicketType": "New ticket type",
+    "editTicketType": "Edit ticket type",
+    "cancel": "Cancel",
+    "remove": "Remove",
+    "active": "Active"
   }
+},
+  "fr": {
+  "engineAdmin": {
+    "loadFailed": "Impossible de charger les événements.",
+    "invalidPayload": "Certaines valeurs sont invalides. Vérifiez le formulaire.",
+    "ticketSaveFailed": "Impossible d'enregistrer le type de billet.",
+    "archiveTicketConfirm": "Archiver ce type de billet ? Il n'apparaîtra plus sur le formulaire public.",
+    "saveFailed": "Impossible d'enregistrer. Vérifiez les valeurs et réessayez.",
+    "addTicketType": "Ajouter un type de billet",
+    "save": "Enregistrer",
+    "ticketTypeIntro": "Les modifications s'appliquent aux nouvelles inscriptions. Les inscriptions existantes conservent leurs prix et libellés.",
+    "archiveTicketType": "Archiver le type de billet",
+    "ticketTypes": "Types de billets",
+    "ticketKey": "Clé",
+    "priceMinor": "Prix (unités mineures)",
+    "priceMinorHelp": "Par exemple, 2500 signifie 25,00 dans la devise de l'événement.",
+    "ticketLabel": "Libellé",
+    "ticketDescription": "Description",
+    "minPerRegistration": "Min. par inscription",
+    "maxPerRegistration": "Max par inscription",
+    "noLimit": "Laisser vide pour aucune limite.",
+    "defaultQuantity": "Quantité par défaut",
+    "capacity": "Capacité",
+    "sortOrder": "Ordre"
+  },
+  "shared": {
+    "saving": "Enregistrement…",
+    "newTicketType": "Nouveau type de billet",
+    "editTicketType": "Modifier le type de billet",
+    "cancel": "Annuler",
+    "remove": "Retirer",
+    "active": "Actif"
+  }
+},
+  "vi": {
+  "engineAdmin": {
+    "loadFailed": "Không thể tải sự kiện.",
+    "invalidPayload": "Một số giá trị không hợp lệ. Vui lòng kiểm tra lại.",
+    "ticketSaveFailed": "Không thể lưu loại vé.",
+    "archiveTicketConfirm": "Lưu trữ loại vé này? Nó sẽ không còn xuất hiện trên biểu mẫu công khai.",
+    "saveFailed": "Không thể lưu. Kiểm tra các giá trị và thử lại.",
+    "addTicketType": "Thêm loại vé",
+    "save": "Lưu",
+    "ticketTypeIntro": "Thay đổi áp dụng cho đăng ký mới. Đăng ký cũ giữ nguyên giá và nhãn.",
+    "archiveTicketType": "Lưu trữ loại vé",
+    "ticketTypes": "Loại vé",
+    "ticketKey": "Khóa",
+    "priceMinor": "Giá (đơn vị nhỏ)",
+    "priceMinorHelp": "Ví dụ 2500 nghĩa là 25,00 theo đơn vị tiền tệ của sự kiện.",
+    "ticketLabel": "Nhãn",
+    "ticketDescription": "Mô tả",
+    "minPerRegistration": "Tối thiểu mỗi đăng ký",
+    "maxPerRegistration": "Tối đa mỗi đăng ký",
+    "noLimit": "Để trống nếu không giới hạn.",
+    "defaultQuantity": "Số lượng mặc định",
+    "capacity": "Sức chứa",
+    "sortOrder": "Thứ tự"
+  },
+  "shared": {
+    "saving": "Đang lưu…",
+    "newTicketType": "Loại vé mới",
+    "editTicketType": "Sửa loại vé",
+    "cancel": "Hủy",
+    "remove": "Xóa",
+    "active": "Hoạt động"
+  }
+},
+};
+
+export function localized(locale: Locale): Labels {
+  return catalogs[locale] ?? catalogs["en"];
 }
 
 export type TicketTypeFormLabels = Labels;

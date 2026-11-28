@@ -1,6 +1,5 @@
 /* oxlint-disable no-unsafe-assignment, no-unnecessary-condition, no-non-null-assertion, no-map-spread, no-nested-ternary, max-params, prefer-at, no-continue, max-depth, prefer-named-capture-group, curly, no-array-callback-reference -- Build-time generator with validated lookups. */
-import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
 import type { AstroIntegration } from "astro";
@@ -23,6 +22,9 @@ export interface I18nOptions {
 // ---------------------------------------------------------------------------
 
 type JsonObject = Record<string, unknown>;
+
+const LABELS_ROOT = "labels";
+const SERVER_NAMESPACE_SUFFIX = "ApiMessages";
 
 function isRecord(value: unknown): value is JsonObject {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -160,6 +162,13 @@ function valueAt(messages: JsonObject, dottedPath: string): unknown {
   return current;
 }
 
+const JS_MEMBERS: ReadonlySet<string> = new Set([
+  "length",
+  ...Object.getOwnPropertyNames(String.prototype),
+  ...Object.getOwnPropertyNames(Array.prototype),
+  ...Object.getOwnPropertyNames(Object.prototype),
+]);
+
 // ---------------------------------------------------------------------------
 // Source tracking (oxc)
 // ---------------------------------------------------------------------------
@@ -171,6 +180,8 @@ interface AnalyzeContext {
   aliases: Set<string>;
   /** Identifiers bound to a namespace (or deeper node) of the labels object. */
   namespaceRoots: Map<string, string[]>;
+  /** Parameters whose object type contains a labels property. */
+  labelsParams: Set<string>;
   /** String values of local `const` maps, for computed-key resolution. */
   constants: Map<string, string[]>;
 }
@@ -266,9 +277,9 @@ function isLabelsMember(node: AstNode): boolean {
   }
   if (node.computed === true) {
     const property = unwrap(node.property);
-    return property?.type === "Literal" && property.value === "labels";
+    return property?.type === "Literal" && property.value === LABELS_ROOT;
   }
-  return nameOf(node.property) === "labels";
+  return nameOf(node.property) === LABELS_ROOT;
 }
 
 function propertySegments(
@@ -319,6 +330,14 @@ function labelPath(node: AstNode, context: AnalyzeContext): LabelPath | null {
   if (isLabelsMember(node)) {
     return { paths: [[]], dynamic: false };
   }
+  const objectName = nameOf(node.object);
+  if (
+    objectName !== null &&
+    context.labelsParams.has(objectName) &&
+    nameOf(node.property) === LABELS_ROOT
+  ) {
+    return { paths: [[]], dynamic: false };
+  }
 
   const base = labelPath(node.object as AstNode, context);
   if (base === null) {
@@ -362,7 +381,13 @@ function collectParamAliases(node: AstNode, context: AnalyzeContext): void {
   ) {
     return;
   }
-  for (const param of Array.isArray(node.params) ? node.params : []) {
+  for (const rawParam of Array.isArray(node.params) ? node.params : []) {
+    const param = unwrap(rawParam);
+
+    if (param === undefined) {
+      continue;
+    }
+
     let typedAsLabels = false;
     walk(param, (candidate) => {
       if (candidate.type !== "TSTypeReference") {
@@ -375,7 +400,14 @@ function collectParamAliases(node: AstNode, context: AnalyzeContext): void {
     });
     const name = typedAsLabels ? paramIdentifier(param) : null;
     if (name !== null) {
-      context.aliases.add(name);
+      const annotation = unwrap(param.typeAnnotation);
+      const inner = unwrap(annotation?.typeAnnotation);
+
+      if (annotation?.type === "TSTypeAnnotation" && inner?.type === "TSTypeReference") {
+        context.aliases.add(name);
+      } else {
+        context.labelsParams.add(name);
+      }
     }
   }
 }
@@ -400,6 +432,8 @@ function collectDestructuredRoots(
     return;
   }
   const segments = base.paths[0]!;
+  const fromLabelsRoot = segments.length === 0;
+
   for (const property of Array.isArray((id as AstNode).properties)
     ? ((id as AstNode).properties as unknown[])
     : []) {
@@ -415,7 +449,9 @@ function collectDestructuredRoots(
           : null
         : nameOf(prop.key);
     const local = nameOf(prop.value);
-    if (key !== null && local !== null) {
+    // Only the labels property of a mixed options object is a label root;
+    // mapping every destructured field produces bogus label paths.
+    if (key !== null && local !== null && (fromLabelsRoot || key === LABELS_ROOT)) {
       context.namespaceRoots.set(local, [...segments, key]);
     }
   }
@@ -434,11 +470,13 @@ function analyze(sourceText: string, filename: string): FileUsage {
   const reads = new Set<string>();
   let full = false;
   const context: AnalyzeContext = {
-    aliases: new Set(["labels"]),
+    aliases: new Set([LABELS_ROOT]),
     namespaceRoots: new Map(),
+    labelsParams: new Set(),
     constants: new Map(),
   };
-  const isIsland = filename.includes("/ui/") && filename.endsWith(".tsx");
+  const normalized = filename.split(path.sep).join("/");
+  const isIsland = normalized.includes("/ui/") && filename.endsWith(".tsx");
 
   // Pass 1 — build the alias/constant maps before reading any member expressions.
   walk(parsed.program, (node) => {
@@ -491,8 +529,26 @@ function analyze(sourceText: string, filename: string): FileUsage {
       if (!intermediate) {
         const resolved = labelPath(node, context);
         if (resolved !== null) {
-          if (resolved.dynamic || resolved.paths.some((segments) => segments.length === 0)) {
-            full = true;
+          const emptyPath = resolved.paths.some((segments) => segments.length === 0);
+
+          if (resolved.dynamic) {
+            // A dynamic key is bounded by the namespace it was read from;
+            // selectPaths expands that prefix to its leaf paths later.
+            const prefix = resolved.paths[0]?.join(".") ?? "";
+
+            if (prefix.length > 0) {
+              reads.add(prefix);
+            } else {
+              // No namespace to bound the read: the whole catalog is needed.
+              full = true;
+            }
+          } else if (emptyPath) {
+            // A bare `labels` alias is tracked through subsequent member reads.
+            // Returning it escapes to unknown readers, so the whole catalog is
+            // needed only in that case.
+            if (parent?.type === "ReturnStatement") {
+              full = true;
+            }
           } else {
             for (const segments of resolved.paths) {
               reads.add(segments.join("."));
@@ -548,11 +604,12 @@ function sourceFiles(dir: string, skip: Set<string>): string[] {
   if (!existsSync(dir)) {
     return result;
   }
-  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+  for (const entry of readdirSync(dir, { withFileTypes: true }).toSorted((left, right) =>
+    left.name.localeCompare(right.name),
+  )) {
     if (
       entry.isDirectory() &&
-      (skip.has(entry.name) ||
-        entry.name === "generated" ||
+      (skip.has(path.resolve(dir, entry.name)) ||
         entry.name === "node_modules" ||
         entry.name === ".astro" ||
         entry.name === "dist")
@@ -579,7 +636,7 @@ function trackIslands(options: I18nOptions, typeFile: string): Map<string, Islan
   const root = path.resolve(options.client.sourceDir);
   const skip = new Set(
     [options.client.outDir, options.server.outDir, path.dirname(typeFile)].map((entry) =>
-      path.basename(path.resolve(entry)),
+      path.resolve(entry),
     ),
   );
   const analyzed = new Map<string, FileUsage>();
@@ -587,18 +644,17 @@ function trackIslands(options: I18nOptions, typeFile: string): Map<string, Islan
     analyzed.set(file, analyze(readFileSync(file, "utf8"), file));
   }
 
-  const importers = new Map<string, string[]>();
-  for (const [file, info] of analyzed) {
-    for (const specifier of info.imports) {
-      const target = resolveImport(root, file, specifier);
-      if (target === null) {
-        continue;
-      }
-      const list = importers.get(target) ?? [];
-      list.push(file);
-      importers.set(target, list);
+  // Island neighbourhoods overlap heavily; resolve each (importer, specifier) only once.
+  const resolvedImports = new Map<string, string | null>();
+  const resolve = (importer: string, specifier: string): string | null => {
+    const key = `${importer}\u0000${specifier}`;
+    let target = resolvedImports.get(key);
+    if (target === undefined) {
+      target = resolveImport(root, importer, specifier);
+      resolvedImports.set(key, target);
     }
-  }
+    return target;
+  };
 
   const usage = new Map<string, IslandUsage>();
   for (const [file, info] of analyzed) {
@@ -608,17 +664,11 @@ function trackIslands(options: I18nOptions, typeFile: string): Map<string, Islan
 
     const reached = new Set<string>([file]);
     const queue = [file];
-    while (queue.length > 0) {
-      const current = queue.shift();
-      if (current === undefined) {
-        continue;
-      }
+    // Appending during iteration is intentional: Array's iterator sees new elements.
+    for (const current of queue) {
       const next = (analyzed.get(current)?.imports ?? []).map((specifier) =>
-        resolveImport(root, current, specifier),
+        resolve(current, specifier),
       );
-      if (current === file) {
-        next.push(...(importers.get(file) ?? []));
-      }
       for (const target of next) {
         if (target !== null && !reached.has(target)) {
           reached.add(target);
@@ -655,13 +705,6 @@ function trackIslands(options: I18nOptions, typeFile: string): Map<string, Islan
 // Code emission
 // ---------------------------------------------------------------------------
 
-interface Selection {
-  /** `tree`: exact leaf paths; `namespaces`: every key of the listed namespaces. */
-  mode: "tree" | "namespaces";
-  paths: Set<string>;
-  namespaces: string[];
-}
-
 function selectPaths(
   reads: Set<string>,
   reference: JsonObject,
@@ -671,13 +714,13 @@ function selectPaths(
   const result = new Set<string>();
   for (const read of reads) {
     const namespace = read.split(".")[0]!;
-    if (namespace.endsWith("ApiMessages")) {
+    if (namespace.endsWith(SERVER_NAMESPACE_SUFFIX)) {
       // Server-owned namespaces never enter a client island.
       continue;
     }
+    let skipRead = false;
     let resolved = read;
     let node: unknown = reference;
-    let skipRead = false;
     for (const segment of read.split(".")) {
       if (!isRecord(node) || !(segment in node)) {
         // A key may have moved to the `shared` namespace during the JSON
@@ -694,45 +737,13 @@ function selectPaths(
         });
         if (candidates.length === 0) {
           // Alias tracking is file-wide; a same-named local variable in another
-          // scope can contribute a JS member. Skip those, not real label keys.
+          // scope can contribute a JS member. Skip built-ins, not label keys.
           const member = suffix.split(".").at(-1) ?? "";
-          const JS_MEMBERS = new Set([
-            "length",
-            "trim",
-            "split",
-            "includes",
-            "map",
-            "filter",
-            "join",
-            "slice",
-            "substring",
-            "toLowerCase",
-            "toUpperCase",
-            "replace",
-            "startsWith",
-            "endsWith",
-            "trimStart",
-            "trimEnd",
-            "charAt",
-            "indexOf",
-            "toString",
-            "padStart",
-            "padEnd",
-            "at",
-            "concat",
-            "forEach",
-            "reduce",
-            "find",
-            "some",
-            "every",
-            "sort",
-            "reverse",
-            "flat",
-            "values",
-            "keys",
-            "entries",
-          ]);
-          if (JS_MEMBERS.has(member)) {
+
+          if (
+            JS_MEMBERS.has(member) &&
+            !Object.values(reference).some((ns) => isRecord(ns) && Object.hasOwn(ns, member))
+          ) {
             skipRead = true;
             break;
           }
@@ -817,14 +828,6 @@ function buildValues(paths: Set<string>, messages: JsonObject): JsonObject {
   return values;
 }
 
-function indent(text: string, spaces: number): string {
-  const prefix = " ".repeat(spaces);
-  return text
-    .split("\n")
-    .map((line) => `${prefix}${line}`)
-    .join("\n");
-}
-
 function relativeImport(fromFile: string, toFile: string): string {
   const relative = path.relative(path.dirname(fromFile), toFile).split(path.sep).join("/");
   const specifier = relative.startsWith(".") ? relative : `./${relative}`;
@@ -838,12 +841,9 @@ function typeFileName(name: string): string {
 function emitTypes(options: I18nOptions, reference: JsonObject): string {
   const { locales } = options;
   const localeUnion = locales.map((locale) => JSON.stringify(locale)).join(" | ");
-  const localeTypeExpression = locales.map((locale) => `'${locale}'`).join(" | ");
   return [
     "// @boundary shared",
     "// Generated by plugins/i18n.ts — do not edit by hand.",
-    `import { type } from "arktype";`,
-    "",
     `export const defaultMessages = ${JSON.stringify(reference, null, 2)} as const;`,
     "",
     "export type Messages = typeof defaultMessages;",
@@ -851,10 +851,15 @@ function emitTypes(options: I18nOptions, reference: JsonObject): string {
     "export type KeyOf<N extends Namespace> = keyof Messages[N];",
     `export const locales = ${JSON.stringify([...locales])} as const;`,
     `export type Locale = ${localeUnion};`,
-    `export const localeSchema = type(${JSON.stringify(localeTypeExpression)});`,
     `export const defaultLocale = ${JSON.stringify(options.defaultLocale)} as const;`,
-    `export const DEFAULT_LOCALE = defaultLocale;`,
-    `export const SUPPORTED_LOCALES: ReadonlySet<string> = new Set<string>(locales);`,
+    `export function isLocale(value: string): value is Locale {`,
+    `  switch (value) {`,
+    ...locales.map((locale) => `    case ${JSON.stringify(locale)}:`),
+    "      return true;",
+    "    default:",
+    "      return false;",
+    "  }",
+    `}`,
     `export const localeNames = ${JSON.stringify(options.localeNames, null, 2)} as const;`,
     "",
     "/** Recursive Pick over the dotted key paths tracked for one unit. */",
@@ -882,50 +887,38 @@ function emitTypes(options: I18nOptions, reference: JsonObject): string {
 
 function emitModule(
   unitName: string,
-  selection: Selection,
+  paths: Set<string>,
   options: I18nOptions,
   messages: Record<string, JsonObject>,
-  reference: JsonObject,
   typeFile: string,
   outFile: string,
 ): string {
   const importPath = relativeImport(outFile, typeFile);
-  const typeImports =
-    selection.mode === "tree" ? "Messages, PickByPaths, Widen" : "Messages, Widen";
-  const typeExpression =
-    selection.mode === "tree"
-      ? `PickByPaths<Messages, ${JSON.stringify(buildTree(selection.paths), null, 2)}>`
-      : `Pick<Messages, ${selection.namespaces.map((namespace) => JSON.stringify(namespace)).join(" | ")}>`;
-  const paths =
-    selection.mode === "tree" ? selection.paths : allPaths(reference, selection.namespaces);
+  const typeImports = "Messages, PickByPaths, Widen";
+  const typeExpression = `PickByPaths<Messages, ${JSON.stringify(buildTree(paths), null, 2)}>`;
 
   const literals = options.locales.map((locale) =>
     JSON.stringify(buildValues(paths, messages[locale]!), null, 2),
   );
-  const cases = options.locales
-    .map((locale, index) =>
-      [
-        `    case ${JSON.stringify(locale)}:`,
-        `      return ${indent(literals[index]!, 6).trimStart()};`,
-      ].join("\n"),
-    )
-    .join("\n");
-  const fallback = indent(literals[0]!, 6).trimStart();
+  const boundary = unitName.endsWith(SERVER_NAMESPACE_SUFFIX) ? "server" : "shared";
+  const catalogEntries = options.locales
+    .map((locale, index) => `  ${JSON.stringify(locale)}: ${literals[index]}`)
+    .join(",\n");
 
   return [
-    "// @boundary shared",
+    `// @boundary ${boundary}`,
     "// Generated by plugins/i18n.ts — do not edit by hand.",
     `import type { ${typeImports} } from ${JSON.stringify(importPath)};`,
     'import type { Locale } from "~/platform/i18n";',
     "",
     `type Labels = Widen<${typeExpression}>;`,
     "",
+    `const catalogs: Record<Locale, Labels> = {
+${catalogEntries},
+};`,
+    "",
     "export function localized(locale: Locale): Labels {",
-    "  switch (locale) {",
-    cases,
-    "    default:",
-    `      return ${fallback};`,
-    "  }",
+    `  return catalogs[locale] ?? catalogs[${JSON.stringify(options.defaultLocale)}];`,
     "}",
     "",
     `export type ${typeFileName(unitName)} = Labels;`,
@@ -934,12 +927,8 @@ function emitModule(
 }
 
 function writeIfChanged(file: string, content: string): void {
-  const hash = createHash("sha256").update(content).digest("hex");
-  if (existsSync(file)) {
-    const previous = createHash("sha256").update(readFileSync(file, "utf8")).digest("hex");
-    if (previous === hash) {
-      return;
-    }
+  if (existsSync(file) && readFileSync(file, "utf8") === content) {
+    return;
   }
   mkdirSync(path.dirname(file), { recursive: true });
   writeFileSync(file, content, "utf8");
@@ -947,7 +936,7 @@ function writeIfChanged(file: string, content: string): void {
 
 /** Keep only the namespaces owned by the client (everything without the `ApiMessages` suffix). */
 function isServerNamespace(namespace: string): boolean {
-  return namespace.endsWith("ApiMessages");
+  return namespace.endsWith(SERVER_NAMESPACE_SUFFIX);
 }
 
 /**
@@ -958,6 +947,29 @@ function isServerNamespace(namespace: string): boolean {
  * import it by a computed relative path; `Locale` stays imported from
  * `~/platform/i18n`. Files are only written when their content hash changes.
  */
+function pruneGenerated(dir: string, expected: ReadonlySet<string>): void {
+  if (!existsSync(dir)) {
+    return;
+  }
+
+  for (const entry of readdirSync(dir, { withFileTypes: true }).toSorted((left, right) =>
+    left.name.localeCompare(right.name),
+  )) {
+    if (!entry.isFile() || !entry.name.endsWith(".ts")) {
+      continue;
+    }
+
+    const file = path.join(dir, entry.name);
+
+    if (
+      !expected.has(file) &&
+      readFileSync(file, "utf8").includes("// Generated by plugins/i18n.ts")
+    ) {
+      rmSync(file);
+    }
+  }
+}
+
 export async function generateI18n(options: I18nOptions): Promise<void> {
   const messages = loadMessages(options);
   const reference = messages[options.defaultLocale]!;
@@ -970,46 +982,58 @@ export async function generateI18n(options: I18nOptions): Promise<void> {
   const typeFile = path.join(path.dirname(path.resolve(options.client.outDir)), "i18n-types.ts");
   writeIfChanged(typeFile, emitTypes(options, reference));
 
-  const usage = trackIslands(options, typeFile);
-  // Full client catalog for Astro frontmatter (never shipped to the client).
-  const allSelection: Selection = {
-    mode: "namespaces",
-    namespaces: clientNamespaces,
-    paths: new Set(),
-  };
-  const allFile = path.join(path.resolve(options.client.outDir), "all.ts");
+  // The compiled locale schema must stay server-only; importing it from the
+  // shared type module would pull ArkType runtime into every client page.
+  const localeSchemaFile = path.join(path.resolve(options.server.outDir), "locale.ts");
+  const localeTypeExpression = options.locales.map((locale) => `'${locale}'`).join(" | ");
   writeIfChanged(
-    allFile,
-    emitModule("all", allSelection, options, messages, reference, typeFile, allFile),
+    localeSchemaFile,
+    [
+      "// @boundary server",
+      "// Generated by plugins/i18n.ts — do not edit by hand.",
+      `import { type } from "arktype";`,
+      "",
+      `export const localeSchema = type(${JSON.stringify(localeTypeExpression)});`,
+      "",
+    ].join("\n"),
   );
 
+  const usage = trackIslands(options, typeFile);
+  // Full client catalog for Astro frontmatter (never shipped to the client).
+  const allFile = path.join(path.resolve(options.client.outDir), "all.ts");
+  const allPathsSet = allPaths(reference, clientNamespaces);
+
+  writeIfChanged(allFile, emitModule("all", allPathsSet, options, messages, typeFile, allFile));
+
   for (const [id, found] of usage) {
-    const selection: Selection = found.full
-      ? { mode: "namespaces", namespaces: clientNamespaces, paths: new Set() }
-      : {
-          mode: "tree",
-          namespaces: [],
-          paths: selectPaths(found.reads, reference, id, clientNamespaces),
-        };
+    const paths = found.full
+      ? allPaths(reference, clientNamespaces)
+      : selectPaths(found.reads, reference, id, clientNamespaces);
     const outFile = path.join(path.resolve(options.client.outDir), `${id}.ts`);
-    writeIfChanged(
-      outFile,
-      emitModule(id, selection, options, messages, reference, typeFile, outFile),
-    );
+
+    writeIfChanged(outFile, emitModule(id, paths, options, messages, typeFile, outFile));
   }
 
   for (const namespace of serverNamespaces) {
-    const selection: Selection = {
-      mode: "namespaces",
-      namespaces: [namespace],
-      paths: new Set(),
-    };
+    const paths = allPaths(reference, [namespace]);
     const outFile = path.join(path.resolve(options.server.outDir), `${namespace}.ts`);
-    writeIfChanged(
-      outFile,
-      emitModule(namespace, selection, options, messages, reference, typeFile, outFile),
-    );
+
+    writeIfChanged(outFile, emitModule(namespace, paths, options, messages, typeFile, outFile));
   }
+  const clientDir = path.resolve(options.client.outDir);
+  const serverDir = path.resolve(options.server.outDir);
+  const expectedClient = new Set([allFile]);
+  const expectedServer = new Set([localeSchemaFile]);
+
+  for (const id of usage.keys()) {
+    expectedClient.add(path.join(clientDir, `${id}.ts`));
+  }
+  for (const namespace of serverNamespaces) {
+    expectedServer.add(path.join(serverDir, `${namespace}.ts`));
+  }
+
+  pruneGenerated(clientDir, expectedClient);
+  pruneGenerated(serverDir, expectedServer);
 }
 
 export function i18nIntegration(options: I18nOptions): AstroIntegration {

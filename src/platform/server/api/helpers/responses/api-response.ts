@@ -4,10 +4,8 @@ import type { TypedResponse } from "hono/types";
 import type { ContentfulStatusCode } from "hono/utils/http-status";
 import type { JSONParsed } from "hono/utils/types";
 
+import { LOCALE_VARY, NO_STORE } from "~/platform/contracts/headers";
 import type { ApiIssue, ApiMeta, ApiResponse } from "~/platform/contracts/response";
-
-const NO_STORE = { "cache-control": "no-store" };
-const LOCALE_VARY = "Accept-Language, X-Locale";
 
 function errorHeaders(headers?: Record<string, string>): Record<string, string> {
   const vary = headers?.vary;
@@ -15,7 +13,7 @@ function errorHeaders(headers?: Record<string, string>): Record<string, string> 
   return {
     ...NO_STORE,
     ...headers,
-    vary: vary === undefined ? LOCALE_VARY : `${vary}, ${LOCALE_VARY}`,
+    vary: vary === undefined ? LOCALE_VARY.vary : `${vary}, ${LOCALE_VARY.vary}`,
   };
 }
 

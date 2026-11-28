@@ -1,5 +1,5 @@
 // @boundary shared
-import { DEFAULT_LOCALE, SUPPORTED_LOCALES } from "~/generated/i18n-types";
+import { defaultLocale, isLocale } from "~/generated/i18n-types";
 
 function supportedLocale(value: string | null | undefined): string | null {
   if (value == null) {
@@ -9,13 +9,13 @@ function supportedLocale(value: string | null | undefined): string | null {
   const normalized = value.trim().toLowerCase();
   const exact = normalized.split(";")[0]?.trim() ?? "";
 
-  if (SUPPORTED_LOCALES.has(exact)) {
+  if (isLocale(exact)) {
     return exact;
   }
 
   const base = exact.split("-")[0] ?? "";
 
-  return SUPPORTED_LOCALES.has(base) ? base : null;
+  return isLocale(base) ? base : null;
 }
 
 /**
@@ -27,7 +27,7 @@ export function resolveRequestLocale(
   options: { allowQuery?: boolean } = {},
 ): string {
   if (options.allowQuery === true) {
-    const queryLocale = supportedLocale(new URL(request.url).searchParams.get("locale"));
+    const queryLocale = supportedLocale(URL.parse(request.url)?.searchParams.get("locale") ?? null);
 
     if (queryLocale !== null) {
       return queryLocale;
@@ -48,5 +48,5 @@ export function resolveRequestLocale(
     }
   }
 
-  return DEFAULT_LOCALE;
+  return defaultLocale;
 }

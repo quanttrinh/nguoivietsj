@@ -36,141 +36,107 @@ type Labels = Widen<PickByPaths<Messages, {
   }
 }>>;
 
-export function localized(locale: Locale): Labels {
-  switch (locale) {
-    case "en":
-      return {
-        "engineCheckin": {
-          "invalidCode": "That code is not a valid registration QR code.",
-          "checkinFailed": "Could not check in this registration.",
-          "cameraUnsupported": "Camera scanning is not available in this browser. Use manual entry.",
-          "cameraError": "Could not start the camera. Use manual entry instead.",
-          "undoSuccess": "Check-in removed.",
-          "undoFailed": "Could not undo the check-in.",
-          "scannerTitle": "QR scanner",
-          "scannerHelp": "Allow camera access, then point the camera at the registration QR code.",
-          "startCamera": "Start camera",
-          "stopCamera": "Stop camera",
-          "manualPlaceholder": "Paste or type the registration ID",
-          "lookUp": "Look up and check in",
-          "alreadyCheckedIn": "This registration was already checked in.",
-          "checkinSuccess": "Checked in successfully.",
-          "undo": "Undo check-in",
-          "scanAgain": "Scan next"
-        },
-        "shared": {
-          "registrationID": "Registration ID",
-          "checkedInAt": "Checked in at",
-          "cash": "Cash",
-          "eTransfer": "e-Transfer",
-          "other": "Other",
-          "noPaymentRequired": "No payment required"
-        },
-        "engineAdmin": {
-          "paid": "Paid",
-          "unpaid": "Unpaid"
-        }
-      };
-    case "fr":
-      return {
-        "engineCheckin": {
-          "invalidCode": "Ce code n'est pas un code QR d'inscription valide.",
-          "checkinFailed": "Impossible de pointer cette inscription.",
-          "cameraUnsupported": "Le scan par caméra n'est pas disponible dans ce navigateur. Utilisez la saisie manuelle.",
-          "cameraError": "Impossible de démarrer la caméra. Utilisez la saisie manuelle.",
-          "undoSuccess": "Pointage annulé.",
-          "undoFailed": "Impossible d'annuler le pointage.",
-          "scannerTitle": "Lecteur de QR",
-          "scannerHelp": "Autorisez l'accès à la caméra, puis pointez-la vers le code QR d'inscription.",
-          "startCamera": "Démarrer la caméra",
-          "stopCamera": "Arrêter la caméra",
-          "manualPlaceholder": "Collez ou saisissez l'identifiant d'inscription",
-          "lookUp": "Rechercher et pointer",
-          "alreadyCheckedIn": "Cette inscription a déjà été pointée.",
-          "checkinSuccess": "Pointage effectué.",
-          "undo": "Annuler le pointage",
-          "scanAgain": "Scanner suivant"
-        },
-        "shared": {
-          "registrationID": "Identifiant d'inscription",
-          "checkedInAt": "Pointé à",
-          "cash": "Comptant",
-          "eTransfer": "Virement Interac",
-          "other": "Autre",
-          "noPaymentRequired": "Aucun paiement requis"
-        },
-        "engineAdmin": {
-          "paid": "Payé",
-          "unpaid": "Impayé"
-        }
-      };
-    case "vi":
-      return {
-        "engineCheckin": {
-          "invalidCode": "Mã này không phải mã QR đăng ký hợp lệ.",
-          "checkinFailed": "Không thể điểm danh đăng ký này.",
-          "cameraUnsupported": "Trình duyệt này không hỗ trợ quét camera. Vui lòng nhập thủ công.",
-          "cameraError": "Không thể bật camera. Vui lòng nhập thủ công.",
-          "undoSuccess": "Đã hủy điểm danh.",
-          "undoFailed": "Không thể hủy điểm danh.",
-          "scannerTitle": "Máy quét QR",
-          "scannerHelp": "Cho phép truy cập camera, sau đó hướng camera vào mã QR đăng ký.",
-          "startCamera": "Bật camera",
-          "stopCamera": "Tắt camera",
-          "manualPlaceholder": "Dán hoặc nhập mã đăng ký",
-          "lookUp": "Tìm và điểm danh",
-          "alreadyCheckedIn": "Đăng ký này đã được điểm danh trước đó.",
-          "checkinSuccess": "Điểm danh thành công.",
-          "undo": "Hủy điểm danh",
-          "scanAgain": "Quét tiếp"
-        },
-        "shared": {
-          "registrationID": "Mã đăng ký",
-          "checkedInAt": "Điểm danh lúc",
-          "cash": "Tiền mặt",
-          "eTransfer": "Chuyển khoản",
-          "other": "Khác",
-          "noPaymentRequired": "Không cần thanh toán"
-        },
-        "engineAdmin": {
-          "paid": "Đã trả",
-          "unpaid": "Chưa trả"
-        }
-      };
-    default:
-      return {
-        "engineCheckin": {
-          "invalidCode": "That code is not a valid registration QR code.",
-          "checkinFailed": "Could not check in this registration.",
-          "cameraUnsupported": "Camera scanning is not available in this browser. Use manual entry.",
-          "cameraError": "Could not start the camera. Use manual entry instead.",
-          "undoSuccess": "Check-in removed.",
-          "undoFailed": "Could not undo the check-in.",
-          "scannerTitle": "QR scanner",
-          "scannerHelp": "Allow camera access, then point the camera at the registration QR code.",
-          "startCamera": "Start camera",
-          "stopCamera": "Stop camera",
-          "manualPlaceholder": "Paste or type the registration ID",
-          "lookUp": "Look up and check in",
-          "alreadyCheckedIn": "This registration was already checked in.",
-          "checkinSuccess": "Checked in successfully.",
-          "undo": "Undo check-in",
-          "scanAgain": "Scan next"
-        },
-        "shared": {
-          "registrationID": "Registration ID",
-          "checkedInAt": "Checked in at",
-          "cash": "Cash",
-          "eTransfer": "e-Transfer",
-          "other": "Other",
-          "noPaymentRequired": "No payment required"
-        },
-        "engineAdmin": {
-          "paid": "Paid",
-          "unpaid": "Unpaid"
-        }
-      };
+const catalogs: Record<Locale, Labels> = {
+  "en": {
+  "engineCheckin": {
+    "invalidCode": "That code is not a valid registration QR code.",
+    "checkinFailed": "Could not check in this registration.",
+    "cameraUnsupported": "Camera scanning is not available in this browser. Use manual entry.",
+    "cameraError": "Could not start the camera. Use manual entry instead.",
+    "undoSuccess": "Check-in removed.",
+    "undoFailed": "Could not undo the check-in.",
+    "scannerTitle": "QR scanner",
+    "scannerHelp": "Allow camera access, then point the camera at the registration QR code.",
+    "startCamera": "Start camera",
+    "stopCamera": "Stop camera",
+    "manualPlaceholder": "Paste or type the registration ID",
+    "lookUp": "Look up and check in",
+    "alreadyCheckedIn": "This registration was already checked in.",
+    "checkinSuccess": "Checked in successfully.",
+    "undo": "Undo check-in",
+    "scanAgain": "Scan next"
+  },
+  "shared": {
+    "registrationID": "Registration ID",
+    "checkedInAt": "Checked in at",
+    "cash": "Cash",
+    "eTransfer": "e-Transfer",
+    "other": "Other",
+    "noPaymentRequired": "No payment required"
+  },
+  "engineAdmin": {
+    "paid": "Paid",
+    "unpaid": "Unpaid"
   }
+},
+  "fr": {
+  "engineCheckin": {
+    "invalidCode": "Ce code n'est pas un code QR d'inscription valide.",
+    "checkinFailed": "Impossible de pointer cette inscription.",
+    "cameraUnsupported": "Le scan par caméra n'est pas disponible dans ce navigateur. Utilisez la saisie manuelle.",
+    "cameraError": "Impossible de démarrer la caméra. Utilisez la saisie manuelle.",
+    "undoSuccess": "Pointage annulé.",
+    "undoFailed": "Impossible d'annuler le pointage.",
+    "scannerTitle": "Lecteur de QR",
+    "scannerHelp": "Autorisez l'accès à la caméra, puis pointez-la vers le code QR d'inscription.",
+    "startCamera": "Démarrer la caméra",
+    "stopCamera": "Arrêter la caméra",
+    "manualPlaceholder": "Collez ou saisissez l'identifiant d'inscription",
+    "lookUp": "Rechercher et pointer",
+    "alreadyCheckedIn": "Cette inscription a déjà été pointée.",
+    "checkinSuccess": "Pointage effectué.",
+    "undo": "Annuler le pointage",
+    "scanAgain": "Scanner suivant"
+  },
+  "shared": {
+    "registrationID": "Identifiant d'inscription",
+    "checkedInAt": "Pointé à",
+    "cash": "Comptant",
+    "eTransfer": "Virement Interac",
+    "other": "Autre",
+    "noPaymentRequired": "Aucun paiement requis"
+  },
+  "engineAdmin": {
+    "paid": "Payé",
+    "unpaid": "Impayé"
+  }
+},
+  "vi": {
+  "engineCheckin": {
+    "invalidCode": "Mã này không phải mã QR đăng ký hợp lệ.",
+    "checkinFailed": "Không thể điểm danh đăng ký này.",
+    "cameraUnsupported": "Trình duyệt này không hỗ trợ quét camera. Vui lòng nhập thủ công.",
+    "cameraError": "Không thể bật camera. Vui lòng nhập thủ công.",
+    "undoSuccess": "Đã hủy điểm danh.",
+    "undoFailed": "Không thể hủy điểm danh.",
+    "scannerTitle": "Máy quét QR",
+    "scannerHelp": "Cho phép truy cập camera, sau đó hướng camera vào mã QR đăng ký.",
+    "startCamera": "Bật camera",
+    "stopCamera": "Tắt camera",
+    "manualPlaceholder": "Dán hoặc nhập mã đăng ký",
+    "lookUp": "Tìm và điểm danh",
+    "alreadyCheckedIn": "Đăng ký này đã được điểm danh trước đó.",
+    "checkinSuccess": "Điểm danh thành công.",
+    "undo": "Hủy điểm danh",
+    "scanAgain": "Quét tiếp"
+  },
+  "shared": {
+    "registrationID": "Mã đăng ký",
+    "checkedInAt": "Điểm danh lúc",
+    "cash": "Tiền mặt",
+    "eTransfer": "Chuyển khoản",
+    "other": "Khác",
+    "noPaymentRequired": "Không cần thanh toán"
+  },
+  "engineAdmin": {
+    "paid": "Đã trả",
+    "unpaid": "Chưa trả"
+  }
+},
+};
+
+export function localized(locale: Locale): Labels {
+  return catalogs[locale] ?? catalogs["en"];
 }
 
 export type AdminCheckinScannerLabels = Labels;

@@ -376,11 +376,11 @@
       "free": "Gratuit",
       "registrationClosed": "Les inscriptions sont fermées",
       "registrationClosedBody": "Cet événement n'accepte plus d'inscriptions.",
-      "remainingParts": ["", " restants"],
       "soldOut": "Épuisé",
       "unavailable": "L'inscription n'est pas disponible",
       "unavailableBody": "Le formulaire d'inscription n'est pas disponible pour le moment. Veuillez réessayer plus tard.",
-      "when": "Quand"
+      "when": "Quand",
+      "remainingParts": ["", " restants"]
     },
     "fields": {
       "confirmation": {
@@ -514,25 +514,19 @@
   },
   "login": {
     "codeHeading": "Saisissez votre code de connexion",
-    "codeHintBackup": "Saisissez l'un de vos codes de secours. Chaque code ne fonctionne qu'une fois.",
-    "codeHintEmail": "Nous vous avons envoyé un code à 6 chiffres. Il expire dans 3 minutes.",
-    "codeHintTotp": "Ouvrez votre application d'authentification et saisissez le code à 6 chiffres.",
+    "codeHintEmail": "Nous vous avons envoyé un code à 6 chiffres. Il expire dans 10 minutes.",
     "codeLabel": "Code",
     "codeRequired": "Saisissez le code.",
-    "fieldsRequired": "Saisissez votre courriel et mot de passe.",
+    "fieldsRequired": "Saisissez votre adresse e-mail.",
     "heading": "Bon retour",
-    "intro": "Connectez-vous avec votre courriel et mot de passe.",
+    "intro": "Connectez-vous avec votre adresse e-mail. Nous vous enverrons un code à usage unique.",
     "metaDescription": "Connectez-vous à votre compte pour gérer vos événements.",
     "metaTitle": "Connexion",
-    "rememberMe": "Rester connecté",
     "signInFailed": "La connexion a échoué. Veuillez réessayer.",
     "submit": "Connexion",
     "submitting": "Connexion…",
-    "trustDevice": "Faire confiance à cet appareil pendant 30 jours",
     "unavailable": "La connexion est temporairement indisponible. Réessayez plus tard.",
-    "useBackup": "Utiliser un code de secours",
     "useEmail": "M'envoyer un code",
-    "useTotp": "Utiliser l'application d'authentification",
     "verify": "Vérifier"
   },
   "shared": {
@@ -624,7 +618,6 @@
     "turnstile_failed": "La vérification a échoué. Réessayez.",
     "turnstile_required": "Complétez le défi de vérification.",
     "turnstile_verification_failed": "La vérification n'a pas pu être terminée.",
-    "two_factor_required": "Configurez l'authentification à deux facteurs pour continuer.",
     "unauthorized": "Une connexion est requise.",
     "user_operation_failed": "Impossible de terminer l’opération sur l’utilisateur.",
     "user_request_failed": "Impossible de terminer la demande.",
